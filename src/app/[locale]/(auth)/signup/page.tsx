@@ -1,0 +1,206 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "use-intl";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Home } from "lucide-react";
+import { toast } from "react-toastify";
+import { authService } from "@/services/authService";
+import { loginWithGithub, loginWithGoogle } from "@/lib/actions/auth";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+
+// Spinner custom
+function Spinner({ size = "sm" }: { size?: "sm" | "md" | "lg" }) {
+  const sizeClass =
+    size === "sm" ? "h-4 w-4" : size === "md" ? "h-6 w-6" : "h-8 w-8";
+  return (
+    <div
+      className={`animate-spin rounded-full border-2 border-t-2 border-gray-300 ${sizeClass}`}
+    />
+  );
+}
+
+export default function SignUp() {
+  const t = useTranslations("auth");
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+  const [agree, setAgree] = useState(true);
+  const [showPass, setShowPass] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
+  const isPasswordValid = password.length >= 6;
+  const isAddressValid = address.length > 0;
+  const canSubmit =
+    isEmailValid && isPasswordValid && isAddressValid && agree && !submitting;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    setSubmitting(true);
+    try {
+      const data = await authService.signUp(email, password, address);
+      if (data) router.push("/signin");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || t("serverError"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <Link
+            href="/"
+            className="flex items-center gap-2 mb-4 text-sm text-gray-500"
+          >
+            <Home size={16} /> {t("home")}
+          </Link>
+          <CardTitle className="text-center text-2xl">{t("signUp")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {/* Social login */}
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              onClick={loginWithGoogle}
+            >
+              <FcGoogle size={20} /> {t("signInWithGoogle")}
+            </Button>
+            <Button
+              variant="default"
+              className="flex items-center justify-center gap-2"
+              onClick={loginWithGithub}
+            >
+              <FaGithub size={20} /> {t("signInWithGithub")}
+            </Button>
+          </div>
+
+          {/* OR divider */}
+          <div className="flex items-center my-4">
+            <hr className="flex-grow border-gray-300" />
+            <span className="px-2 text-gray-500">{t("or")}</span>
+            <hr className="flex-grow border-gray-300" />
+          </div>
+
+          {/* Normal signup form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Email */}
+            <div>
+              <Label htmlFor="email">{t("email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder={t("emailPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={
+                  !email
+                    ? ""
+                    : isEmailValid
+                    ? "border-green-500"
+                    : "border-red-500"
+                }
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <Label htmlFor="password">{t("password")}</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPass ? "text" : "password"}
+                  placeholder={t("passwordPlaceholder")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={
+                    !password
+                      ? ""
+                      : isPasswordValid
+                      ? "border-green-500"
+                      : "border-red-500"
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <Label htmlFor="address">{t("address")}</Label>
+              <Input
+                id="address"
+                type="text"
+                placeholder={t("addressPlaceholder")}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className={
+                  !address
+                    ? ""
+                    : isAddressValid
+                    ? "border-green-500"
+                    : "border-red-500"
+                }
+                required
+              />
+            </div>
+
+            {/* Agree */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="agree"
+                checked={agree}
+                onCheckedChange={(checked) => setAgree(Boolean(checked))}
+              />
+              <Label htmlFor="agree">{t("agreeTerms")}</Label>
+            </div>
+
+            {/* Submit */}
+            <Button type="submit" disabled={!canSubmit} className="w-full">
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" /> {t("signingUp")}
+                </span>
+              ) : (
+                t("signUp")
+              )}
+            </Button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-sm text-gray-600 mt-4">
+            {t("alreadyAccount")}{" "}
+            <Link href="/signin" className="text-blue-600 hover:underline">
+              {t("signIn")}
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}

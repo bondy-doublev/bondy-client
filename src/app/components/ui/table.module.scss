@@ -1,0 +1,16 @@
+.table {
+  @apply relative w-full overflow-auto;
+  @apply bg-background border;
+
+  tr {
+
+    th:not(:last-child),
+    td:not(:last-child) {
+      @apply border-r;
+    }
+  }
+
+  thead {
+    background-color: var(--table-header-bg);
+  }
+}
