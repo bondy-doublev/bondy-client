@@ -16,14 +16,14 @@ export default function Sidebar() {
         <div
           key={item.id}
           onClick={() => setActive(item.id)}
-          className={`flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer hover:bg-green/70 transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer hover:bg-green/70 transition-colors text-black-always ${
             active === item.id ? "bg-green/80 font-semibold" : ""
           }`}
         >
           <div className="relative">
             {item.icon}
             {item.badge && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-4 h-4 flex items-center justify-center rounded-full text-white">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-4 h-4 flex items-center justify-center rounded-full text-white-always">
                 {item.badge}
               </span>
             )}

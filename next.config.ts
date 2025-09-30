@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "hwres.ldmnq.com",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos", // 👈 thêm cái này
+      },
     ],
   },
 };

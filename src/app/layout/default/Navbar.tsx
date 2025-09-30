@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import LanguageSwitcher from "@/app/components/header/LanguageSwitcher";
-import { ModeToggle } from "@/app/components/header/ModeToggle";
-import NotificationDropdown from "@/app/components/header/NotificationDropdown";
-import UserDropdown from "@/app/components/header/UserDropdown";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Users,
@@ -12,21 +8,30 @@ import {
   Users2,
   MessageCircle,
   Search,
-  X,
 } from "lucide-react";
 import Image from "next/image";
-import { Input } from "@/components/ui/input";
+import LanguageSwitcher from "@/app/components/header/LanguageSwitcher";
+import { ModeToggle } from "@/app/components/header/ModeToggle";
+import NotificationDropdown from "@/app/components/header/NotificationDropdown";
+import UserDropdown from "@/app/components/header/UserDropdown";
 import MenuDrawer from "@/app/components/header/MenuDrawer";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { useRef } from "react";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const navItems = [
+    { path: "/", icon: Home },
+    { path: "/friends", icon: Users },
+    { path: "/messages", icon: MessageCircle },
+    { path: "/videos", icon: Video },
+    { path: "/groups", icon: Users2 },
+  ];
 
   return (
     <header className="w-full bg-green text-foreground shadow-md sticky top-0 z-50">
@@ -39,8 +44,12 @@ export default function Navbar() {
             src={"/images/logo/favicon.png"}
             alt="Logo"
             className="w-8 h-8 rounded cursor-pointer"
+            onClick={() => router.push("/")}
           />
-          <h2 className="text-xl font-semibold transition-colors duration-300 ml-[-8px]">
+          <h2
+            className="text-xl font-semibold cursor-pointer"
+            onClick={() => router.push("/")}
+          >
             Bondy
           </h2>
 
@@ -60,7 +69,6 @@ export default function Navbar() {
               <DialogTrigger asChild>
                 <Search className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
               </DialogTrigger>
-
               <DialogContent className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
                 <DialogTitle></DialogTitle>
                 <Input
@@ -75,14 +83,18 @@ export default function Navbar() {
 
         {/* Center: Navigation icons */}
         <div className="hidden sm:flex items-center space-x-8 justify-center flex-1">
-          <Home className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
-          <Users className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
-          <MessageCircle className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
-          <Video className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
-          <Users2 className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
+          {navItems.map(({ path, icon: Icon }) => (
+            <Icon
+              key={path}
+              onClick={() => router.push(path)}
+              className={`w-6 h-6 cursor-pointer transition ${
+                pathname === path ? "text-cyan" : "hover:text-cyan"
+              }`}
+            />
+          ))}
         </div>
 
-        {/* Right section */}
+        {/* Right */}
         <div className="flex items-center space-x-4 flex-1 justify-end">
           {/* Desktop */}
           <div className="hidden sm:flex items-center space-x-4">
@@ -91,10 +103,9 @@ export default function Navbar() {
             <NotificationDropdown />
             <UserDropdown />
           </div>
-
           {/* Mobile */}
           <div className="sm:hidden flex items-center space-x-4">
-            <LanguageSwitcher />  
+            <LanguageSwitcher />
             <NotificationDropdown />
             <MessageCircle className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
             <UserDropdown />

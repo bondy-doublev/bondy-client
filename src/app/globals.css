@@ -112,6 +112,14 @@
     color: var(--color-white);
   }
 
+  .text-white-always {
+    color: #ffffff !important;
+  }
+
+  .text-black-always {
+    color: #000000 !important;
+  }
+
   .text-black {
     color: var(--color-black);
   }
@@ -236,6 +244,7 @@ button:hover,
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
   --color-black: #ffffff;
+  --color-white: #000000;
 }
 
 @layer base {

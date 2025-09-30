@@ -21,7 +21,7 @@ export default function NotificationDropdown() {
         <div className="relative w-6 h-6 flex items-center justify-center cursor-pointer rounded-full transition">
           <Bell className="w-6 h-6" />
           {notifications.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white-always text-xs rounded-full flex items-center justify-center">
               {notifications.length}
             </span>
           )}
