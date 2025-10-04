@@ -7,9 +7,13 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Home } from "lucide-react";
 import { toast } from "react-toastify";
 import { authService } from "@/services/authService";
-import { loginWithGithub, loginWithGoogle } from "@/lib/actions/auth";
+import {
+  loginWithDiscord,
+  loginWithGithub,
+  loginWithGoogle,
+} from "@/lib/actions/auth";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
+import { FaDiscord, FaGithub } from "react-icons/fa";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,16 +38,13 @@ export default function SignUp() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [address, setAddress] = useState("");
   const [agree, setAgree] = useState(true);
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
-  const isPasswordValid = password.length >= 6;
-  const isAddressValid = address.length > 0;
-  const canSubmit =
-    isEmailValid && isPasswordValid && isAddressValid && agree && !submitting;
+  const isPasswordValid = password.length >= 8;
+  const canSubmit = isEmailValid && isPasswordValid && !submitting;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,8 +52,10 @@ export default function SignUp() {
 
     setSubmitting(true);
     try {
-      const data = await authService.signUp(email, password, address);
-      if (data) router.push("/signin");
+      // lưu tạm email + password + agree vào query params hoặc sessionStorage
+      sessionStorage.setItem("signupData", JSON.stringify({ email, password }));
+
+      router.push("/information"); // chuyển sang trang nhập full info
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || t("serverError"));
@@ -75,20 +78,21 @@ export default function SignUp() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {/* Social login */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
             <Button
               variant="outline"
-              className="flex items-center justify-center gap-2"
               onClick={loginWithGoogle}
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <FcGoogle size={20} /> {t("signInWithGoogle")}
             </Button>
+
             <Button
-              variant="default"
-              className="flex items-center justify-center gap-2"
-              onClick={loginWithGithub}
+              style={{ backgroundColor: "#5865F2", color: "white" }}
+              className="flex-1 flex items-center justify-center gap-2"
+              onClick={loginWithDiscord}
             >
-              <FaGithub size={20} /> {t("signInWithGithub")}
+              <FaDiscord size={20} /> {t("signInWithDiscord")}
             </Button>
           </div>
 
@@ -150,26 +154,6 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Address */}
-            <div>
-              <Label htmlFor="address">{t("address")}</Label>
-              <Input
-                id="address"
-                type="text"
-                placeholder={t("addressPlaceholder")}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className={
-                  !address
-                    ? ""
-                    : isAddressValid
-                    ? "border-green-500"
-                    : "border-red-500"
-                }
-                required
-              />
-            </div>
-
             {/* Agree */}
             <div className="flex items-center gap-2">
               <Checkbox
@@ -187,7 +171,7 @@ export default function SignUp() {
                   <Spinner size="sm" /> {t("signingUp")}
                 </span>
               ) : (
-                t("signUp")
+                t("nextStep")
               )}
             </Button>
           </form>

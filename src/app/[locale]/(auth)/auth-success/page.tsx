@@ -12,15 +12,25 @@ export default function SignInSuccessPage() {
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    const email = searchParams.get("email");
-    const name = searchParams.get("name");
-    const image = searchParams.get("image") || undefined;
+    const email = searchParams.get("email") ?? "";
+    const name = searchParams.get("name") ?? "";
+    const image = searchParams.get("image") ?? "";
+    const provider = searchParams.get("provider") ?? "";
+
+    const [firstName, ...rest] = name.split(" ");
+    const lastName = rest.join(" ");
 
     if (email && name) {
       authService
-        .signInOAuth(email, name, image)
+        .oauth2({
+          provider,
+          email,
+          avatarUrl: image,
+          firstName,
+          lastName,
+        })
         .then((res) => {
-          setUser(res.user);
+          setUser(res.data.user);
           router.replace("/");
         })
         .catch((err) => {
@@ -31,7 +41,7 @@ export default function SignInSuccessPage() {
 
   return (
     <div className="flex justify-center items-center min-h-[300px] w-full">
-      <Spinner size="xl" aria-label="Sign in..." />
+      <Spinner aria-label="Sign in..." />
     </div>
   );
 }

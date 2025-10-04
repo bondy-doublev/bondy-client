@@ -44,8 +44,8 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      const response = await authService.signIn(email, password);
-      setUser(response.user);
+      const response = await authService.login(email, password);
+      setUser(response.data.user);
       router.push("/");
     } catch (err: any) {
       console.error(err);
@@ -69,27 +69,19 @@ export default function SignIn() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4 mt-4">
           {/* Social login */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
             <Button
               variant="outline"
               onClick={loginWithGoogle}
-              className="flex items-center justify-center gap-2"
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <FcGoogle size={20} /> {t("signInWithGoogle")}
             </Button>
 
             <Button
-              variant="default"
-              onClick={loginWithGithub}
-              className="flex items-center justify-center gap-2"
-            >
-              <FaGithub size={20} /> {t("signInWithGithub")}
-            </Button>
-
-            <Button
-              variant="default"
+              style={{ backgroundColor: "#5865F2", color: "white" }}
+              className="flex-1 flex items-center justify-center gap-2"
               onClick={loginWithDiscord}
-              className="flex items-center justify-center gap-2"
             >
               <FaDiscord size={20} /> {t("signInWithDiscord")}
             </Button>
@@ -105,7 +97,13 @@ export default function SignIn() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={isEmailValid ? "border-green-500" : "border-red-500"}
+                className={
+                  email.length === 0
+                    ? ""
+                    : isEmailValid
+                    ? "border-green-500"
+                    : "border-red-500"
+                }
                 required
               />
             </div>
@@ -120,10 +118,15 @@ export default function SignIn() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={
-                    isPasswordValid ? "border-green-500" : "border-red-500"
+                    password.length === 0
+                      ? ""
+                      : isPasswordValid
+                      ? "border-green-500"
+                      : "border-red-500"
                   }
                   required
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}

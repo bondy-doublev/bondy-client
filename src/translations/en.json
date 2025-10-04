@@ -33,6 +33,16 @@
     "contactSupport": "Contact Support"
   },
   "auth": {
+    "additionalInfo": "Additional Information",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "middleName": "Middle name",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "dob": "Date of birth",
+    "nextStep": "Next step",
     "or": "Or",
     "addressPlaceholder": "366 New York City",
     "emailPlaceholder": "your@email.com",

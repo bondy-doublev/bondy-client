@@ -1,159 +1,177 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { removeAccessToken, setAccessToken } from "@/utils/token";
 import { api } from "@/lib/axios";
-
+import { removeAccessToken, setAccessToken } from "@/utils/token";
 import axios, { AxiosResponse } from "axios";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/auth`;
 
 export const authService = {
-  async signUp(email: string, password: string, address: string) {
-    try {
-      const response: AxiosResponse = await axios.post(`${API_URL}/signup`, {
-        email,
-        address,
-        password,
-      });
-
-      return response;
-    } catch (error) {
-      throw new Error("Failed to sign up");
-    }
-  },
-
   // Đăng nhập
-  async signIn(email: string, password: string) {
+  async login(email: string, password: string) {
     try {
-      const response: AxiosResponse = await axios.post(`${API_URL}/signin`, {
+      const response: AxiosResponse = await api.post(`${API_URL}/login`, {
         email,
         password,
       });
-      const { tokens } = response.data;
+      const { accessToken } = response.data.data;
 
       // Lưu token vào localStorage và cookie
-      setAccessToken(tokens.accessToken);
-      localStorage.setItem("refreshToken", tokens.refreshToken); // Lưu refresh token vào localStorage
+      setAccessToken(accessToken);
 
       await axios.post("/api/login", {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        access_token: accessToken,
       });
 
-      return response.data;
-    } catch (error) {
-      throw new Error("Invalid credentials");
+      return response.data; // trả về AuthResponse
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "Login failed");
     }
   },
 
-  async signInOAuth(email: string, name: string, image?: string) {
+  // OAuth2 login
+  async oauth2(data: {
+    provider: string;
+    email: string;
+    avatarUrl: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+  }) {
     try {
-      const response: AxiosResponse = await axios.post(`${API_URL}/oauth`, {
-        email,
-        name,
-        image,
-      });
-      console.log(email, name, image, response);
-
-      const { tokens } = response.data;
+      const response: AxiosResponse = await api.post(`${API_URL}/oauth2`, data);
+      const { accessToken } = response.data.data;
 
       // Lưu token vào localStorage và cookie
-      setAccessToken(tokens.accessToken);
-      localStorage.setItem("refreshToken", tokens.refreshToken); // Lưu refresh token vào localStorage
+      setAccessToken(accessToken);
 
       await axios.post("/api/login", {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        access_token: accessToken,
       });
 
       return response.data;
-    } catch (error) {
-      console.error("OAuth login failed:", error);
-      throw new Error("OAuth login failed");
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "OAuth2 login failed");
     }
   },
 
+  // Logout
   async logout() {
     try {
       await axios.post("/api/logout");
 
       removeAccessToken();
-      localStorage.removeItem("refreshToken");
     } catch (error) {
       throw new Error("Failed to log out");
     }
   },
 
-  async getProfile() {
-    const res = await api.get("/users/profile");
-    return res.data; // user info
-  },
-
-  // Làm mới token (sử dụng refreshToken)
-  async refreshTokens(refreshTokenParams: string) {
+  // Refresh token (cookie-based)
+  async refreshToken() {
     try {
-      const response: AxiosResponse = await axios.post(`${API_URL}/refresh`, {
-        refreshToken: refreshTokenParams,
-      });
-      const { accessToken, refreshToken } = response.data;
-
-      // Lưu token mới vào localStorage và cookie
-      setAccessToken(accessToken);
-      localStorage.setItem("refreshToken", refreshToken); // Lưu refresh token vào localStorage
-
-      return response.data;
-    } catch (error) {
-      throw new Error("Failed to refresh tokens");
+      const response: AxiosResponse = await api.post(`${API_URL}/refresh`);
+      return response.data; // trả về AuthResponse
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "Refresh token failed");
     }
   },
 
-  // Gửi yêu cầu gửi mã OTP qua email
-  async requestResetPassword(email: string) {
+  // Register init
+  async registerInit(data: {
+    email: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    gender: boolean;
+    dob: string; // ISO string
+    password: string;
+  }) {
     try {
-      const res = await axios.post(`${API_URL}/forgot`, { email });
-      return res.data;
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/register/init`,
+        data
+      );
+      return response.data; // trả về MessageResponse
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "Register failed");
+    }
+  },
+
+  // Register verify OTP
+  async registerVerify(email: string, otpCode: string) {
+    try {
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/register/verify`,
+        {
+          email,
+          otpCode,
+        }
+      );
+      return response.data; // MessageResponse
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "Verify OTP failed");
+    }
+  },
+
+  // Change password (user logged in)
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ) {
+    try {
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/change-password`,
+        {
+          oldPassword,
+          newPassword,
+          confirmPassword,
+        }
+      );
+      return response.data; // MessageResponse
     } catch (error: any) {
       throw new Error(
-        error?.response?.data?.message || "Failed to request OTP"
+        error?.response?.data?.message || "Change password failed"
       );
     }
   },
 
-  // Xác thực mã OTP và lấy resetPasswordToken
-  async verifyOtp(email: string, otp: string) {
+  // Send reset password OTP
+  async sendResetPasswordOtp(email: string) {
     try {
-      const res = await axios.post(`${API_URL}/verify-otp`, { email, otp });
-      return res.data;
-    } catch (error: any) {
-      throw new Error(
-        error?.response?.data?.message || "Failed to verify OTP"
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/reset-password-otp`,
+        {
+          email,
+        }
       );
+      return response.data; // MessageResponse
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || "Send OTP failed");
     }
   },
 
-  // Đặt lại mật khẩu bằng resetPasswordToken
-  async resetPassword(resetPasswordToken: string, newPassword: string) {
+  // Reset password using OTP
+  async resetPassword(
+    email: string,
+    newPassword: string,
+    confirmPassword: string,
+    otpCode: string
+  ) {
     try {
-      const res = await axios.post(`${API_URL}/reset-password`, {resetPasswordToken, newPassword,
-      });
-      return res.data;
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/reset-password`,
+        {
+          email,
+          newPassword,
+          confirmPassword,
+          otpCode,
+        }
+      );
+      return response.data; // MessageResponse
     } catch (error: any) {
       throw new Error(
-        error?.response?.data?.message || "Failed to reset password"
+        error?.response?.data?.message || "Reset password failed"
       );
     }
   },
-
-// Đổi mật khẩu khi đang đăng nhập
-async changePassword(oldPassword: string, newPassword: string) {
-  try {
-    const res = await api.post(`/auth/change-password`, {
-      oldPassword,
-      newPassword,
-    });
-    return res.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || "Failed to change password");
-  }
-},
-
 };

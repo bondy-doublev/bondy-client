@@ -33,6 +33,16 @@
     "contactSupport": "Hỗ trợ liên hệ"
   },
   "auth": {
+    "additionalInfo": "Thông tin bổ sung",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "middleName": "Tên đệm",
+    "gender": "Giới tính",
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác",
+    "dob": "Ngày sinh",
+    "nextStep": "Bước tiếp theo",
     "or": "Hoặc",
     "addressPlaceholder": "366 Hồ Chí Minh City",
     "emailPlaceholder": "toi@email.com",

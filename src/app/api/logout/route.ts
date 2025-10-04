@@ -9,17 +9,11 @@ export async function POST() {
     await logout();
   }
 
-  response.cookies.set("token", "", {
+  response.cookies.set("accessToken", "", {
     httpOnly: true,
     path: "/",
     maxAge: 0,
   });
-
-  response.cookies.set("refreshToken", "", {
-    httpOnly: true,
-    path: "/",
-    maxAge: 0,
-  });
-
+  
   return response;
 }
