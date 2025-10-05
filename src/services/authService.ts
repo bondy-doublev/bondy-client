@@ -24,7 +24,7 @@ export const authService = {
 
       return response.data; // trả về AuthResponse
     } catch (error: any) {
-      throw new Error(error?.response?.data?.message || "Login failed");
+      throw error;
     }
   },
 

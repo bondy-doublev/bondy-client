@@ -66,6 +66,8 @@
     "forgotPasswordDesc": "Please enter your email address to search for your account.",
     "sendResetLink": "Send",
     "signInWithGoogle": "Sign in with Google",
+    "signInWithGoogleCompact": "Using Google",
+    "signInWithDiscordCompact": "Using Discord",
     "signInWithGithub": "Sign in with Github",
     "signInWithDiscord": "Sign in with Discord",
     "sending": "Sending...",
@@ -80,7 +82,7 @@
     "resetPasswordDesc": "Enter your new password.",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
-    "note": "New password must have at least 6 characters, 1 uppercase letter and 1 special character",
+    "note": "New password must have at least 8 characters",
     "reset": "Reset",
     "passwordResetSuccess": "Your password has been reset successfully."
   },

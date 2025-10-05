@@ -2,7 +2,7 @@
 import { api } from "../lib/axios";
 import axios, { AxiosResponse } from "axios";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/user`;
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/users`;
 
 export const userService = {
   async getAll() {
@@ -38,21 +38,38 @@ export const userService = {
     }
   },
 
-async updateProfile(data: {
-    name?: string;
-    phone?: string;
-    avatar?: string;
-    address?: string;
-    shippingAddress?: string;
+  async updateProfile(data: {
+    firstName?: string;
+    middleName?: string;
+    lastName?: string;
+    dob?: string;
+    gender?: boolean;
   }) {
     try {
-      const response: AxiosResponse = await api.put(
-        `${API_URL}/me`,
-        data
-      );
+      const response: AxiosResponse = await api.put(`${API_URL}`, data);
       return response.data;
     } catch (error) {
       throw new Error("Failed to update profile");
+    }
+  },
+
+  async updateAvatar(file: File) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response: AxiosResponse = await api.put(
+        `${API_URL}/avatar`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to update avatar");
     }
   },
 
@@ -86,5 +103,4 @@ async updateProfile(data: {
       throw new Error("Failed to toggle user");
     }
   },
-  
 };

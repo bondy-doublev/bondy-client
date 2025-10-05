@@ -51,6 +51,8 @@
     "home": "Trang chủ",
     "signInWithGoogle": "Đăng nhập với Google",
     "signInWithGithub": "Đăng nhập với Github",
+    "signInWithGoogleCompact": "Với Google",
+    "signInWithDiscordCompact": "Với Discord",
     "signInWithDiscord": "Đăng nhập với Discord",
     "email": "Email",
     "password": "Mật khẩu",
@@ -80,7 +82,7 @@
     "resetPasswordDesc": "Nhập mật khẩu mới của bạn.",
     "newPassword": "Mật khẩu mới",
     "confirmPassword": "Nhập lại mật khẩu mới",
-    "note": "Mật khẩu mới phải có ít nhất 6 ký tự, 1 chữ in hoa và 1 ký tự đặc biệt",
+    "note": "Mật khẩu mới phải có ít nhất 8 ký tự",
     "reset": "Đặt lại",
     "passwordResetSuccess": "Mật khẩu của bạn đã được đặt lại thành công."
   },

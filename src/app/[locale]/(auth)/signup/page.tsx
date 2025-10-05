@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -64,6 +64,11 @@ export default function SignUp() {
     }
   }
 
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("email_hash");
+    if (savedEmail) setEmail(atob(savedEmail));
+  }, []);
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
@@ -84,7 +89,12 @@ export default function SignUp() {
               onClick={loginWithGoogle}
               className="flex-1 flex items-center justify-center gap-2"
             >
-              <FcGoogle size={20} /> {t("signInWithGoogle")}
+              <FcGoogle size={20} />
+              {/* Desktop: full text / Mobile: compact text */}
+              <span className="hidden sm:inline">{t("signInWithGoogle")}</span>
+              <span className="inline sm:hidden">
+                {t("signInWithGoogleCompact")}
+              </span>
             </Button>
 
             <Button
@@ -92,7 +102,11 @@ export default function SignUp() {
               className="flex-1 flex items-center justify-center gap-2"
               onClick={loginWithDiscord}
             >
-              <FaDiscord size={20} /> {t("signInWithDiscord")}
+              <FaDiscord size={20} />
+              <span className="hidden sm:inline">{t("signInWithDiscord")}</span>
+              <span className="inline sm:hidden">
+                {t("signInWithDiscordCompact")}
+              </span>
             </Button>
           </div>
 

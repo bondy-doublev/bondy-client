@@ -20,14 +20,9 @@ export default function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const hasUpperCase = /[A-Z]/.test(newPassword);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
-
   const canSubmit =
     oldPassword.length > 0 &&
-    newPassword.length >= 6 &&
-    hasUpperCase &&
-    hasSpecialChar &&
+    newPassword.length >= 8 &&
     newPassword === confirmPassword &&
     !submitting;
 
@@ -37,7 +32,11 @@ export default function ChangePassword() {
 
     setSubmitting(true);
     try {
-      await authService.changePassword(oldPassword, newPassword);
+      await authService.changePassword(
+        oldPassword,
+        newPassword,
+        confirmPassword
+      );
       toast.success(t("passwordChanged"));
       setOldPassword("");
       setNewPassword("");
@@ -51,7 +50,7 @@ export default function ChangePassword() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-8">
       <div className="text-center">
         <h1 className="text-2xl font-bold">{t("changePassword")}</h1>
       </div>
@@ -88,12 +87,10 @@ export default function ChangePassword() {
         </div>
         <p
           className={`text-red-600 text-sm italic mt-2 ${
-            hasUpperCase && hasSpecialChar && newPassword.length >= 6
-              ? "hidden"
-              : ""
+            newPassword.length === 0 || newPassword.length >= 8 ? "hidden" : ""
           }`}
         >
-          {t("note")}
+          {t("note")} 
         </p>
       </div>
 
@@ -108,11 +105,13 @@ export default function ChangePassword() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            {...(confirmPassword
-              ? newPassword === confirmPassword
-                ? { className: "pl-10 border-green-500" }
-                : { className: "pl-10 border-red-500" }
-              : {})}
+            className={`pl-10 ${
+              confirmPassword
+                ? newPassword === confirmPassword
+                  ? "border-green-500"
+                  : "border-red-500"
+                : ""
+            }`}
           />
         </div>
       </div>
