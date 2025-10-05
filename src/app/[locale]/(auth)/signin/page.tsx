@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import Spinner from "@/app/components/ui/spinner";
+import { extractErrorMessage } from "@/utils/format";
 
 export default function SignIn() {
   const t = useTranslations("auth");
@@ -45,15 +46,25 @@ export default function SignIn() {
     setSubmitting(true);
     try {
       const response = await authService.login(email, password);
+      if (remember) {
+        localStorage.setItem("email_hash", btoa(email));
+      } else {
+        localStorage.removeItem("email_hash");
+      }
       setUser(response.data.user);
       router.push("/");
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || t("serverError"));
+      const message = extractErrorMessage(err);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
   }
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("email_hash");
+    if (savedEmail) setEmail(atob(savedEmail));
+  }, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -75,7 +86,12 @@ export default function SignIn() {
               onClick={loginWithGoogle}
               className="flex-1 flex items-center justify-center gap-2"
             >
-              <FcGoogle size={20} /> {t("signInWithGoogle")}
+              <FcGoogle size={20} />
+              {/* Desktop: full text / Mobile: compact text */}
+              <span className="hidden sm:inline">{t("signInWithGoogle")}</span>
+              <span className="inline sm:hidden">
+                {t("signInWithGoogleCompact")}
+              </span>
             </Button>
 
             <Button
@@ -83,7 +99,11 @@ export default function SignIn() {
               className="flex-1 flex items-center justify-center gap-2"
               onClick={loginWithDiscord}
             >
-              <FaDiscord size={20} /> {t("signInWithDiscord")}
+              <FaDiscord size={20} />
+              <span className="hidden sm:inline">{t("signInWithDiscord")}</span>
+              <span className="inline sm:hidden">
+                {t("signInWithDiscordCompact")}
+              </span>
             </Button>
           </div>
 

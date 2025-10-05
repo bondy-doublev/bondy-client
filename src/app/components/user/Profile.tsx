@@ -1,195 +1,210 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "use-intl";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { userService } from "@/services/userService";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import Spinner from "@/app/components/ui/spinner";
-export default function ProfileForm() {
-  const t = useTranslations("user");
 
+export default function ProfileForm() {
+  const [userInfo, setUserInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    avatar: "",
-    address: "",
-    shippingAddress: "",
-  });
-
-  const [originalProfile, setOriginalProfile] = useState(profile);
-
-  useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const data = await userService.getProfile();
-        setProfile({
-          name: data.name || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          avatar: data.avatar || "",
-          address: data.address || "",
-          shippingAddress: data.shippingAddress || "",
-        });
-        setOriginalProfile({
-          name: data.name || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          avatar: data.avatar || "",
-          address: data.address || "",
-          shippingAddress: data.shippingAddress || "",
-        });
-      } catch (err: any) {
-        console.error(err);
-        toast.error(t("loadError"));
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProfile();
-  }, []);
-
-  const handleButtonClick = async () => {
-    if (!isEditing) {
-      setIsEditing(true);
-    } else {
-      setSaving(true);
-      try {
-        await userService.updateProfile({
-          name: profile.name,
-          phone: profile.phone,
-          avatar: profile.avatar,
-          address: profile.address,
-          shippingAddress: profile.shippingAddress,
-        });
-        toast.success(t("updateSuccess"));
-        setOriginalProfile(profile);
-        setIsEditing(false);
-      } catch (err: any) {
-        console.error(err);
-        toast.error(err.message || t("updateError"));
-      } finally {
-        setSaving(false);
-      }
+  const handleGetUserInfo = async () => {
+    try {
+      const res = await userService.getProfile();
+      setUserInfo(res.data);
+    } catch {
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  const handleChange = (key: string, value: any) => {
+    setUserInfo((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      if (avatarFile) await userService.updateAvatar(avatarFile);
+
+      await userService.updateProfile({
+        firstName: userInfo.firstName,
+        middleName: userInfo.middleName,
+        lastName: userInfo.lastName,
+        dob: userInfo.dob,
+        gender: userInfo.gender,
+      });
+
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+      handleGetUserInfo();
+    } catch {
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (isEditing) fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setUserInfo((prev: any) => ({
+        ...prev,
+        avatarUrl: URL.createObjectURL(file),
+      }));
+    }
+  };
+
+  useEffect(() => {
+    handleGetUserInfo();
+  }, []);
+
+  if (loading)
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex justify-center items-center h-60">
         <Spinner />
       </div>
     );
-  }
+
+  if (!userInfo)
+    return <p className="text-center text-gray-500">No data found</p>;
 
   return (
-    <Card className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
-      {/* Avatar */}
-      <div className="flex-shrink-0 w-full md:w-1/3 flex flex-col items-center md:items-start space-y-2">
-        {profile.avatar ? (
-          <img
-            src={profile.avatar}
-            alt="avatar"
-            className="w-48 h-48 rounded-full object-cover border border-gray-300"
-          />
-        ) : (
-          <div className="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border border-gray-300 text-center p-2">
-            {t("noImage") || "No image"}
+    <div className="flex justify-center">
+      <div className="w-full bg-white rounded-2xl p-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold">Profile Information</h2>
+          {!isEditing ? (
+            <Button variant="outline" onClick={() => setIsEditing(true)}>
+              Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Avatar */}
+        <div className="flex flex-col items-center gap-3 mb-6">
+          <div
+            className={`w-28 h-28 rounded-full border-2 border-gray-200 overflow-hidden relative cursor-pointer ${
+              isEditing ? "hover:opacity-80" : ""
+            }`}
+            onClick={handleAvatarClick}
+          >
+            <img
+              src={`${userInfo.avatarUrl}`}
+              alt="avatar"
+              className="w-full h-full object-cover"
+            />
+            {isEditing && (
+              <div className="absolute inset-0 bg-black/40 text-white text-sm flex items-center justify-center">
+                Change
+              </div>
+            )}
           </div>
-        )}
-        {isEditing && (
           <input
             type="file"
             accept="image/*"
-            className="mt-2"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                setProfile({ ...profile, avatar: reader.result as string });
-              };
-              reader.readAsDataURL(file);
-            }}
+            ref={fileInputRef}
+            onChange={handleAvatarChange}
+            className="hidden"
           />
-        )}
+        </div>
+
+        {/* Email */}
+        <div className="mb-4">
+          <Label>Email</Label>
+          <Input value={userInfo.email} disabled />
+        </div>
+
+        {/* Name row */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <Label>First Name</Label>
+            <Input
+              value={userInfo.firstName || ""}
+              onChange={(e) => handleChange("firstName", e.target.value)}
+              disabled={!isEditing}
+            />
+          </div>
+          <div>
+            <Label>Middle Name</Label>
+            <Input
+              value={userInfo.middleName || ""}
+              onChange={(e) => handleChange("middleName", e.target.value)}
+              disabled={!isEditing}
+            />
+          </div>
+          <div>
+            <Label>Last Name</Label>
+            <Input
+              value={userInfo.lastName || ""}
+              onChange={(e) => handleChange("lastName", e.target.value)}
+              disabled={!isEditing}
+            />
+          </div>
+        </div>
+
+        {/* DOB + Gender */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Date of Birth</Label>
+            <Input
+              type="date"
+              value={userInfo.dob ? userInfo.dob.split("T")[0] : ""}
+              onChange={(e) => handleChange("dob", e.target.value)}
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <Label>Gender</Label>
+            <Select
+              value={userInfo.gender ? "true" : "false"}
+              onValueChange={(v) => handleChange("gender", v === "true")}
+              disabled={!isEditing}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Male</SelectItem>
+                <SelectItem value="false">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
-
-      {/* Form fields */}
-      <div className="flex-1 w-full md:w-2/3 space-y-4">
-        <div>
-          <Label htmlFor="email">{t("email")}</Label>
-          <Input id="email" value={profile.email} disabled />
-        </div>
-        <div>
-          <Label htmlFor="name">{t("name")}</Label>
-          <Input
-            id="name"
-            value={profile.name}
-            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-            required
-            disabled={!isEditing}
-          />
-        </div>
-        <div>
-          <Label htmlFor="phone">{t("phone")}</Label>
-          <Input
-            id="phone"
-            value={profile.phone}
-            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-            disabled={!isEditing}
-          />
-        </div>
-        <div>
-          <Label htmlFor="address">{t("address")}</Label>
-          <Input
-            id="address"
-            value={profile.address}
-            onChange={(e) =>
-              setProfile({ ...profile, address: e.target.value })
-            }
-            disabled={!isEditing}
-          />
-        </div>
-        <div>
-          <Label htmlFor="shippingAddress">{t("shippingAddress")}</Label>
-          <Input
-            id="shippingAddress"
-            value={profile.shippingAddress}
-            onChange={(e) =>
-              setProfile({ ...profile, shippingAddress: e.target.value })
-            }
-            disabled={!isEditing}
-          />
-        </div>
-
-        {/* Save / Edit button */}
-        <Button
-          type="button"
-          className="w-full mt-4"
-          onClick={handleButtonClick}
-          disabled={saving}
-        >
-          {isEditing ? (
-            saving ? (
-              <Spinner className="h-4 w-4" />
-            ) : (
-              t("save")
-            )
-          ) : (
-            t("update")
-          )}
-        </Button>
-      </div>
-    </Card>
+    </div>
   );
 }

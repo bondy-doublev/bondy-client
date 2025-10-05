@@ -1,223 +1,177 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "use-intl";
-import { useRouter } from "next/navigation";
-import { Card, Label, TextInput, Button, Spinner } from "flowbite-react";
-import { EnvelopeIcon, KeyIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { authService } from "@/services/authService";
+import Spinner from "@/app/components/ui/spinner";
+import { extractErrorMessage } from "@/utils/format";
+import { Eye, EyeOff } from "lucide-react";
 
-export default function ForgotPasswordPage() {
-  const t = useTranslations("auth");
-  const router = useRouter();
-
-  const [step, setStep] = useState<"email" | "otp" | "reset">("email");
-
+export default function ForgotPassword() {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [resetPasswordToken, setResetPasswordToken] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
-
-  // Step 1: Submit email
-  async function handleEmailSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
+  async function handleSendOtp() {
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Email không hợp lệ");
+      return;
+    }
+    setLoading(true);
     try {
-      await authService.requestResetPassword(email);
-      toast.success(t("resetLinkSent"));
-      setStep("otp");
+      await authService.sendResetPasswordOtp(email);
+      toast.success("Đã gửi mã OTP, vui lòng kiểm tra email");
+      setStep(2);
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || t("serverError"));
+      toast.error(extractErrorMessage(err));
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   }
 
-  // Step 2: Verify OTP
-  async function handleOtpSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await authService.verifyOtp(email, otp);
-      if (res.valid) {
-        setResetPasswordToken(res.resetPasswordToken);
-        toast.success(t("otpValid"));
-        setStep("reset");
-      } else {
-        toast.error(t("otpInvalid"));
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || t("serverError"));
-    } finally {
-      setSubmitting(false);
+  async function handleVerifyOtp() {
+    if (otp.length < 4) {
+      toast.error("Mã OTP không hợp lệ");
+      return;
     }
+    setStep(3);
   }
 
-  // Step 3: Reset password
-  const hasUpperCase = /[A-Z]/.test(newPassword);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
-  const canSubmit =
-    newPassword.length >= 6 &&
-    hasUpperCase &&
-    hasSpecialChar &&
-    newPassword === confirmPassword &&
-    !submitting;
+  async function handleResetPassword() {
+    if (newPass.length < 6) {
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
+    if (newPass !== confirmPass) {
+      toast.error("Mật khẩu xác nhận không khớp");
+      return;
+    }
 
-  async function handleResetSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit) return;
-
-    setSubmitting(true);
+    setLoading(true);
     try {
-      await authService.resetPassword(resetPasswordToken, newPassword);
-      toast.success(t("passwordResetSuccess"));
-      router.push("/signin");
+      await authService.resetPassword(email, newPass, confirmPass, otp);
+      toast.success("Đổi mật khẩu thành công!");
+      window.location.href = "/signin";
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || t("serverError"));
+      toast.error(extractErrorMessage(err));
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <Card className="w-full max-w-lg shadow-lg">
-        <div className="mb-6 flex justify-between items-center">
-          {["email", "otp", "reset"].map((s) => {
-            const isActive = step === s;
-            let color = "bg-gray-300";
-            if (s === "email" && isActive) color = "bg-blue-500";
-            if (s === "otp" && isActive) color = "bg-green-500";
-            if (s === "reset" && isActive) color = "bg-purple-500";
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl">
+            {step === 1 && "Quên mật khẩu"}
+            {step === 2 && "Nhập mã OTP"}
+            {step === 3 && "Đặt lại mật khẩu"}
+          </CardTitle>
+        </CardHeader>
 
-            return (
-              <div key={s} className="flex-1 h-2 mx-1 rounded">
-                <div className={`${color} h-2 rounded transition-all duration-300`} />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Step 1: Email */}
-        {step === "email" && (
-          <>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">{t("forgotPassword")}</h1>
-              <p className="text-sm text-gray-600 mt-1">{t("forgotPasswordDesc")}</p>
-            </div>
-            <form onSubmit={handleEmailSubmit} className="mt-4 space-y-4">
-              <div>
-                <Label htmlFor="email">{t("email")}</Label>
-                <TextInput
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  icon={EnvelopeIcon}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <Button color="blue" type="submit" className="w-full" disabled={submitting}>
-                {submitting ? (
+        <CardContent className="flex flex-col gap-4 mt-4">
+          {step === 1 && (
+            <>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button onClick={handleSendOtp} disabled={loading}>
+                {loading ? (
                   <span className="flex items-center gap-2">
-                    <Spinner size="sm" /> {t("sending")}
+                    <Spinner /> Đang gửi...
                   </span>
                 ) : (
-                  t("sendResetLink")
+                  "Gửi mã OTP"
                 )}
               </Button>
-            </form>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Step 2: OTP */}
-        {step === "otp" && (
-          <>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">{t("verifyOtp")}</h1>
-              <p className="text-sm text-gray-600 mt-1">{t("otpDesc")}</p>
-            </div>
-            <form onSubmit={handleOtpSubmit} className="mt-4 space-y-4">
-              <div>
-                <Label htmlFor="otp">{t("otp")}</Label>
-                <TextInput
-                  id="otp"
-                  type="text"
-                  placeholder="123456"
-                  icon={KeyIcon}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  required
-                />
+          {step === 2 && (
+            <>
+              <Label>Mã OTP</Label>
+              <Input
+                type="text"
+                placeholder="Nhập mã OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  disabled={loading}
+                >
+                  Quay lại
+                </Button>
+                <Button onClick={handleVerifyOtp} disabled={loading}>
+                  Tiếp tục
+                </Button>
               </div>
-              <Button color="green" type="submit" className="w-full" disabled={submitting}>
-                {submitting ? <Spinner size="sm" /> : t("verify")}
-              </Button>
-            </form>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Step 3: Reset Password */}
-        {step === "reset" && (
-          <>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">{t("resetPassword")}</h1>
-              <p className="text-sm text-gray-600 mt-1">{t("resetPasswordDesc")}</p>
-            </div>
-            <form onSubmit={handleResetSubmit} className="mt-4 space-y-4">
-              <div>
-                <Label htmlFor="newPassword">{t("newPassword")}</Label>
-                <TextInput
-                  id="newPassword"
-                  type="password"
+          {step === 3 && (
+            <>
+              <Label>Mật khẩu mới</Label>
+              <div className="relative">
+                <Input
+                  type={showPass ? "text" : "password"}
                   placeholder="••••••••"
-                  icon={LockClosedIcon}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
+                  value={newPass}
+                  onChange={(e) => setNewPass(e.target.value)}
                 />
-                <p className={`text-red-600 text-sm italic mt-2 ${
-                  hasUpperCase && hasSpecialChar && newPassword.length >= 6 ? "hidden" : ""
-                }`}>
-                  {t("note")}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
-              <div>
-                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-                <TextInput
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  icon={LockClosedIcon}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  color={
-                    confirmPassword
-                      ? newPassword === confirmPassword
-                        ? "success"
-                        : "failure"
-                      : undefined
-                  }
-                />
+              <Label>Xác nhận mật khẩu</Label>
+              <Input
+                type="password"
+                placeholder="Nhập lại mật khẩu"
+                value={confirmPass}
+                onChange={(e) => setConfirmPass(e.target.value)}
+              />
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(2)}
+                  disabled={loading}
+                >
+                  Quay lại
+                </Button>
+                <Button onClick={handleResetPassword} disabled={loading}>
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Spinner /> Đang xử lý...
+                    </span>
+                  ) : (
+                    "Đặt lại mật khẩu"
+                  )}
+                </Button>
               </div>
-
-              <Button color="blue" type="submit" className="w-full" disabled={!canSubmit}>
-                {submitting ? <Spinner size="sm" /> : t("reset")}
-              </Button>
-            </form>
-          </>
-        )}
-
+            </>
+          )}
+        </CardContent>
       </Card>
     </main>
   );

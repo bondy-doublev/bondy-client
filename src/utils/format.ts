@@ -13,3 +13,14 @@ export function formatDuration(seconds: number) {
 export function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " đ";
 }
+
+export function extractErrorMessage(err: any): string {
+  if (!err) return "Something went wrong";
+
+  return (
+    err?.response?.data?.data?.message ||
+    err?.response?.data?.message ||
+    err?.message ||
+    "Something went wrong"
+  );
+}
