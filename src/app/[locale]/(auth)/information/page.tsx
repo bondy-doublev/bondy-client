@@ -117,7 +117,9 @@ export default function InformationPage() {
                 <Label>{t("gender")}</Label>
                 <RadioGroup
                   value={gender}
-                  onValueChange={(val) => setGender(val as "male" | "female")}
+                  onValueChange={(val: string) =>
+                    setGender(val as "male" | "female")
+                  }
                   className="flex gap-4 mt-1"
                 >
                   <div className="flex items-center gap-2">

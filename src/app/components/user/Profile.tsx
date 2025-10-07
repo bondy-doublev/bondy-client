@@ -191,7 +191,9 @@ export default function ProfileForm() {
             <Label>Gender</Label>
             <Select
               value={userInfo.gender ? "true" : "false"}
-              onValueChange={(v) => handleChange("gender", v === "true")}
+              onValueChange={(v: string) =>
+                handleChange("gender", v === "true")
+              }
               disabled={!isEditing}
             >
               <SelectTrigger>

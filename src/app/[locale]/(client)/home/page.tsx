@@ -1,14 +1,8 @@
 "use client";
 
+import PostCard from "@/app/components/post/PostCard";
 import Image from "next/image";
-import {
-  FaRegImage,
-  FaVideo,
-  FaSmile,
-  FaHeart,
-  FaRegComment,
-  FaShare,
-} from "react-icons/fa";
+import { FaRegImage, FaVideo, FaSmile } from "react-icons/fa";
 import { FiEdit2 } from "react-icons/fi";
 
 export default function Home() {
@@ -23,15 +17,15 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex gap-6 px-4 w-full max-w-6xl mx-auto">
-      {/* Feed */}
-      <div className="flex-1 space-y-6 max-w-full">
+    <div className="flex flex-col xl:flex-row gap-6 xl:gap-16 overflow-x-hidden px-4 w-full max-w-max mx-auto">
+      {/* Feed chính */}
+      <div className="flex-1 max-w-[500px] space-y-6">
         {/* Stories */}
         <div className="flex gap-4 overflow-x-auto">
           {[...Array(7)].map((_, i) => (
             <div
               key={i}
-              className="w-24 h-36 sm:w-28 sm:h-44 bg-gray-200 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
+              className="w-20 h-32 sm:w-24 sm:h-36 bg-gray-200 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
             >
               Story {i + 1}
             </div>
@@ -61,64 +55,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Post demo */}
-        <div className="bg-white rounded-xl shadow p-4 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-300" />
-            <div>
-              <p className="font-semibold">Nguyễn Văn A</p>
-              <span className="text-xs text-gray-500">2 giờ trước</span>
-            </div>
-          </div>
-          <p>Thử nghiệm giao diện Bondy 😎</p>
-          <div className="rounded-lg overflow-hidden">
-            <Image
-              src="https://picsum.photos/600/300"
-              alt="post"
-              width={800}
-              height={300}
-              className="w-full"
-            />
-          </div>
-          <div className="flex justify-around border-t pt-2 text-gray-600 text-sm">
-            <button className="flex items-center gap-2 hover:text-red-500">
-              <FaHeart /> Thích
-            </button>
-            <button className="flex items-center gap-2 hover:text-blue-500">
-              <FaRegComment /> Bình luận
-            </button>
-            <button className="flex items-center gap-2 hover:text-green-500">
-              <FaShare /> Chia sẻ
-            </button>
-          </div>
-        </div>
-
-        {/* Post demo 2 */}
-        <div className="bg-white rounded-xl shadow p-4 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-300" />
-            <div>
-              <p className="font-semibold">Lê Thị B</p>
-              <span className="text-xs text-gray-500">5 giờ trước</span>
-            </div>
-          </div>
-          <p>Chào mọi người, mình mới tham gia Bondy 🎉</p>
-          <div className="flex justify-around border-t pt-2 text-gray-600 text-sm">
-            <button className="flex items-center gap-2 hover:text-red-500">
-              <FaHeart /> Thích
-            </button>
-            <button className="flex items-center gap-2 hover:text-blue-500">
-              <FaRegComment /> Bình luận
-            </button>
-            <button className="flex items-center gap-2 hover:text-green-500">
-              <FaShare /> Chia sẻ
-            </button>
-          </div>
-        </div>
+        <PostCard />
+        <PostCard />
+        <PostCard />
       </div>
 
-      {/* Sidebar bạn bè online */}
-      <aside className="hidden lg:block w-64 bg-white rounded-xl shadow p-4 space-y-4 h-fit">
+      {/* Sidebar bạn bè (to hơn) */}
+      <aside className="hidden xl:block w-80 bg-white rounded-xl shadow p-4 space-y-4 h-fit">
         <h2 className="font-semibold text-gray-700">Bạn bè đang online</h2>
         <ul className="space-y-3">
           {friends.map((friend) => (
@@ -127,9 +70,9 @@ export default function Home() {
                 <Image
                   src={friend.avatar}
                   alt={friend.name}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 rounded-full"
+                  width={50}
+                  height={50}
+                  className="w-12 h-12 rounded-full"
                 />
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
               </div>
@@ -139,7 +82,7 @@ export default function Home() {
         </ul>
       </aside>
 
-      {/* Nút tạo bài viết (cố định) */}
+      {/* Nút tạo bài viết (floating) */}
       <button className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg hover:bg-green-700">
         <FiEdit2 size={22} />
       </button>
