@@ -18,7 +18,7 @@ export default function MenuDrawer() {
   const t = useTranslations("sidebar");
 
   return (
-    <div className="sm:hidden">
+    <div className="md:hidden">
       <Drawer open={open} onOpenChange={setOpen}>
         {/* Trigger: Menu icon */}
         <DrawerTrigger asChild>

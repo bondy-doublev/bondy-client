@@ -9,7 +9,7 @@ export default function Sidebar() {
   const t = useTranslations("sidebar");
 
   return (
-    <aside className="hidden lg:block fixed top-0 left-0 h-screen w-[250px] bg-green-100 text-black overflow-y-auto shadow-md">
+    <aside className="hidden md:block fixed top-0 left-0 h-screen w-[250px] bg-green-100 text-black overflow-y-auto shadow-md">
       <div className="text-2xl font-bold mb-10 cursor-pointer">Bondy</div>
 
       {SIDEBAR_ITEMS.map((item) => (

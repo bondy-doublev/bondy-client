@@ -17,7 +17,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 xl:gap-16 overflow-x-hidden px-4 w-full max-w-max mx-auto">
+    <div className="flex flex-col md:flex-row gap-6 md:gap-16 overflow-x-hidden md:px-4 w-full max-w-max mx-auto">
       {/* Feed chính */}
       <div className="flex-1 max-w-[500px] space-y-6">
         {/* Stories */}

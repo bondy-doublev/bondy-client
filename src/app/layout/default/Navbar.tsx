@@ -97,14 +97,14 @@ export default function Navbar() {
         {/* Right */}
         <div className="flex items-center space-x-4 flex-1 justify-end">
           {/* Desktop */}
-          <div className="hidden sm:flex items-center space-x-4">
+          <div className="hidden xl:flex items-center space-x-4">
             <LanguageSwitcher />
             <ModeToggle />
             <NotificationDropdown />
             <UserDropdown />
           </div>
           {/* Mobile */}
-          <div className="sm:hidden flex items-center space-x-4">
+          <div className="xl:hidden flex items-center space-x-4">
             <LanguageSwitcher />
             <NotificationDropdown />
             <MessageCircle className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
