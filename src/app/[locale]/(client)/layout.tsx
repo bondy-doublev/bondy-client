@@ -9,11 +9,8 @@ export default async function RootLayout({
     <div>
       <AppNavbar />
       <AppSidebar /> {/* sẽ fixed bên trái */}
-      <div className="md:ml-[250px] :md:ml-[250px] p-4">
-        {" "}
-        {/* margin-left = width của sidebar */}
-        {children}
-      </div>
+      {/* Nội dung chính dịch sang phải bằng đúng width sidebar */}
+      <main className="md:ml-[250px] p-4 transition-all">{children}</main>
     </div>
   );
 }

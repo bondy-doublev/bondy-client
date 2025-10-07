@@ -17,12 +17,12 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:gap-16 overflow-x-hidden md:px-4 w-full max-w-max mx-auto">
+    <div className="flex justify-center gap-6 md:gap-16 overflow-x-hidden md:px-4 w-full max-w-full mx-auto">
       {/* Feed chính */}
       <div className="flex-1 max-w-[500px] space-y-6">
         {/* Stories */}
         <div className="flex gap-4 overflow-x-auto">
-          {[...Array(7)].map((_, i) => (
+          {[...Array(2)].map((_, i) => (
             <div
               key={i}
               className="w-20 h-32 sm:w-24 sm:h-36 bg-gray-200 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
@@ -31,7 +31,6 @@ export default function Home() {
             </div>
           ))}
         </div>
-
         {/* Ô tạo bài */}
         <div className="bg-white rounded-xl shadow p-4 space-y-3">
           <div className="flex items-center gap-3">
@@ -54,7 +53,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
         <PostCard />
         <PostCard />
         <PostCard />
