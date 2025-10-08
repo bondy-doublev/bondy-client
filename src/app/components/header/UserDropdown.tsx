@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
 
 export default function UserDropdown() {
   const router = useRouter();
@@ -31,14 +32,18 @@ export default function UserDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border border-gray-300 flex items-center justify-center bg-gray-100">
-          {user?.avatarUrl ? (
-            <Image
-              width={32}
-              height={32}
-              src={user.avatarUrl}
-              alt="Avatar"
-              className="object-cover"
-            />
+          {user !== null ? (
+            user.avatarUrl ? (
+              <Image
+                width={32}
+                height={32}
+                src={user.avatarUrl}
+                alt="Avatar"
+                className="object-cover"
+              />
+            ) : (
+              <DefaultAvatar firstName={user?.firstName} />
+            )
           ) : (
             <Image
               width={32}

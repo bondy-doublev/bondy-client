@@ -1,6 +1,3 @@
-"use client";
-import { useTranslations } from "next-intl";
-
 export default function PostStats({
   likes,
   comments,
@@ -17,19 +14,21 @@ export default function PostStats({
       <div className="text-sm text-gray-700 space-y-1 flex justify-between w-full">
         {/* Lượt thích */}
         <div className="cursor-pointer hover:underline">
-          {likes} {t("like").toLowerCase()}
-          {likes > 1 ? "s" : ""}
+          {likes}{" "}
+          {likes > 1 ? t("likes").toLowerCase() : t("like").toLowerCase()}
         </div>
 
         {/* Bình luận + Chia sẻ */}
         <div className="flex gap-2 justify-around text-gray-600">
           <div className="cursor-pointer hover:underline">
-            {comments} {t("comment").toLowerCase()}
-            {comments > 1 ? "s" : ""}
+            {comments}{" "}
+            {comments > 1
+              ? t("comments").toLowerCase()
+              : t("comment").toLowerCase()}
           </div>
           <div className="cursor-pointer hover:underline">
-            {shares} {t("share").toLowerCase()}
-            {comments > 1 ? "s" : ""}
+            {shares}{" "}
+            {shares > 1 ? t("shares").toLowerCase() : t("share").toLowerCase()}
           </div>
         </div>
       </div>

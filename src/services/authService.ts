@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api } from "@/lib/axios";
 import { removeAccessToken, setAccessToken } from "@/utils/token";
 import axios, { AxiosResponse } from "axios";

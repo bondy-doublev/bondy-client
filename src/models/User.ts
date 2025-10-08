@@ -2,8 +2,8 @@ export default interface User {
   id: number;
   email: string;
   name?: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   middleName?: string;
   avatarUrl?: string;
   gender?: string;
@@ -13,4 +13,10 @@ export default interface User {
   createdAt: string; // Date in ISO string format
   updatedAt: string; // Date in ISO string format
   isActive: boolean;
+}
+
+export interface UserBasic {
+  id: number;
+  fullName: string;
+  avatarUrl: string;
 }

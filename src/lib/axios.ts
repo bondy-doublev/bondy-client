@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import {
   getAccessToken,
@@ -57,17 +56,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Lấy refresh_token từ localStorage
-        const refreshToken = localStorage.getItem("refresh_token");
-
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
         // Gửi refresh_token qua body
-        const res = await api.post("/auth/refresh", {
-          refresh_token: refreshToken,
-        });
+        const res = await api.post("/auth/refresh", {});
         const newAccessToken = res.data.accessToken;
         setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);

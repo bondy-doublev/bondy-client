@@ -14,7 +14,7 @@ import {
   loginWithGoogle,
 } from "@/lib/actions/auth";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub, FaDiscord } from "react-icons/fa";
+import { FaDiscord } from "react-icons/fa";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ export default function SignIn() {
   const { setUser } = useAuthStore();
 
   const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
-  const isPasswordValid = password.length >= 6;
+  const isPasswordValid = password.length >= 8 && password.length <= 24;
   const canSubmit = isEmailValid && isPasswordValid && !submitting;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -134,7 +134,7 @@ export default function SignIn() {
                 <Input
                   id="password"
                   type={showPass ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={

@@ -117,5 +117,30 @@
     "create": "Tạo nên",
     "more": "Hơn",
     "meta": "Góc của Meta"
+  },
+  "post": {
+    "like": "Thích",
+    "likes": "lượt thích",
+    "comment": "Bình luận",
+    "comments": "bình luận",
+    "share": "Chia sẻ",
+    "shares": "chia sẻ",
+    "hour": "giờ",
+    "minute": "phút",
+    "second": "giây",
+    "hours": "giờ",
+    "minutes": "phút",
+    "seconds": "giây",
+    "day": "ngày",
+    "days": "ngày",
+    "ago": "trước",
+    "image": "Hình ảnh",
+    "video": "Băng hình",
+    "message": "bạn đang nghĩ gì?",
+    "createNewPost": "Tạo bài viết mới"
+  },
+  "friend": {
+    "friends": "Bạn bè",
+    "contacts": "Danh bạ"
   }
 }

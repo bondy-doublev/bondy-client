@@ -1,5 +1,6 @@
 import React from "react";
-import Image from "next/image";
+import RoundedAvatar from "@/app/components/home/center-content/RoundedAvatar";
+import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
 
 export default function PostHeader({
   t,
@@ -14,25 +15,27 @@ export default function PostHeader({
 }) {
   const formatTime = (seconds: number) => {
     if (seconds < 60) {
-      return `${seconds} ${t("second")}${seconds > 1 ? "s" : ""}`;
+      return `${seconds} ${seconds > 1 ? t("seconds") : t("second")}`;
     }
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) {
-      return `${minutes} ${t("minute")}${minutes > 1 ? "s" : ""}`;
+      return `${minutes} ${minutes > 1 ? t("minutes") : t("minute")}`;
     }
     const hours = Math.floor(minutes / 60);
     if (hours < 24) {
-      return `${hours} ${t("hour")}${hours > 1 ? "s" : ""}`;
+      return `${hours} ${hours > 1 ? t("hours") : t("hour")}`;
     }
     const days = Math.floor(hours / 24);
-    return `${days} ${t("day")}${days > 1 ? "s" : ""}`;
+    return `${days} ${days > 1 ? t("days") : t("day")}`;
   };
 
   return (
     <div className="flex items-center p-4 pb-0 gap-3">
-      <div className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:brightness-105 transition">
-        <Image src={avatarUrl} alt="post" fill className="object-cover" />
-      </div>
+      {avatarUrl ? (
+        <RoundedAvatar avatarUrl={avatarUrl} />
+      ) : (
+        <DefaultAvatar firstName={name} />
+      )}
       <div>
         <p className="font-semibold hover:underline cursor-pointer">{name}</p>
         <span className="text-xs text-gray-500 hover:underline cursor-pointer">
