@@ -10,7 +10,7 @@ export enum SortField {
 
 export const DEFAULT_PAGINATION = {
   page: 0,
-  size: 10,
+  size: 5,
   sortBy: SortField.CREATED_AT,
   direction: SortDirection.DESC,
 };
