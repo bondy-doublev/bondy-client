@@ -103,4 +103,20 @@ export const userService = {
       throw new Error("Failed to toggle user");
     }
   },
+
+  async searchUsers(address?: string, name?: string) {
+    try {
+      const params: Record<string, any> = {};
+      if (address) params.address = address;
+      if (name) params.name = name;
+
+      const response: AxiosResponse = await api.get(`${API_URL}/search`, {
+        params,
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to search users");
+    }
+  },
 };
