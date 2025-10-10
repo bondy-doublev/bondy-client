@@ -117,5 +117,30 @@
     "create": "Create",
     "more": "More",
     "meta": "Meta's Corner"
+  },
+  "post": {
+    "like": "Like",
+    "likes": "likes",
+    "comment": "Comment",
+    "comments": "comments",
+    "share": "Share",
+    "shares": "shares",
+    "hour": "hour",
+    "hours": "hours",
+    "minute": "minute",
+    "second": "second",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "day": "day",
+    "days": "days",
+    "ago": "ago",
+    "image": "Image",
+    "video": "Video",
+    "message": "what are you thinking about?",
+    "createNewPost": "Create new post"
+  },
+  "friend": {
+    "friends": "Friends",
+    "contacts": "Contacts"
   }
 }

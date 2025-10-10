@@ -14,6 +14,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import Spinner from "@/app/components/ui/spinner";
+import Image from "next/image";
 
 export default function ProfileForm() {
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -121,7 +122,7 @@ export default function ProfileForm() {
             }`}
             onClick={handleAvatarClick}
           >
-            <img
+            <Image
               src={`${userInfo.avatarUrl}`}
               alt="avatar"
               className="w-full h-full object-cover"
@@ -191,7 +192,9 @@ export default function ProfileForm() {
             <Label>Gender</Label>
             <Select
               value={userInfo.gender ? "true" : "false"}
-              onValueChange={(v) => handleChange("gender", v === "true")}
+              onValueChange={(v: string) =>
+                handleChange("gender", v === "true")
+              }
               disabled={!isEditing}
             >
               <SelectTrigger>

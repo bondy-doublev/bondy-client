@@ -21,6 +21,16 @@ export function extractErrorMessage(err: any): string {
     err?.response?.data?.data?.message ||
     err?.response?.data?.message ||
     err?.message ||
+    err ||
     "Something went wrong"
   );
+}
+
+export function getTimeAgo(createdAt: string): number {
+  const now = Date.now();
+  const diff = (new Date(createdAt).getTime() - now) / 1000;
+
+  const absDiff = Math.abs(diff);
+
+  return absDiff;
 }
