@@ -123,6 +123,8 @@ export default function ProfileForm() {
             onClick={handleAvatarClick}
           >
             <Image
+              width={20}
+              height={20}
               src={`${userInfo.avatarUrl}`}
               alt="avatar"
               className="w-full h-full object-cover"
