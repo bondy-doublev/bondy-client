@@ -137,7 +137,10 @@
     "image": "Hình ảnh",
     "video": "Băng hình",
     "message": "bạn đang nghĩ gì?",
-    "createNewPost": "Tạo bài viết mới"
+    "createNewPost": "Tạo bài viết mới",
+    "loading": "Đang tải...",
+    "noMorePost": "Không còn bài đăng nào nữa 😄",
+    "scrollToLoadMore": "Cuộn xuống để tải thêm"
   },
   "friend": {
     "friends": "Bạn bè",

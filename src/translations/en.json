@@ -137,7 +137,10 @@
     "image": "Image",
     "video": "Video",
     "message": "what are you thinking about?",
-    "createNewPost": "Create new post"
+    "createNewPost": "Create new post",
+    "loading": "Loading...",
+    "noMorePost": "No more posts 😄",
+    "scrollToLoadMore": "Scroll down to load more"
   },
   "friend": {
     "friends": "Friends",

@@ -4,25 +4,58 @@ import PostCard from "@/app/components/home/post/PostCard";
 import Stories from "@/app/components/home/Stories";
 import { Post } from "@/models/Post";
 import { postService } from "@/services/postService";
-import React, { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function MainFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  const t = useTranslations("post");
+
+  const fetchPosts = async (page: number) => {
+    setLoading(true);
+    const newPosts = await postService.getNewfeed({ page, size: 5 });
+    setLoading(false);
+
+    if (!newPosts || newPosts.length === 0) {
+      setHasMore(false);
+      return;
+    }
+
+    setPosts((prev) => {
+      const merged = [...prev, ...newPosts];
+      const unique = Array.from(new Map(merged.map((p) => [p.id, p])).values());
+      return unique;
+    });
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await postService.getNewfeed();
-        console.log(data);
-
-        setPosts(data);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !loading && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.2,
       }
-    };
+    );
 
-    fetchData();
-  }, []);
+    if (loaderRef.current) observer.observe(loaderRef.current);
+
+    return () => observer.disconnect();
+  }, [loading, hasMore]);
+
+  useEffect(() => {
+    fetchPosts(page);
+  }, [page]);
 
   return (
     <div className="flex-2 max-w-[500px] space-y-6">
@@ -32,10 +65,17 @@ export default function MainFeed() {
       <PostComposer />
 
       {/* Bài viết */}
-      {posts !== null && posts.length > 0 ? (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+      {posts.map((post) => (
+        <PostCard key={post.id} post={post} />
+      ))}
+
+      {/* Loader */}
+      {hasMore ? (
+        <div ref={loaderRef} className="text-center py-6 text-gray-500">
+          {loading ? t("loading") : t("scrollToLoadMore")}
+        </div>
       ) : (
-        <p className="text-gray-500 text-center">No posts yet.</p>
+        <div className="text-center py-4 text-gray-400">{t("noMorePost")}</div>
       )}
     </div>
   );
