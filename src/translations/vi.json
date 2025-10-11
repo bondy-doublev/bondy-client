@@ -119,6 +119,7 @@
     "meta": "Góc của Meta"
   },
   "post": {
+    "postBy": "Bài viết của",
     "like": "Thích",
     "likes": "lượt thích",
     "comment": "Bình luận",
@@ -139,8 +140,15 @@
     "message": "bạn đang nghĩ gì?",
     "createNewPost": "Tạo bài viết mới",
     "loading": "Đang tải...",
-    "noMorePost": "Không còn bài đăng nào nữa 😄",
-    "scrollToLoadMore": "Cuộn xuống để tải thêm"
+    "noMorePost": "Không còn bài đăng nào 😄",
+    "scrollToLoadMore": "Cuộn xuống để tải thêm",
+    "reply": "Phản hồi",
+    "loadmore": "Xem thêm",
+    "see": "Xem",
+    "replies": "phản hồi",
+    "noMoreComment": "Không còn bình luận nào 😄",
+    "noPost": "Chưa có bài viết nào 😄",
+    "noComment": "Chưa có bình luận nào 😄"
   },
   "friend": {
     "friends": "Bạn bè",

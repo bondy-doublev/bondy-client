@@ -1,6 +1,7 @@
 import React from "react";
-import RoundedAvatar from "@/app/components/home/center-content/RoundedAvatar";
+import RoundedAvatar from "@/app/[locale]/(client)/home/components/center-content/RoundedAvatar";
 import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
+import { formatTime } from "@/utils/format";
 
 export default function PostHeader({
   t,
@@ -13,22 +14,6 @@ export default function PostHeader({
   seconds: number;
   avatarUrl: string;
 }) {
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) {
-      return `${seconds} ${seconds > 1 ? t("seconds") : t("second")}`;
-    }
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-      return `${minutes} ${minutes > 1 ? t("minutes") : t("minute")}`;
-    }
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-      return `${hours} ${hours > 1 ? t("hours") : t("hour")}`;
-    }
-    const days = Math.floor(hours / 24);
-    return `${days} ${days > 1 ? t("days") : t("day")}`;
-  };
-
   return (
     <div className="flex items-center p-4 pb-0 gap-3">
       {avatarUrl ? (
@@ -36,10 +21,10 @@ export default function PostHeader({
       ) : (
         <DefaultAvatar firstName={name} />
       )}
-      <div>
+      <div className="flex flex-col gap-0">
         <p className="font-semibold hover:underline cursor-pointer">{name}</p>
         <span className="text-xs text-gray-500 hover:underline cursor-pointer">
-          {formatTime(seconds)} {t("ago")}
+          {formatTime(seconds, t)} {t("ago")}
         </span>
       </div>
     </div>

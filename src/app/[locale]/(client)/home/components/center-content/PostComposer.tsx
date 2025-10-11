@@ -1,4 +1,4 @@
-import RoundedAvatar from "@/app/components/home/center-content/RoundedAvatar";
+import RoundedAvatar from "@/app/[locale]/(client)/home/components/center-content/RoundedAvatar";
 import { useTranslations } from "next-intl";
 import React from "react";
 import { FaVideo } from "react-icons/fa";
