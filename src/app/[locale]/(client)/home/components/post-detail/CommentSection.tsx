@@ -65,7 +65,7 @@ export default function CommentSection({
           />
         ))}
         {/* Loader */}
-        {hasMore && page > 0 ? (
+        {hasMore ? (
           <div className="text-center py-4 text-gray-500">
             {loading ? (
               t("loading")
@@ -80,7 +80,7 @@ export default function CommentSection({
               </div>
             )}
           </div>
-        ) : page > 0 ? (
+        ) : !hasMore && page > 0 ? (
           <div className="text-center py-4 text-gray-400">
             {t("noMoreComment")}
           </div>
