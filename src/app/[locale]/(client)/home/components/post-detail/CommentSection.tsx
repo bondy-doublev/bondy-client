@@ -4,7 +4,7 @@ import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/Com
 import { Comment } from "@/models/Comment";
 import { commentService } from "@/services/commentService";
 import { getTimeAgo } from "@/utils/format";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function CommentSection({
   t,
@@ -17,17 +17,36 @@ export default function CommentSection({
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchComments = useCallback(
-    async (page: number) => {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !loading && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.2,
+      }
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+
+    return () => observer.disconnect();
+  }, [loading, hasMore]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
       setLoading(true);
       const newComments = await commentService.getComments({
         postId,
         page,
         size: 5,
       });
-
-      console.log(newComments);
       setLoading(false);
 
       if (!newComments || newComments.length === 0) {
@@ -42,13 +61,10 @@ export default function CommentSection({
         );
         return unique;
       });
-    },
-    [postId]
-  );
+    };
 
-  useEffect(() => {
-    fetchComments(page);
-  }, [page, fetchComments]);
+    fetchComments();
+  }, [page, postId]);
 
   return (
     <div className="px-4 pb-4">
@@ -64,8 +80,21 @@ export default function CommentSection({
             seconds={getTimeAgo(c.createdAt)}
           />
         ))}
+
         {/* Loader */}
         {hasMore ? (
+          <div ref={loaderRef} className="text-center py-6 text-gray-500">
+            {loading ? t("loading") : t("scrollToLoadMore")}
+          </div>
+        ) : !hasMore && page > 0 ? (
+          <div className="text-center py-4 text-gray-400">
+            {t("noMoreComment")}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-400">{t("noComment")}</div>
+        )}
+        {/* Loader */}
+        {/* {hasMore ? (
           <div className="text-center py-4 text-gray-500">
             {loading ? (
               t("loading")
@@ -86,7 +115,7 @@ export default function CommentSection({
           </div>
         ) : (
           <div className="text-center py-4 text-gray-400">{t("noComment")}</div>
-        )}
+        )} */}
       </div>
     </div>
   );

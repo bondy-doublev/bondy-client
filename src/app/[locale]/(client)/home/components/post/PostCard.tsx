@@ -36,6 +36,7 @@ export default function PostCard({ post, onComment, isDetail = false }: Props) {
         likes={post.reactionCount}
         comments={post.commentCount}
         shares={post.shareCount}
+        onComment={onComment}
       />
       <PostActions t={t} onComment={onComment} />
     </div>

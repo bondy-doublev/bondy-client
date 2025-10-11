@@ -1,9 +1,8 @@
 "use client";
 
+import CommentComposer from "@/app/[locale]/(client)/home/components/post-detail/CommentComposer";
 import CommentSection from "@/app/[locale]/(client)/home/components/post-detail/CommentSection";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +11,8 @@ import {
   DialogOverlay,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Post } from "@/models/Post";
 import { X } from "lucide-react";
-import { IoSend } from "react-icons/io5";
 
 type Props = {
   t: (key: string) => string;
@@ -74,19 +71,7 @@ export function PostDetailModal({ t, post, onClose }: Props) {
           </div>
         </div>
 
-        <div className="p-4 flex items-center gap-2 border-t-0.5 justify-center h-18 border-b top-0 bg-white z-10">
-          <DefaultAvatar />
-          <Input
-            className="flex-1 rounded-2xl shadow-none focus:shadow-none focus-visible:ring-0 focus:ring-0 focus:outline-none"
-            placeholder="Write comment..."
-          />
-          <Button
-            type="submit"
-            className=" h-9 w-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-green-600 shadow-none focus:outline-none focus:ring-0 transition "
-          >
-            <IoSend size={18} />
-          </Button>
-        </div>
+        <CommentComposer t={t} />
       </DialogContent>
     </Dialog>
   );
