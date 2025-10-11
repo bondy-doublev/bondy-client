@@ -1,4 +1,5 @@
 import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
+import { SortDirection } from "@/constants/pagination";
 import { Comment } from "@/models/Comment";
 import { commentService } from "@/services/commentService";
 import { getTimeAgo } from "@/utils/format";
@@ -26,6 +27,7 @@ export default function CommentReplies({
         parentId: parentId,
         page,
         size: 5,
+        direction: SortDirection.ASC,
       });
 
       console.log(newComments);
@@ -72,7 +74,7 @@ export default function CommentReplies({
                 t("loading")
               ) : (
                 <div
-                  className="ml-12 text-xs text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
+                  className="ml-12 text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
                   onClick={() => {
                     setPage((prev) => prev + 1);
                   }}
