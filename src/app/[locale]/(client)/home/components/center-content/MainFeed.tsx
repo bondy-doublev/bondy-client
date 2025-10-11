@@ -77,11 +77,11 @@ export default function MainFeed() {
       ))}
 
       {/* Loader */}
-      {hasMore && page > 0 ? (
+      {hasMore ? (
         <div ref={loaderRef} className="text-center py-6 text-gray-500">
           {loading ? t("loading") : t("scrollToLoadMore")}
         </div>
-      ) : page > 0 ? (
+      ) : !hasMore && page > 0 ? (
         <div className="text-center py-4 text-gray-400">{t("noMorePost")}</div>
       ) : (
         <div className="text-center py-4 text-gray-400">{t("noPost")}</div>
