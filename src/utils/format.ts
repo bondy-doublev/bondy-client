@@ -34,3 +34,19 @@ export function getTimeAgo(createdAt: string): number {
 
   return absDiff;
 }
+
+export const formatTime = (seconds: number, t: (key: string) => string) => {
+  if (seconds < 60) {
+    return `${seconds} ${seconds > 1 ? t("seconds") : t("second")}`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} ${minutes > 1 ? t("minutes") : t("minute")}`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} ${hours > 1 ? t("hours") : t("hour")}`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days} ${days > 1 ? t("days") : t("day")}`;
+};

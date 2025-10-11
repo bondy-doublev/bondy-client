@@ -119,6 +119,7 @@
     "meta": "Meta's Corner"
   },
   "post": {
+    "postBy": "Post by",
     "like": "Like",
     "likes": "likes",
     "comment": "Comment",
@@ -140,7 +141,14 @@
     "createNewPost": "Create new post",
     "loading": "Loading...",
     "noMorePost": "No more posts 😄",
-    "scrollToLoadMore": "Scroll down to load more"
+    "scrollToLoadMore": "Scroll down to load more",
+    "reply": "Reply",
+    "loadmore": "Load more",
+    "see": "See",
+    "replies": "replies",
+    "noMoreComment": "No more comments 😄",
+    "noPost": "No posts yet 😄",
+    "noComment": "No comments yet 😄"
   },
   "friend": {
     "friends": "Friends",

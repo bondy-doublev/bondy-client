@@ -1,7 +1,8 @@
 "use client";
-import PostComposer from "@/app/components/home/center-content/PostComposer";
-import PostCard from "@/app/components/home/post/PostCard";
-import Stories from "@/app/components/home/Stories";
+import PostComposer from "@/app/[locale]/(client)/home/components/center-content/PostComposer";
+import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
+import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
+import Stories from "@/app/[locale]/(client)/home/components/Stories";
 import { Post } from "@/models/Post";
 import { postService } from "@/services/postService";
 import { useTranslations } from "next-intl";
@@ -13,6 +14,8 @@ export default function MainFeed() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const t = useTranslations("post");
 
@@ -66,16 +69,30 @@ export default function MainFeed() {
 
       {/* Bài viết */}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard
+          key={post.id}
+          post={post}
+          onComment={() => setSelectedPost(post)}
+        />
       ))}
 
       {/* Loader */}
-      {hasMore ? (
+      {hasMore && page > 0 ? (
         <div ref={loaderRef} className="text-center py-6 text-gray-500">
           {loading ? t("loading") : t("scrollToLoadMore")}
         </div>
-      ) : (
+      ) : page > 0 ? (
         <div className="text-center py-4 text-gray-400">{t("noMorePost")}</div>
+      ) : (
+        <div className="text-center py-4 text-gray-400">{t("noPost")}</div>
+      )}
+
+      {selectedPost && (
+        <PostDetailModal
+          t={t}
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+        />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import CreatePostButton from "@/app/components/home/CreatePostButton";
-import FriendSidebar from "@/app/components/home/FriendSidebar";
-import MainFeed from "@/app/components/home/center-content/MainFeed";
+import CreatePostButton from "@/app/[locale]/(client)/home/components/CreatePostButton";
+import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar";
+import MainFeed from "@/app/[locale]/(client)/home/components/center-content/MainFeed";
 
 export default function Home() {
   return (
