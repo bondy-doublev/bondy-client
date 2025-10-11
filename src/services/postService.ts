@@ -19,14 +19,14 @@ export const postService = {
       direction,
     });
 
-    const proxyRes = await api.get(`${API_URL}/new-feed?${params}`);
-    const res = proxyRes.data;
-
-    if (res.success) {
+    try {
+      const proxyRes = await api.get(`${API_URL}/new-feed?${params}`);
+      const res = proxyRes.data;
       return res.data.content;
-    } else {
-      Toast.error(res.data.message);
-      return null;
+    } catch (error: any) {
+      // Toast.error(error!.data!.message);
+      console.log("Error: ", error);
+      Toast.error(error);
     }
   },
 };

@@ -32,17 +32,16 @@ export const commentService = {
       params.append("parentId", parentId.toString());
     }
 
-    const proxyRes = await api.get(
-      `${API_URL}/${postId}/comments?${params.toString()}`
-    );
+    try {
+      const proxyRes = await api.get(
+        `${API_URL}/${postId}/comments?${params.toString()}`
+      );
 
-    const res = proxyRes.data;
-
-    if (res.success) {
+      const res = proxyRes.data;
       return res.data.content;
-    } else {
-      Toast.error(res.data.message);
-      return null;
+    } catch (error: any) {
+      console.log("Error: ", error);
+      Toast.error(error);
     }
   },
 };

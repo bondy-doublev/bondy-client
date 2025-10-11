@@ -1,5 +1,5 @@
 import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
-import { SortDirection } from "@/constants/pagination";
+import { SortDirection, SortField } from "@/constants/pagination";
 import { Comment } from "@/models/Comment";
 import { commentService } from "@/services/commentService";
 import { getTimeAgo } from "@/utils/format";
