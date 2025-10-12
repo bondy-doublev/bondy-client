@@ -1,6 +1,6 @@
-import RoundedAvatar from "@/app/[locale]/(client)/home/components/center-content/RoundedAvatar";
+import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import CommentReplies from "@/app/[locale]/(client)/home/components/post-detail/CommentReplies";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { Comment } from "@/models/Comment";
 import { formatTime } from "@/utils/format";
 import { useState } from "react";
