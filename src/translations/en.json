@@ -150,7 +150,9 @@
     "noPost": "No posts yet 😄",
     "noComment": "No comments yet 😄",
     "writeComment": "Write comment",
-    "addToYourPost": "Add to your post"
+    "addToYourPost": "Add to your post",
+    "public": "Public",
+    "private": "Only me"
   },
   "friend": {
     "friends": "Friends",

@@ -150,7 +150,9 @@
     "noPost": "Chưa có bài viết nào 😄",
     "noComment": "Chưa có bình luận nào 😄",
     "writeComment": "Viết bình luận",
-    "addToYourPost": "Thêm vào bài viết của bạn"
+    "addToYourPost": "Thêm vào bài viết của bạn",
+    "public": "Công khai",
+    "private": "Chỉ mình tôi"
   },
   "friend": {
     "friends": "Bạn bè",

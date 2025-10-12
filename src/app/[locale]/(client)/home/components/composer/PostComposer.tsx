@@ -1,11 +1,10 @@
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
-import { FaVideo } from "react-icons/fa";
-import { BiSolidImage } from "react-icons/bi";
 import { useAuthStore } from "@/store/authStore";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/PostComposerModal";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import { Plus } from "lucide-react";
 
 export default function PostComposer() {
   const t = useTranslations("post");
@@ -32,11 +31,11 @@ export default function PostComposer() {
           onClick={() => setShowModal(true)}
         />
         <div className="flex gap-2">
-          <button className="p-2 rounded-md hover:bg-gray-100 transition">
-            <BiSolidImage color="blue" size={24} />
-          </button>
-          <button className="p-2 rounded-md hover:bg-gray-100 transition">
-            <FaVideo color="red" size={24} />
+          <button
+            className="p-2 rounded-3xl hover:bg-gray-100 transition"
+            onClick={() => setShowModal(true)}
+          >
+            <Plus color="blue" size={24} />
           </button>
         </div>
       </div>
