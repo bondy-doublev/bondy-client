@@ -65,7 +65,7 @@ export function PostDetailModal({ t, post, onClose }: Props) {
 
         {/* Nội dung có thể scroll */}
         <div className="overflow-y-auto max-h-[75vh] scroll-custom">
-          <PostCard post={post} isDetail />
+          <PostCard post={post} isDetail={true} />
 
           <div className="pt-4">
             <CommentSection t={t} postId={post.id} />

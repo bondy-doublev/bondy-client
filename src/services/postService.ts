@@ -29,4 +29,41 @@ export const postService = {
       Toast.error(error);
     }
   },
+
+  async createPost({
+    content,
+    tagUserIds = [],
+    mediaFiles = [],
+    visibility = true,
+  }: {
+    content?: string;
+    tagUserIds?: number[];
+    mediaFiles?: File[];
+    visibility: boolean;
+  }) {
+    try {
+      const formData = new FormData();
+
+      if (content) formData.append("content", content);
+
+      formData.append("isPublic", visibility.toString());
+
+      tagUserIds.forEach((id) => formData.append("tagUserIds", id.toString()));
+
+      console.log(mediaFiles.length);
+      mediaFiles.forEach((f) => {
+        console.log(f);
+        formData.append("mediaFiles", f);
+      });
+
+      console.log(formData);
+
+      const res = await api.post(API_URL, formData, {});
+
+      return res.data.data;
+    } catch (error: any) {
+      console.error("Error createPost:", error);
+      throw error;
+    }
+  },
 };
