@@ -19,7 +19,7 @@ export default function MainFeed() {
 
   const t = useTranslations("post");
 
-  const fetchPosts = async (page: number) => {
+  const fetchPosts = async (page: number, reset = false) => {
     setLoading(true);
     const newPosts = await postService.getNewfeed({ page, size: 5 });
     setLoading(false);
@@ -30,12 +30,23 @@ export default function MainFeed() {
     }
 
     setPosts((prev) => {
-      const merged = [...prev, ...newPosts];
+      const merged = reset ? newPosts : [...prev, ...newPosts];
       const unique = Array.from(new Map(merged.map((p) => [p.id, p])).values());
       return unique;
     });
   };
 
+  const reloadPosts = async () => {
+    setPage(0);
+    setHasMore(true);
+    await fetchPosts(0, true);
+  };
+
+  useEffect(() => {
+    fetchPosts(page);
+  }, [page]);
+
+  // Infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -44,26 +55,16 @@ export default function MainFeed() {
           setPage((prevPage) => prevPage + 1);
         }
       },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0.2,
-      }
+      { threshold: 0.2 }
     );
-
     if (loaderRef.current) observer.observe(loaderRef.current);
-
     return () => observer.disconnect();
   }, [loading, hasMore]);
-
-  useEffect(() => {
-    fetchPosts(page);
-  }, [page]);
 
   return (
     <div className="flex-1 max-w-[500px] space-y-6">
       {/* Ô tạo bài */}
-      <PostComposer />
+      <PostComposer onPostCreated={reloadPosts} />
 
       {/* Stories */}
       <Stories />
