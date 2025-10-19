@@ -1,10 +1,11 @@
-import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
-import { SortDirection } from "@/constants/pagination";
-import { Comment } from "@/models/Comment";
-import { commentService } from "@/services/commentService";
+// CommentReplies.tsx
+import CommentComposer from "./CommentComposer";
 import { getTimeAgo } from "@/utils/format";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import React, { useCallback, useEffect, useState } from "react";
+import { commentService } from "@/services/commentService";
+import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
+import { useReplies } from "@/app/hooks/useReplies";
 
 export default function CommentReplies({
   postId,
@@ -14,82 +15,64 @@ export default function CommentReplies({
   parentId: number;
 }) {
   const t = useTranslations("post");
-  const [replies, setReplies] = useState<Comment[]>([]);
-  const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-
-  const fetchComments = useCallback(
-    async (page: number) => {
-      setLoading(true);
-      const newComments = await commentService.getComments({
-        postId,
-        parentId,
-        page,
-        size: 5,
-        direction: SortDirection.ASC,
-      });
-
-      setLoading(false);
-
-      if (!newComments || newComments.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      setReplies((prev) => {
-        const merged = [...prev, ...newComments];
-        const unique = Array.from(
-          new Map(merged.map((p) => [p.id, p])).values()
-        );
-        return unique;
-      });
-    },
-    [postId, parentId]
+  const { replies, loading, hasMore, loadMore, addOptimistic } = useReplies(
+    postId,
+    parentId
   );
-
-  useEffect(() => {
-    fetchComments(page);
-  }, [page, fetchComments]);
+  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
 
   return (
-    <div>
-      {replies && replies.length > 0 && (
-        <div className="ml-4 mt-2 relative">
-          <div className="absolute top-0 left-[-12px] w-[2px] h-full bg-gray-200 rounded-full" />
-
-          <div className="space-y-2">
-            {replies.map((r, index) => (
-              <div key={r.id} className="relative">
-                <div className="absolute left-[-12px] top-3 w-6 h-4 border-l-2 border-b-2 border-gray-200 rounded-bl-lg"></div>
-
-                <CommentItem
+    <div className="ml-4 mt-2 relative">
+      <div className="absolute top-0 left-[-12px] w-[2px] h-full bg-gray-200 rounded-full" />
+      <div className="space-y-2">
+        {replies.map((r) => (
+          <div key={r.id} className="relative">
+            <div className="absolute left-[-12px] top-3 w-6 h-4 border-l-2 border-b-2 border-gray-200 rounded-bl-lg" />
+            <CommentItem
+              t={t}
+              seconds={getTimeAgo(r.createdAt)}
+              comment={r}
+              isChild
+              onReplyClick={() =>
+                setActiveReplyId((prev) => (prev === r.id ? null : r.id))
+              }
+            />
+            {activeReplyId === r.id && (
+              <div className="ml-10 mt-2">
+                <CommentComposer
                   t={t}
-                  seconds={getTimeAgo(r.createdAt)}
-                  comment={r}
-                  isChild={true}
+                  onSubmit={async (content) => {
+                    const newReply = await commentService.createComment({
+                      postId,
+                      parentId: r.id,
+                      content,
+                    });
+                    if (newReply) {
+                      addOptimistic(newReply);
+                      setActiveReplyId(null);
+                    }
+                  }}
                 />
-              </div>
-            ))}
-
-            {/* Loader */}
-            {hasMore && (
-              <div className="ml-10">
-                {loading ? (
-                  <p className="text-xs text-gray-400">{t("loading")}</p>
-                ) : (
-                  <div
-                    className="text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
-                    onClick={() => setPage((prev) => prev + 1)}
-                  >
-                    {t("loadmore")}...
-                  </div>
-                )}
               </div>
             )}
           </div>
-        </div>
-      )}
+        ))}
+
+        {hasMore && (
+          <div className="ml-10">
+            {loading ? (
+              <p className="text-xs text-gray-400">{t("loading")}</p>
+            ) : (
+              <button
+                className="text-sm text-gray-400 font-semibold hover:underline hover:text-gray-700 transition"
+                onClick={loadMore}
+              >
+                {t("loadmore")}…
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

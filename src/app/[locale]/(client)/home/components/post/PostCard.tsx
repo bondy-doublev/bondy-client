@@ -5,9 +5,10 @@ import PostContent from "@/app/[locale]/(client)/home/components/post/PostConten
 import PostHeader from "@/app/[locale]/(client)/home/components/post/PostHeader";
 import PostStats from "@/app/[locale]/(client)/home/components/post/PostStats";
 import { Post } from "@/models/Post";
-import { UserBasic } from "@/models/User";
+import { reactionService } from "@/services/reactionService";
 import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 type Props = {
   post: Post;
@@ -17,6 +18,15 @@ type Props = {
 
 export default function PostCard({ post, onComment, isDetail = false }: Props) {
   const t = useTranslations("post");
+  const [reacted, setReacted] = useState(post.reacted ?? false);
+  const [likeCount, setLikeCount] = useState(post.reactionCount ?? 0);
+
+  const handleToggleLike = async () => {
+    setReacted((prev) => !prev);
+    setLikeCount((prev) => (reacted ? prev - 1 : prev + 1));
+
+    await reactionService.toggleReaction({ postId: post.id });
+  };
 
   return (
     <div
@@ -37,12 +47,17 @@ export default function PostCard({ post, onComment, isDetail = false }: Props) {
       />
       <PostStats
         t={t}
-        likes={post.reactionCount}
+        likes={likeCount}
         comments={post.commentCount}
         shares={post.shareCount}
         onComment={onComment}
       />
-      <PostActions t={t} onComment={onComment} />
+      <PostActions
+        t={t}
+        onComment={onComment}
+        reacted={reacted}
+        onToggleLike={handleToggleLike}
+      />
     </div>
   );
 }

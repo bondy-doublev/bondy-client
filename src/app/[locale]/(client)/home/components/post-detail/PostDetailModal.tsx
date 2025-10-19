@@ -1,6 +1,5 @@
 "use client";
 
-import CommentComposer from "@/app/[locale]/(client)/home/components/post-detail/CommentComposer";
 import CommentSection from "@/app/[locale]/(client)/home/components/post-detail/CommentSection";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import {
@@ -71,8 +70,6 @@ export function PostDetailModal({ t, post, onClose }: Props) {
             <CommentSection t={t} postId={post.id} />
           </div>
         </div>
-
-        <CommentComposer t={t} />
       </DialogContent>
     </Dialog>
   );

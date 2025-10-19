@@ -11,12 +11,14 @@ export default function CommentItem({
   childCount,
   seconds,
   isChild = false,
+  onReplyClick,
 }: {
   t: (key: string) => string;
   comment: Comment;
   childCount?: number;
   seconds: number;
   isChild?: boolean;
+  onReplyClick?: () => void;
 }) {
   const [seeReplies, setSeeReplies] = useState(false);
 
@@ -42,7 +44,10 @@ export default function CommentItem({
           <div className="ml-2 text-xs hover:underline cursor-pointer">
             {formatTime(seconds, t)}
           </div>
-          <div className="ml-2 text-xs hover:underline cursor-pointer">
+          <div
+            className="ml-2 text-xs hover:underline cursor-pointer"
+            onClick={onReplyClick}
+          >
             {t("reply")}
           </div>
         </div>

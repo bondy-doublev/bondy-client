@@ -1,7 +1,7 @@
 import { api } from "@/lib/axios";
-import { PaginationParams } from "@/types/PaginationParams";
 import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
+import { Comment } from "@/models/Comment";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/posts`;
 
@@ -20,7 +20,7 @@ export const commentService = {
     size?: number;
     sortBy?: string;
     direction?: string;
-  }) {
+  }): Promise<Comment[]> {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
@@ -38,10 +38,36 @@ export const commentService = {
       );
 
       const res = proxyRes.data;
-      return res.data.content;
+      return res.data.content as Comment[];
     } catch (error: any) {
       console.log("Error: ", error);
       Toast.error(error);
+      return [];
+    }
+  },
+
+  async createComment({
+    postId,
+    parentId,
+    content,
+  }: {
+    postId: number;
+    parentId?: number;
+    content: string;
+  }) {
+    try {
+      const body = {
+        parentId: parentId ?? null,
+        content,
+      };
+
+      const proxyRes = await api.post(`${API_URL}/${postId}/comments`, body);
+      const res = proxyRes.data;
+      return res.data;
+    } catch (error: any) {
+      console.error("Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to post comment");
+      return null;
     }
   },
 };
