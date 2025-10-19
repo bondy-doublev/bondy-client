@@ -57,5 +57,17 @@ export function useReplies(postId: number, parentId: number, pageSize = 5) {
     []
   );
 
-  return { replies, loading, hasMore, loadMore, addOptimistic };
+  const deleteOptimistic = useCallback(
+    (id: number) => setReplies((prev) => prev.filter((r) => r.id !== id)),
+    []
+  );
+
+  return {
+    replies,
+    loading,
+    hasMore,
+    loadMore,
+    addOptimistic,
+    deleteOptimistic,
+  };
 }

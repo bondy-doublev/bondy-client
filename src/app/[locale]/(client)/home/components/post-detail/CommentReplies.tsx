@@ -1,26 +1,30 @@
-// CommentReplies.tsx
-import CommentComposer from "./CommentComposer";
 import { getTimeAgo } from "@/utils/format";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { commentService } from "@/services/commentService";
 import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
 import { useReplies } from "@/app/hooks/useReplies";
+import { Comment } from "@/models/Comment";
 
 export default function CommentReplies({
   postId,
   parentId,
+  onAnyReplyCreated,
+  onAnyReplyDeleted,
 }: {
   postId: number;
   parentId: number;
+  onAnyReplyCreated?: () => void;
+  onAnyReplyDeleted?: () => void;
 }) {
   const t = useTranslations("post");
-  const { replies, loading, hasMore, loadMore, addOptimistic } = useReplies(
-    postId,
-    parentId
-  );
-  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
-
+  const {
+    replies,
+    loading,
+    hasMore,
+    loadMore,
+    addOptimistic,
+    deleteOptimistic,
+  } = useReplies(postId, parentId);
   return (
     <div className="ml-4 mt-2 relative">
       <div className="absolute top-0 left-[-12px] w-[2px] h-full bg-gray-200 rounded-full" />
@@ -33,28 +37,16 @@ export default function CommentReplies({
               seconds={getTimeAgo(r.createdAt)}
               comment={r}
               isChild
-              onReplyClick={() =>
-                setActiveReplyId((prev) => (prev === r.id ? null : r.id))
-              }
+              onDelete={async () => {
+                await commentService.deleteComment({ commentId: r.id });
+                deleteOptimistic(r.id);
+                onAnyReplyDeleted?.();
+              }}
+              onCreate={(comment: Comment) => {
+                addOptimistic(comment);
+                onAnyReplyCreated?.();
+              }}
             />
-            {activeReplyId === r.id && (
-              <div className="ml-10 mt-2">
-                <CommentComposer
-                  t={t}
-                  onSubmit={async (content) => {
-                    const newReply = await commentService.createComment({
-                      postId,
-                      parentId: r.id,
-                      content,
-                    });
-                    if (newReply) {
-                      addOptimistic(newReply);
-                      setActiveReplyId(null);
-                    }
-                  }}
-                />
-              </div>
-            )}
           </div>
         ))}
 

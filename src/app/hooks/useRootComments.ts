@@ -62,6 +62,9 @@ export function useRootComments(postId: number, pageSize = 5) {
       )
     );
 
+  const deleteOptimistic = (id: number) =>
+    setComments((prev) => prev.filter((c) => c.id !== id));
+
   return {
     comments,
     loading,
@@ -69,5 +72,6 @@ export function useRootComments(postId: number, pageSize = 5) {
     loaderRef,
     addOptimistic,
     incChildCount,
+    deleteOptimistic,
   };
 }

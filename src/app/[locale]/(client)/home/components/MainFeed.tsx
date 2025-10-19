@@ -61,15 +61,27 @@ export default function MainFeed() {
     return () => observer.disconnect();
   }, [loading, hasMore]);
 
+  // ✅ Cập nhật commentCount theo postId + delta
+  const incPostCommentCount = (postId: number, delta = 1) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, commentCount: (p.commentCount ?? 0) + delta }
+          : p
+      )
+    );
+    setSelectedPost((prev) =>
+      prev?.id === postId
+        ? { ...prev, commentCount: (prev.commentCount ?? 0) + delta }
+        : prev
+    );
+  };
+
   return (
     <div className="flex-1 max-w-[500px] space-y-6">
-      {/* Ô tạo bài */}
       <PostComposer onPostCreated={reloadPosts} />
-
-      {/* Stories */}
       <Stories />
 
-      {/* Bài viết */}
       {posts.map((post) => (
         <PostCard
           key={post.id}
@@ -78,7 +90,6 @@ export default function MainFeed() {
         />
       ))}
 
-      {/* Loader */}
       {hasMore ? (
         <div ref={loaderRef} className="text-center py-6 text-gray-500">
           {loading ? t("loading") : t("scrollToLoadMore")}
@@ -94,6 +105,9 @@ export default function MainFeed() {
           t={t}
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
+          onCommentCountChange={(postId, delta) =>
+            incPostCommentCount(postId, delta)
+          }
         />
       )}
     </div>

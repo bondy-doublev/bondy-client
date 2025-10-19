@@ -3,7 +3,7 @@ import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
 import { Comment } from "@/models/Comment";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/posts`;
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 export const commentService = {
   async getComments({
@@ -34,7 +34,7 @@ export const commentService = {
 
     try {
       const proxyRes = await api.get(
-        `${API_URL}/${postId}/comments?${params.toString()}`
+        `${API_URL}/posts/${postId}/comments?${params.toString()}`
       );
 
       const res = proxyRes.data;
@@ -54,20 +54,32 @@ export const commentService = {
     postId: number;
     parentId?: number;
     content: string;
-  }) {
+  }): Promise<Comment> {
     try {
       const body = {
         parentId: parentId ?? null,
         content,
       };
 
-      const proxyRes = await api.post(`${API_URL}/${postId}/comments`, body);
+      const proxyRes = await api.post(
+        `${API_URL}/posts/${postId}/comments`,
+        body
+      );
       const res = proxyRes.data;
-      return res.data;
+      return res.data as Comment;
     } catch (error: any) {
       console.error("Error:", error);
       Toast.error(error?.response?.data?.message || "Failed to post comment");
-      return null;
+      throw error;
+    }
+  },
+
+  async deleteComment({ commentId }: { commentId: number }) {
+    try {
+      await api.delete(`${API_URL}/comments/${commentId}`);
+    } catch (error: any) {
+      console.error("Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to delete comment");
     }
   },
 };
