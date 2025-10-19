@@ -6,7 +6,11 @@ import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Plus } from "lucide-react";
 
-export default function PostComposer() {
+export default function PostComposer({
+  onPostCreated,
+}: {
+  onPostCreated?: () => void;
+}) {
   const t = useTranslations("post");
   const { user } = useAuthStore();
 
@@ -46,6 +50,7 @@ export default function PostComposer() {
           showModal={showModal}
           placeholder={placeholder}
           onClose={() => setShowModal(false)}
+          onPostCreated={onPostCreated}
         />
       )}
     </div>

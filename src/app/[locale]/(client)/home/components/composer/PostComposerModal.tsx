@@ -25,19 +25,21 @@ import Image from "next/image";
 import React, { useRef, useState, useEffect } from "react";
 import { BiSolidImage } from "react-icons/bi";
 import { FaVideo, FaUserTag } from "react-icons/fa";
-import { postService } from "@/services/postService"; // ✅ import thêm
-import { Toast } from "@/lib/toast"; // nếu bạn đang dùng Toast
+import { postService } from "@/services/postService";
+import { Toast } from "@/lib/toast";
 
 export default function PostComposerModal({
   t,
   showModal,
   onClose,
   placeholder,
+  onPostCreated,
 }: {
   t: (key: string) => string;
   showModal: boolean;
   onClose: () => void;
   placeholder: string;
+  onPostCreated?: () => void;
 }) {
   const { user } = useAuthStore();
   const fullname =
@@ -118,20 +120,20 @@ export default function PostComposerModal({
     try {
       setLoading(true);
       const files = selectedFiles.map((f) => f.file);
-      const newPost = await postService.createPost({
+      await postService.createPost({
         content,
         tagUserIds,
         mediaFiles: files,
-        visibility: visibility,
+        visibility,
       });
 
       Toast.success(t("postCreated"));
-
-      // reset form sau khi đăng
       setContent("");
       setSelectedFiles([]);
       setTagUserIds([]);
       onClose();
+
+      onPostCreated?.();
     } catch (error) {
       console.error(error);
       Toast.error(t("postFailed"));
