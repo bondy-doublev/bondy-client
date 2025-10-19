@@ -62,7 +62,7 @@ export default function MyFriends() {
                   {f.avatarUrl ? (
                     <AvatarImage src={f.avatarUrl} alt={f.fullName} />
                   ) : (
-                    <AvatarFallback>{f.fullName[0]}</AvatarFallback>
+                    <AvatarFallback>{f.fullName}</AvatarFallback>
                   )}
                 </Avatar>
 

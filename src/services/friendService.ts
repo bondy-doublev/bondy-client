@@ -26,7 +26,7 @@ export const friendService = {
   },
 
   // 3️⃣ Lấy danh sách bạn bè đã accept
-  async getFriends(userId: number): Promise<User[]> {
+  async getFriends(userId: number): Promise<Friendship[]> {
     try {
       const response: AxiosResponse = await api.get(
         `${API_URL}/friends/${userId}`

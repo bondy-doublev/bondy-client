@@ -149,7 +149,22 @@
     "noMoreComment": "Không còn bình luận nào 😄",
     "noPost": "Chưa có bài viết nào 😄",
     "noComment": "Chưa có bình luận nào 😄",
-    "writeComment": "Viết bình luận"
+    "writeComment": "Viết bình luận",
+    "addToYourPost": "Thêm vào bài viết của bạn",
+    "public": "Công khai",
+    "private": "Chỉ mình tôi",
+    "headerTagsModal": "Bạn bè",
+    "tapToTag": "Chọn để đề cập",
+    "noFriends": "Chưa có bạn bè",
+    "searchFriends": "Tìm kiếm bạn bè",
+    "selected": "Đã được chọn",
+    "with": "cùng với",
+    "and": "và",
+    "others": "người khác",
+    "post": "Đăng",
+    "posting": "Đang đăng",
+    "postCreated": "Đăng bài thành công",
+    "postFailed": "Đăng bài thất bại"
   },
   "friend": {
     "friends": "Bạn bè",

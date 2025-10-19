@@ -1,5 +1,5 @@
-import RoundedAvatar from "@/app/[locale]/(client)/home/components/center-content/RoundedAvatar";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
+import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";

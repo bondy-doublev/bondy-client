@@ -5,6 +5,7 @@ import PostContent from "@/app/[locale]/(client)/home/components/post/PostConten
 import PostHeader from "@/app/[locale]/(client)/home/components/post/PostHeader";
 import PostStats from "@/app/[locale]/(client)/home/components/post/PostStats";
 import { Post } from "@/models/Post";
+import { UserBasic } from "@/models/User";
 import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 
@@ -19,13 +20,16 @@ export default function PostCard({ post, onComment, isDetail = false }: Props) {
 
   return (
     <div
-      className={`bg-white rounded-xl space-y-2 ${!isDetail ? "shadow" : ""}`}
+      className={`text-sm bg-white rounded-xl space-y-2 ${
+        !isDetail ? "shadow" : ""
+      }`}
     >
       <PostHeader
         t={t}
         name={post.owner.fullName}
         seconds={getTimeAgo(post.createdAt)}
         avatarUrl={post.owner.avatarUrl}
+        taggedUsers={post.taggedUsers}
       />
       <PostContent
         content={post.contentText}

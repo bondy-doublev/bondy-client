@@ -30,8 +30,9 @@ export function PostDetailModal({ t, post, onClose }: Props) {
 
       <DialogContent
         className="
-          w-full 
-          max-w-2xl 
+          w-[90%]
+          md:w-full 
+          md:max-w-2xl 
           bg-white 
           rounded-2xl 
           shadow-xl 
@@ -64,9 +65,9 @@ export function PostDetailModal({ t, post, onClose }: Props) {
 
         {/* Nội dung có thể scroll */}
         <div className="overflow-y-auto max-h-[75vh] scroll-custom">
-          <PostCard post={post} isDetail />
+          <PostCard post={post} isDetail={true} />
 
-          <div className="border-t border-gray-50 pt-4">
+          <div className="pt-4">
             <CommentSection t={t} postId={post.id} />
           </div>
         </div>

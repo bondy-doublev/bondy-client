@@ -1,5 +1,5 @@
 "use client";
-import PostComposer from "@/app/[locale]/(client)/home/components/center-content/PostComposer";
+import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
 import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import Stories from "@/app/[locale]/(client)/home/components/Stories";
@@ -61,11 +61,12 @@ export default function MainFeed() {
   }, [page]);
 
   return (
-    <div className="flex-2 max-w-[500px] space-y-6">
-      {/* Stories */}
-      <Stories />
+    <div className="flex-1 max-w-[500px] space-y-6">
       {/* Ô tạo bài */}
       <PostComposer />
+
+      {/* Stories */}
+      <Stories />
 
       {/* Bài viết */}
       {posts.map((post) => (

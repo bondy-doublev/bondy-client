@@ -11,6 +11,7 @@ export interface Post {
   id: number;
   createdAt: string;
   owner: UserBasic;
+  taggedUsers: UserBasic[];
   contentText: string;
   mediaCount: number;
   reactionCount: number;
