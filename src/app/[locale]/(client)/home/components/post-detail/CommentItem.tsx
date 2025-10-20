@@ -1,67 +1,144 @@
-import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+"use client";
+
+import { use, useState } from "react";
+import CommentComposer from "./CommentComposer";
 import CommentReplies from "@/app/[locale]/(client)/home/components/post-detail/CommentReplies";
+import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { Comment } from "@/models/Comment";
 import { formatTime } from "@/utils/format";
-import { useState } from "react";
+import { commentService } from "@/services/commentService";
+import { useAuthStore } from "@/store/authStore";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useReplies } from "@/app/hooks/useReplies";
 
 export default function CommentItem({
   t,
   comment,
-  childCount,
   seconds,
   isChild = false,
+  onDelete,
+  onCommentCountChange,
+  onCreate,
 }: {
   t: (key: string) => string;
   comment: Comment;
-  childCount?: number;
   seconds: number;
   isChild?: boolean;
+  onDelete: (id: number) => void;
+  onCommentCountChange?: (postId: number, delta: number) => void;
+  onCreate?: (comment: Comment) => void;
 }) {
+  const { user } = useAuthStore();
   const [seeReplies, setSeeReplies] = useState(false);
+  const [showReplyBox, setShowReplyBox] = useState(false);
+
+  const handleCreateReply = async (content: string) => {
+    const created = await commentService.createComment({
+      postId: comment.postId,
+      parentId: comment.parentId ?? comment.id,
+      content,
+    });
+
+    if (created) {
+      onCreate?.(created);
+      onCommentCountChange?.(comment.postId, 1);
+      setSeeReplies(true);
+      setShowReplyBox(false);
+    }
+  };
 
   return (
-    <div className="flex gap-2">
-      {/* Avatar */}
+    <div className="flex gap-2 group">
       {comment.user.avatarUrl ? (
         <RoundedAvatar avatarUrl={comment.user.avatarUrl} />
       ) : (
         <DefaultAvatar firstName={comment.user.fullName} />
       )}
 
-      {/* Main content */}
       <div className="flex flex-col gap-1 w-fit">
-        <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
-          <p className="text-sm font-semibold hover:underline cursor-pointer">
-            {comment.user.fullName}
-          </p>
-          <p className="text-sm text-gray-800">{comment.contentText}</p>
+        {/* Nội dung comment */}
+        <div className="flex items-center gap-1">
+          <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
+            <p className="text-sm font-semibold hover:underline cursor-pointer">
+              {comment.user.fullName}
+            </p>
+            <p className="text-sm text-gray-800">{comment.contentText}</p>
+          </div>
+
+          {/* Menu delete */}
+          {comment.user.id === user?.id && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="h-8 w-8 flex items-center justify-center 
+                               rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  >
+                    <span className="text-lg leading-none">⋯</span>
+                  </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="start"
+                  className="w-28 bg-white rounded-xl shadow-md"
+                >
+                  <DropdownMenuItem
+                    className="text-red-600 cursor-pointer hover:bg-red-50"
+                    onClick={() => onDelete(comment.id)}
+                  >
+                    {t("delete")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
+        {/* Actions: thời gian + reply */}
         <div className="flex">
-          <div className="ml-2 text-xs hover:underline cursor-pointer">
+          <div className="ml-2 text-xs text-gray-500">
             {formatTime(seconds, t)}
           </div>
-          <div className="ml-2 text-xs hover:underline cursor-pointer">
+          <div
+            className="ml-2 text-xs hover:underline cursor-pointer"
+            onClick={() => setShowReplyBox((v) => !v)}
+          >
             {t("reply")}
           </div>
         </div>
 
-        {childCount! > 0 && !isChild && !seeReplies && (
+        {/* Nút xem replies */}
+        {comment.childCount! > 0 && !isChild && !seeReplies && (
           <div
             className="ml-2 text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
-            onClick={() => {
-              setSeeReplies(true);
-            }}
+            onClick={() => setSeeReplies(true)}
           >
-            {t("see")} {childCount}{" "}
-            {childCount! > 1 ? t("replies") : t("reply").toLowerCase()}
+            {t("see")} {comment.childCount}{" "}
+            {comment.childCount! > 1 ? t("replies") : t("reply").toLowerCase()}
           </div>
         )}
 
-        {/* replies */}
-        {seeReplies && (
-          <CommentReplies postId={comment.postId} parentId={comment.id} />
+        {/* Replies */}
+        {seeReplies && comment.childCount! > 0 && (
+          <CommentReplies
+            postId={comment.postId}
+            parentId={comment.id}
+            onAnyReplyCreated={() => onCommentCountChange?.(comment.postId, 1)}
+            onAnyReplyDeleted={() => onCommentCountChange?.(comment.postId, -1)}
+          />
+        )}
+
+        {/* Composer trả lời */}
+        {showReplyBox && (
+          <div className="ml-4 mt-2">
+            <CommentComposer t={t} onSubmit={handleCreateReply} />
+          </div>
         )}
       </div>
     </div>

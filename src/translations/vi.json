@@ -164,7 +164,8 @@
     "post": "Đăng",
     "posting": "Đang đăng",
     "postCreated": "Đăng bài thành công",
-    "postFailed": "Đăng bài thất bại"
+    "postFailed": "Đăng bài thất bại",
+    "delete": "Xóa"
   },
   "friend": {
     "friends": "Bạn bè",

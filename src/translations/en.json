@@ -164,7 +164,8 @@
     "post": "Post",
     "posting": "Posting",
     "postCreated": "Post new post successfully",
-    "postFailed": "Post new post fail"
+    "postFailed": "Post new post fail",
+    "delete": "Delete"
   },
   "friend": {
     "friends": "Friends",

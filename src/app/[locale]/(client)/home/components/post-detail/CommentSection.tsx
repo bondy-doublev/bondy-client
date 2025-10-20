@@ -1,121 +1,67 @@
 "use client";
 
-import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
-import { Comment } from "@/models/Comment";
-import { commentService } from "@/services/commentService";
+import CommentComposer from "./CommentComposer";
 import { getTimeAgo } from "@/utils/format";
-import React, { useEffect, useRef, useState } from "react";
+import { commentService } from "@/services/commentService";
+import { useRootComments } from "@/app/hooks/useRootComments";
+import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
 
 export default function CommentSection({
   t,
   postId,
+  onCommentCountChange,
 }: {
   t: (key: string) => string;
   postId: number;
+  onCommentCountChange?: (postId: number, delta: number) => void;
 }) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const {
+    comments,
+    loading,
+    hasMore,
+    loaderRef,
+    addOptimistic,
+    deleteOptimistic,
+  } = useRootComments(postId);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && !loading && hasMore) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0.2,
-      }
-    );
+  const handleCreateComment = async (content: string) => {
+    const created = await commentService.createComment({ postId, content });
+    if (created) {
+      addOptimistic(created);
+      onCommentCountChange?.(postId, 1);
+    }
+  };
 
-    if (loaderRef.current) observer.observe(loaderRef.current);
-
-    return () => observer.disconnect();
-  }, [loading, hasMore]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      setLoading(true);
-      const newComments = await commentService.getComments({
-        postId,
-        page,
-        size: 5,
-      });
-      setLoading(false);
-
-      if (!newComments || newComments.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      setComments((prev) => {
-        const merged = [...prev, ...newComments];
-        const unique = Array.from(
-          new Map(merged.map((p) => [p.id, p])).values()
-        );
-        return unique;
-      });
-    };
-
-    fetchComments();
-  }, [page, postId]);
+  const handleDeleteComment = async (commentId: number) => {
+    await commentService.deleteComment({ commentId });
+    deleteOptimistic(commentId);
+    onCommentCountChange?.(postId, -1);
+  };
 
   return (
-    <div className="px-4 pb-4">
-      {/* input */}
-      {/* comments list */}
+    <div className="relative px-4 pb-24">
       <div className="space-y-3">
         {comments.map((c) => (
           <CommentItem
-            t={t}
             key={c.id}
+            t={t}
             comment={c}
-            childCount={c.childCount}
             seconds={getTimeAgo(c.createdAt)}
+            onDelete={handleDeleteComment}
+            onCommentCountChange={onCommentCountChange}
           />
         ))}
 
-        {/* Loader */}
-        {hasMore ? (
+        {hasMore && (
           <div ref={loaderRef} className="text-center py-6 text-gray-500">
             {loading ? t("loading") : t("scrollToLoadMore")}
           </div>
-        ) : !hasMore && page > 0 ? (
-          <div className="text-center py-4 text-gray-400">
-            {t("noMoreComment")}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-gray-400">{t("noComment")}</div>
         )}
-        {/* Loader */}
-        {/* {hasMore ? (
-          <div className="text-center py-4 text-gray-500">
-            {loading ? (
-              t("loading")
-            ) : (
-              <div
-                className="text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
-                onClick={() => {
-                  setPage((prev) => prev + 1);
-                }}
-              >
-                {t("loadmore")}
-              </div>
-            )}
-          </div>
-        ) : !hasMore && page > 0 ? (
-          <div className="text-center py-4 text-gray-400">
-            {t("noMoreComment")}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-gray-400">{t("noComment")}</div>
-        )} */}
+      </div>
+
+      {/* Composer gốc */}
+      <div className="fixed bottom-0 left-0 p-4 w-full border-t bg-white">
+        <CommentComposer t={t} onSubmit={handleCreateComment} />
       </div>
     </div>
   );

@@ -18,5 +18,6 @@ export interface Post {
   shareCount: number;
   commentCount: number;
   visibility: boolean;
+  reacted: boolean;
   mediaAttachments: MediaAttachment[];
 }

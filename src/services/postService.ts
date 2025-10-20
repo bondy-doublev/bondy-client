@@ -2,6 +2,7 @@ import { api } from "@/lib/axios";
 import { PaginationParams } from "@/types/PaginationParams";
 import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
+import { Post } from "@/models/Post";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/posts`;
 
@@ -11,7 +12,7 @@ export const postService = {
     size = DEFAULT_PAGINATION.size,
     sortBy = DEFAULT_PAGINATION.sortBy,
     direction = DEFAULT_PAGINATION.direction,
-  }: PaginationParams = DEFAULT_PAGINATION) {
+  }: PaginationParams = DEFAULT_PAGINATION): Promise<Post[]> {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
@@ -22,11 +23,11 @@ export const postService = {
     try {
       const proxyRes = await api.get(`${API_URL}/new-feed?${params}`);
       const res = proxyRes.data;
-      return res.data.content;
+      return res.data.content as Post[];
     } catch (error: any) {
-      // Toast.error(error!.data!.message);
-      console.log("Error: ", error);
+      console.error("Error:", error);
       Toast.error(error);
+      return []; // 👈 thêm dòng này
     }
   },
 
