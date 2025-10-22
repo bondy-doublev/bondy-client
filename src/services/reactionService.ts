@@ -1,7 +1,5 @@
 import { api } from "@/lib/axios";
-import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
-import { Comment } from "@/models/Comment";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/posts`;
 

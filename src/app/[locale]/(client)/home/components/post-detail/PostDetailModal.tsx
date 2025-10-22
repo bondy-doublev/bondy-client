@@ -38,7 +38,6 @@ export function PostDetailModal({
           bg-white rounded-2xl shadow-xl 
           p-0 gap-0 overflow-hidden 
           flex flex-col
-          data-[state=open]:animate-none
         "
       >
         <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10">

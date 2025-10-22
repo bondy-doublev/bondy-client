@@ -15,7 +15,7 @@ import { friendService } from "@/services/friendService";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
-export default function TagsModal({
+export default function TagModal({
   t,
   currentUserId,
   showModal,
@@ -106,17 +106,17 @@ export default function TagsModal({
 
           <DialogClose asChild>
             <button
-              className="absolute right-4 p-1.5 rounded-full hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+              className="absolute right-4 p-1.5 rounded-md hover:bg-gray-100 transition text-green-600 hover:text-green-800"
               aria-label="Close"
             >
-              <X size={18} />
+              {t("done")}
             </button>
           </DialogClose>
         </DialogHeader>
 
         {/* ✅ Danh sách đã chọn */}
         {selectedUsers.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-4 pt-3 border-b pb-3">
+          <div className="flex flex-wrap gap-2 px-4 py-3">
             {selectedUsers.map((user) => (
               <div
                 key={user.id}
@@ -136,8 +136,7 @@ export default function TagsModal({
           </div>
         )}
 
-        {/* ✅ Ô search */}
-        <div className="p-4 border-b">
+        <div className="p-4">
           <input
             type="text"
             placeholder={t("searchFriends")}
@@ -147,7 +146,6 @@ export default function TagsModal({
           />
         </div>
 
-        {/* ✅ Danh sách bạn bè */}
         <div className="p-4 text-gray-600">
           {loading ? (
             <p className="text-center text-sm text-gray-500">
