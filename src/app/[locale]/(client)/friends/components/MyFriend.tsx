@@ -1,55 +1,33 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { friendService } from "@/services/friendService";
 import { useAuthStore } from "@/store/authStore";
 
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { Friendship } from "@/models/Friendship";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
+import { useTranslations } from "next-intl";
 
 export default function MyFriends() {
+  const t = useTranslations("friend");
+
   const { user } = useAuthStore();
-  const currentUserId = user?.id;
+  const currentUserId = user?.id ?? 0;
 
-  const [friends, setFriends] = useState<Friendship[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { loading, friendUsers } = useMyFriends(currentUserId);
 
-  const fetchFriends = async () => {
-    if (!currentUserId) return;
-    setLoading(true);
-    try {
-      const res: Friendship[] = await friendService.getFriends(currentUserId);
-      setFriends(res || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFriends();
-  }, [currentUserId]);
-
-  if (!currentUserId) return <div>Loading user info...</div>;
-
-  // Lọc ra user khác currentUser
-  const friendUsers = friends.map((f) =>
-    f.senderId === currentUserId ? f.receiverInfo : f.senderInfo
-  );
+  if (!user) {
+    return <div></div>;
+  }
 
   return (
     <div className="py-6">
       <h1 className="text-2xl font-semibold text-green-700 mb-4">
-        Danh sách bạn bè
+        {t("friends")}
       </h1>
       {loading ? (
-        <div className="text-green-700">Đang tải...</div>
+        <div className="text-green-700">{t("loading")}</div>
       ) : friendUsers.length === 0 ? (
-        <div className="text-gray-500">Bạn chưa có bạn bè nào</div>
+        <div className="text-gray-500">{t("noFriends")}</div>
       ) : (
         <ScrollArea className="h-[600px]">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

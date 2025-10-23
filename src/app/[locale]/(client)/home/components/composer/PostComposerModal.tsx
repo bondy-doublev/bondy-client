@@ -1,6 +1,6 @@
 "use client";
 
-import TagsModal from "@/app/[locale]/(client)/home/components/composer/TagsModal";
+import TagsModal from "@/app/[locale]/(client)/home/components/composer/TagModal";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
@@ -150,7 +150,7 @@ export default function PostComposerModal({
           className="
           w-[90%] md:w-full md:max-w-xl min-h-[60%] max-h-[90%]
           bg-white rounded-2xl shadow-xl p-0 gap-0 flex flex-col
-          overflow-hidden data-[state=open]:animate-none"
+          overflow-hidden"
         >
           {/* Header */}
           <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10">

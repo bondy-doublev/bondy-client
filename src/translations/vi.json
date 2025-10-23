@@ -165,10 +165,16 @@
     "posting": "Đang đăng",
     "postCreated": "Đăng bài thành công",
     "postFailed": "Đăng bài thất bại",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "share_confirm_title": "Chia sẻ bài viết?",
+    "share_confirm_desc": "Bạn có chắc chắn muốn chia sẻ bài viết này lên trang cá nhân của mình?",
+    "cancel": "Hủy",
+    "done": "Xong"
   },
   "friend": {
     "friends": "Bạn bè",
-    "contacts": "Danh bạ"
+    "contacts": "Danh bạ",
+    "loading": "Đang tải...",
+    "noFriends": "Chưa có bạn bè"
   }
 }

@@ -39,7 +39,7 @@ export default function CommentSection({
   };
 
   return (
-    <div className="relative px-4 pb-24">
+    <div className="relative px-4 pb-24 min-h-[350px]">
       <div className="space-y-3">
         {comments.map((c) => (
           <CommentItem
