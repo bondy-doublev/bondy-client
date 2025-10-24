@@ -83,4 +83,21 @@ export const chatService = {
     );
     return res.data.data as ChatMessage;
   },
+
+  async listConversations(page = 0, size = 10) {
+    const res: AxiosResponse = await api.get(`${API_URL}/conversations`, {
+      params: { page, size },
+    });
+    return res.data.data as {
+      id: number;
+      type: "PRIVATE";
+      lastMessage?: {
+        id: number;
+        senderId: number;
+        type: "TEXT" | "IMAGE" | "FILE";
+        content: string;
+        createdAt: string;
+      };
+    }[];
+  },
 };

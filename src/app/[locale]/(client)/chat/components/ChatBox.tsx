@@ -69,6 +69,11 @@ export default function ChatBox({
   };
 
   useEffect(() => {
+    console.log("DEBUG - selfUserId:", selfUserId);
+    console.log("DEBUG - first messages:", messages.slice(0, 3));
+  }, [selfUserId, messages]);
+
+  useEffect(() => {
     const fetchOtherUser = async () => {
       const firstMsg = messages.find((m) => m.senderId !== selfUserId);
       if (!firstMsg) return;
@@ -120,15 +125,10 @@ export default function ChatBox({
     );
   };
 
-  // Spinner nhỏ
-  const Spinner = () => (
-    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-green-600" />
-  );
-
   return (
-    <div className="max-w-[680px]" onClick={() => setContextMsgId(null)}>
+    <div className="max-w-full" onClick={() => setContextMsgId(null)}>
       {/* Message list */}
-      <div className="flex h-[420px] flex-col-reverse overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-2">
+      <div className="flex min-h-[60vh] max-h-[76vh] flex-col-reverse overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-2">
         {messages.map((m) => {
           const mine = m.senderId === selfUserId;
           const avatarUrl = mine ? user?.avatarUrl : otherUser?.avatarUrl;
@@ -179,15 +179,15 @@ export default function ChatBox({
               </div>
 
               {mine &&
-                (avatarUrl ? (
+                (user?.avatarUrl ? (
                   <img
-                    src={avatarUrl}
+                    src={user.avatarUrl}
                     alt="avatar"
                     className="h-10 w-10 rounded-full object-cover"
                   />
                 ) : (
                   <DefaultAvatar
-                    firstName={otherUser?.fullName?.split(" ")[0]}
+                    firstName={user?.fullName?.split(" ")[0]}
                   />
                 ))}
             </div>
