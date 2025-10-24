@@ -186,9 +186,7 @@ export default function ChatBox({
                     className="h-10 w-10 rounded-full object-cover"
                   />
                 ) : (
-                  <DefaultAvatar
-                    firstName={user?.fullName?.split(" ")[0]}
-                  />
+                  <DefaultAvatar firstName={user?.fullName?.split(" ")[0]} />
                 ))}
             </div>
           );
@@ -251,16 +249,18 @@ export default function ChatBox({
           />
         )}
 
-        <button
-          onClick={send}
-          title="Send"
-          className={`rounded-md bg-green-600 p-2 text-white transition-colors hover:bg-green-700 ${
-            isUploading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={isUploading}
-        >
-          {!isUploading && <FaPaperPlane />}
-        </button>
+        {isUploading && (
+          <button
+            onClick={send}
+            title="Send"
+            className={`rounded-md bg-green-600 p-2 text-white transition-colors hover:bg-green-700 ${
+              isUploading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isUploading}
+          >
+            {!isUploading && <FaPaperPlane />}
+          </button>
+        )}
 
         {isUploading && (
           <div className="ml-2 flex items-center gap-2 text-sm text-gray-600">

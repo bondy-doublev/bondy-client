@@ -1,4 +1,4 @@
-import CreatePostButton from "@/app/components/home/CreatePostButton";
+import CreateHomeButton from "@/app/components/home/CreateChatButton";
 import FriendSidebar from "@/app/components/home/FriendSidebar";
 import MainFeed from "@/app/components/home/center-content/MainFeed";
 
@@ -12,7 +12,7 @@ export default function Home() {
       <FriendSidebar />
 
       {/* Nút tạo bài viết (floating) */}
-      <CreatePostButton />
+      <CreateHomeButton />
     </div>
   );
 }
