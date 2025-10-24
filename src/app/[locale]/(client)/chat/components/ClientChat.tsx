@@ -1,9 +1,9 @@
 "use client";
 
 import { useChat } from "@/hooks/useChat";
-import { ChatMessage, Attachment } from "@/services/chatService";
-import { uploadService } from "@/services/uploadService";
-import ChatBox from "../components/ChatBox";
+import { ChatMessage } from "@/services/chatService";
+import ChatBox from "./ChatBox";
+import { uploadFilesAsAttachments } from "@/services/uploadService";
 
 export default function ClientChat({
   conversationId,
@@ -16,27 +16,12 @@ export default function ClientChat({
   selfUserId: number;
   user: { id: number; role?: string; email?: string };
 }) {
-  // Adapter: dùng uploadService để tạo Attachment[]
-  const uploadFiles = async (files: File[]): Promise<Attachment[]> => {
-    const urls = await uploadService.uploadMultipleFile(files);
-    // Map theo index: gắn thêm metadata từ File
-    return urls.map((url, i) => {
-      const f = files[i];
-      return {
-        url,
-        fileName: f?.name,
-        mimeType: f?.type,
-        size: f?.size,
-      };
-    });
-  };
-
   const { messages, sendText, sendWithFiles, editMessage, deleteMessage } =
     useChat({
       conversationId,
-      xUser: user, // gửi X-User-* vào STOMP CONNECT headers
+      xUser: user,
       initialMessages,
-      uploadFiles, // <— dùng uploadService qua adapter này
+      uploadFiles: uploadFilesAsAttachments,
     });
 
   return (

@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { ChatMessage } from "@/services/chatService";
+import { FaPaperclip, FaPaperPlane, FaEdit, FaTrash } from "react-icons/fa";
 
 export default function ChatBox({
   selfUserId,
@@ -21,6 +22,7 @@ export default function ChatBox({
   const [text, setText] = useState("");
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [contextMsgId, setContextMsgId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasFiles = files.length > 0;
@@ -34,7 +36,6 @@ export default function ChatBox({
   const onPickFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fl = Array.from(e.target.files || []);
     setFiles((prev) => [...prev, ...fl]);
-    // reset input để chọn lại được cùng file lần nữa
     e.target.value = "";
   };
 
@@ -45,24 +46,36 @@ export default function ChatBox({
       onSendFiles(files, caption || undefined);
       setCaption("");
       setFiles([]);
+      setContextMsgId(null);
       return;
     }
     if (!text.trim()) return;
     onSendText(text.trim());
     setText("");
+    setContextMsgId(null);
+  };
+
+  const formatTime = (time?: string | Date) => {
+    if (!time) return "";
+    const d = new Date(time);
+    return d.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   };
 
   const renderAttachments = (m: ChatMessage) => {
     if (!m.attachments?.length) return null;
     return (
-      <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="mt-1.5 flex flex-wrap gap-2">
         {m.attachments.map((a) =>
           a.mimeType?.startsWith("image/") ? (
             <img
               key={a.id ?? a.url}
               src={a.url}
               alt={a.fileName ?? "image"}
-              style={{ maxWidth: 200, borderRadius: 6 }}
+              className="max-w-[200px] rounded-md shadow-sm"
             />
           ) : (
             <a
@@ -70,7 +83,7 @@ export default function ChatBox({
               href={a.url}
               target="_blank"
               rel="noreferrer"
-              style={{ color: "#2563eb", textDecoration: "underline" }}
+              className="text-sm text-blue-600 underline"
             >
               {a.fileName ?? a.url}
             </a>
@@ -81,72 +94,75 @@ export default function ChatBox({
   };
 
   return (
-    <div style={{ maxWidth: 680 }}>
-      <div
-        style={{
-          border: "1px solid #e5e7eb",
-          height: 420,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column-reverse",
-          padding: 8,
-        }}
-      >
+    <div
+      className="max-w-[680px]"
+      onClick={() => setContextMsgId(null)} // click ngoài để đóng menu
+    >
+      {/* Message list */}
+      <div className="flex h-[420px] flex-col-reverse overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-2">
         {messages.map((m) => {
           const mine = m.senderId === selfUserId;
           return (
             <div
               key={m.id}
-              style={{
-                padding: 8,
-                textAlign: mine ? "right" : "left",
+              className={`relative p-2 ${mine ? "text-right" : "text-left"}`}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                if (mine && !m.deleted) setContextMsgId(m.id);
               }}
             >
               <div
-                style={{
-                  display: "inline-block",
-                  background: mine ? "#d1ffd6" : "#eee",
-                  borderRadius: 8,
-                  padding: "6px 10px",
-                  maxWidth: 520,
-                }}
+                className={`inline-block max-w-[520px] rounded-lg px-3 py-2 shadow-sm ${
+                  mine ? "bg-green-100" : "bg-gray-200"
+                }`}
               >
-                {/* Nội dung */}
                 {m.deleted ? (
-                  <i style={{ color: "#6b7280" }}>Message deleted</i>
+                  <i className="text-sm text-gray-500">Message deleted</i>
                 ) : (
                   <>
                     {m.content && <div>{m.content}</div>}
                     {renderAttachments(m)}
                   </>
                 )}
-                {/* Badge edited */}
-                {m.edited && !m.deleted && (
-                  <div style={{ marginTop: 4, fontSize: 12, color: "#6b7280" }}>
-                    edited
+
+                {!m.deleted && (
+                  <div
+                    className={`mt-1 text-xs text-gray-500 ${
+                      mine ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {formatTime(m.createdAt)}{" "}
+                    {m.edited && <span>(edited)</span>}
                   </div>
                 )}
               </div>
-              {/* Action cho tin của chính mình */}
-              {mine && !m.deleted && (
-                <div style={{ marginTop: 4, display: "inline-flex", gap: 8 }}>
+
+              {/* Actions (only on right-click) */}
+              {mine && !m.deleted && contextMsgId === m.id && (
+                <div className="absolute right-0 top-0 flex items-center gap-3 rounded-md bg-white px-2 py-1 shadow-md">
                   {m.type === "TEXT" && onEditMessage && (
                     <button
                       onClick={() => {
                         const val = prompt("Edit message", m.content ?? "");
                         if (val && val.trim()) onEditMessage(m.id, val.trim());
+                        setContextMsgId(null);
                       }}
-                      style={{ fontSize: 12 }}
+                      title="Edit"
+                      className="text-green-600 transition-colors hover:text-green-700"
                     >
-                      Edit
+                      <FaEdit />
                     </button>
                   )}
                   {onDeleteMessage && (
                     <button
-                      onClick={() => onDeleteMessage(m.id)}
-                      style={{ fontSize: 12, color: "#b91c1c" }}
+                      onClick={() => {
+                        onDeleteMessage(m.id);
+                        setContextMsgId(null);
+                      }}
+                      title="Delete"
+                      className="text-red-500 transition-colors hover:text-red-600"
                     >
-                      Delete
+                      <FaTrash />
                     </button>
                   )}
                 </div>
@@ -156,51 +172,61 @@ export default function ChatBox({
         })}
       </div>
 
-      <div
-        style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}
-      >
-        {/* Files control */}
+      {/* Input zone */}
+      <div className="mt-3 flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm">
         <input
           ref={fileInputRef}
           type="file"
           multiple
-          style={{ display: "none" }}
+          className="hidden"
           onChange={onPickFiles}
         />
-        <button onClick={triggerPick}>Attach</button>
+
+        <button
+          onClick={triggerPick}
+          title="Attach files"
+          className="text-gray-600 transition-colors hover:text-gray-800"
+        >
+          <FaPaperclip size={18} />
+        </button>
+
         {hasFiles && (
-          <div style={{ fontSize: 12, color: "#374151" }}>
-            {files.length} file(s){allImages ? " (images)" : ""} selected
+          <div className="text-xs text-gray-700">
+            {files.length} file(s)
+            {allImages ? " (images)" : ""} selected
             <button
               onClick={clearFiles}
-              style={{ marginLeft: 8, fontSize: 12 }}
+              className="ml-2 cursor-pointer text-blue-600 hover:underline"
             >
               Clear
             </button>
           </div>
         )}
 
-        {/* Caption cho ảnh/file */}
-        {hasFiles && (
+        {hasFiles ? (
           <input
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Caption (optional)"
-            style={{ flex: 1 }}
+            className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:border-green-500"
           />
-        )}
-
-        {/* Text box */}
-        {!hasFiles && (
+        ) : (
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="Type a message..."
-            style={{ flex: 1 }}
+            className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:border-green-500"
           />
         )}
-        <button onClick={send}>Send</button>
+
+        <button
+          onClick={send}
+          title="Send"
+          className="rounded-md bg-green-600 p-2 text-white transition-colors hover:bg-green-700"
+        >
+          <FaPaperPlane />
+        </button>
       </div>
     </div>
   );
