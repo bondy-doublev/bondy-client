@@ -61,31 +61,36 @@ export default function PostContent({
             </div>
           </div>
 
-          {/* Nút điều hướng trái/phải */}
-          <button
-            onClick={scrollPrev}
-            className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={scrollNext}
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
-          >
-            <ChevronRight size={18} />
-          </button>
+          {urls.length > 1 && (
+            <>
+              {/* Nút điều hướng trái/phải */}
+              <button
+                onClick={scrollPrev}
+                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
+              >
+                <ChevronLeft size={18} />
+              </button>
 
-          {/* Dấu chấm nhỏ */}
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-            {urls.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                  i === selectedIndex ? "bg-white scale-110" : "bg-white/50"
-                }`}
-              />
-            ))}
-          </div>
+              <button
+                onClick={scrollNext}
+                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
+              >
+                <ChevronRight size={18} />
+              </button>
+
+              {/* Dấu chấm nhỏ */}
+              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+                {urls.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                      i === selectedIndex ? "bg-white scale-110" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

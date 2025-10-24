@@ -10,7 +10,7 @@ export default function HomePage() {
   const t = useTranslations("home");
 
   return (
-    <div className="min-h-[70vh]">
+    <div className="min-h-[70vh] min-w-full">
       {user ? (
         <Home />
       ) : (

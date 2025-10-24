@@ -1,10 +1,12 @@
-import CreateHomeButton from "@/app/components/home/CreateChatButton";
-import FriendSidebar from "@/app/components/home/FriendSidebar";
-import MainFeed from "@/app/components/home/center-content/MainFeed";
+import CreateHomeButton from "@/app/[locale]/(client)/home/components/CreateChatButton";
+import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar";
+import MainFeed from "@/app/[locale]/(client)/home/components/MainFeed";
 
 export default function Home() {
   return (
-    <div className="flex justify-center xl:gap-24 overflow-x-hidden w-full max-w-full mx-auto">
+    <div className="flex justify-center xl:gap-24 overflow-x-hidden min-w-full">
+      <div className=""></div>
+
       {/* Feed chính */}
       <MainFeed />
 

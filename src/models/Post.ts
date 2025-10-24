@@ -11,11 +11,13 @@ export interface Post {
   id: number;
   createdAt: string;
   owner: UserBasic;
+  taggedUsers: UserBasic[];
   contentText: string;
   mediaCount: number;
   reactionCount: number;
   shareCount: number;
   commentCount: number;
   visibility: boolean;
+  reacted: boolean;
   mediaAttachments: MediaAttachment[];
 }

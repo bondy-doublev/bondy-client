@@ -1,0 +1,64 @@
+"use client";
+
+import { FaRegComment } from "react-icons/fa";
+import { BiLike, BiSolidLike } from "react-icons/bi";
+import { PiShareFatBold } from "react-icons/pi";
+import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+
+export default function PostActions({
+  t,
+  onComment,
+  reacted,
+  onToggleLike,
+  onShare,
+}: {
+  t: (key: string) => string;
+  onComment?: () => void;
+  reacted: boolean;
+  onToggleLike: () => void;
+  onShare: () => void;
+}) {
+  return (
+    <div className="w-full flex py-1 px-4 text-gray-600 text-sm">
+      <button
+        onClick={onToggleLike}
+        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition ${
+          reacted
+            ? "text-green-600 hover:bg-green-50"
+            : "text-gray-600 hover:bg-gray-100"
+        }`}
+      >
+        {reacted ? (
+          <BiSolidLike size={18} className="text-green-600" />
+        ) : (
+          <BiLike size={18} className="text-gray-500" />
+        )}
+        <span className="text-sm font-medium">{t("like")}</span>
+      </button>
+
+      <button
+        onClick={onComment}
+        className="flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100 transition"
+      >
+        <FaRegComment size={16} /> {t("comment")}
+      </button>
+
+      <div className="flex-1">
+        <ConfirmDialog
+          title={t("share_confirm_title")}
+          description={t("share_confirm_desc")}
+          confirmText={t("share")}
+          cancelText={t("cancel")}
+          loadingText={t("loading")}
+          variant="default"
+          onConfirm={onShare}
+          trigger={
+            <button className="w-full flex items-center justify-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100 transition">
+              <PiShareFatBold size={16} /> {t("share")}
+            </button>
+          }
+        />
+      </div>
+    </div>
+  );
+}

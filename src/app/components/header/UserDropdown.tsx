@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 
 export default function UserDropdown() {
   const router = useRouter();
