@@ -17,6 +17,7 @@ export function useChat(params: {
 }) {
   const { conversationId, xUser, initialMessages = [], uploadFiles } = params;
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [isUploading, setIsUploading] = useState(false); // NEW
   const socketRef = useRef<ChatSocket | null>(null);
   const lastConvIdRef = useRef<number | null>(null);
   const syncedRef = useRef(false);
@@ -42,7 +43,6 @@ export function useChat(params: {
     }, delay);
   };
 
-  // Upsert 1 message theo id (giữ UI mượt mà ngay khi nhận WS)
   const upsertMessage = (m: ChatMessage) => {
     setMessages((prev) => {
       const idx = prev.findIndex((x) => x.id === m.id);
@@ -55,7 +55,6 @@ export function useChat(params: {
     });
   };
 
-  // Optimistic edit
   const optimisticEdit = (messageId: number, newContent: string) => {
     setMessages((prev) =>
       prev.map((m) =>
@@ -71,7 +70,6 @@ export function useChat(params: {
     );
   };
 
-  // Optimistic delete
   const optimisticDelete = (messageId: number) => {
     setMessages((prev) =>
       prev.map((m) =>
@@ -104,12 +102,7 @@ export function useChat(params: {
       conversationId,
       xUser,
       onMessage: (msg) => {
-        // Cập nhật tức thì từ WS
         upsertMessage(msg);
-
-        // Trigger reload API để đồng bộ chắc chắn (tránh miss sự kiện)
-        // Nếu muốn giảm tải, chỉ reload khi sự kiện không phải của chính mình:
-        // if (msg.senderId !== xUser.id) scheduleRefresh();
         scheduleRefresh();
       },
       onConnected: async () => {
@@ -136,7 +129,6 @@ export function useChat(params: {
     } else {
       const saved = await chatService.sendMessage(payload);
       upsertMessage(saved);
-      // Sau khi gửi qua REST, cũng reload nhẹ để đồng bộ
       scheduleRefresh();
     }
   };
@@ -150,22 +142,27 @@ export function useChat(params: {
   const sendWithFiles = async (files: File[], caption?: string) => {
     if (!files?.length || !conversationId) return;
     if (!uploadFiles) throw new Error("uploadFiles is not provided");
-    const attachments = await uploadFiles(files);
-    const allImages = files.every((f) => f.type?.startsWith("image/"));
-    const type = allImages ? "IMAGE" : "FILE";
-    await sendPayload({
-      conversationId,
-      type,
-      content: caption ?? null,
-      attachments,
-    });
+    setIsUploading(true); // NEW start
+    try {
+      const attachments = await uploadFiles(files);
+      const allImages = files.every((f) => f.type?.startsWith("image/"));
+      const type = allImages ? "IMAGE" : "FILE";
+      await sendPayload({
+        conversationId,
+        type,
+        content: caption ?? null,
+        attachments,
+      });
+    } finally {
+      setIsUploading(false); // NEW end
+    }
   };
 
   const editMessage = async (messageId: number, newContent: string) => {
     if (socketRef.current?.isConnected()) {
       optimisticEdit(messageId, newContent);
       socketRef.current.updateMessage(messageId, newContent);
-      scheduleRefresh(); // đảm bảo bên kia (và mình) đồng bộ lại
+      scheduleRefresh();
     } else {
       const updated = await chatService.editMessage(messageId, newContent);
       upsertMessage(updated);
@@ -199,5 +196,6 @@ export function useChat(params: {
     deleteMessage,
     reloadHistory,
     isConnected: socketRef.current?.isConnected() ?? false,
+    isUploading, // NEW
   };
 }

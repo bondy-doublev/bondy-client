@@ -119,4 +119,15 @@ export const userService = {
       throw new Error("Failed to search users");
     }
   },
+
+  async getBasicProfile(userId: number) {
+    try {
+      const response: AxiosResponse = await api.get(
+        `${API_URL}/${userId}/basic-profile`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to fetch basic profile");
+    }
+  },
 };
