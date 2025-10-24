@@ -7,7 +7,7 @@ import {
   ConversationResponse,
   ChatMessage,
 } from "@/services/chatService";
-import ClientChat from "./ClientChat";
+import ClientChat from "../components/ClientChat";
 import { useAuthStore } from "@/store/authStore";
 
 export default function ChatPage() {
@@ -57,7 +57,7 @@ export default function ChatPage() {
       conversationId={conversation.id}
       initialMessages={history}
       selfUserId={selfUserId}
-      user={{ id: selfUserId, role: user?.role, email: user?.email }} // truyền xUser
+      user={{ id: selfUserId, role: user?.role, email: user?.email }}
     />
   );
 }

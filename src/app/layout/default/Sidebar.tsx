@@ -1,6 +1,7 @@
 "use client";
 
 import { SIDEBAR_ITEMS } from "@/constants";
+import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -13,11 +14,12 @@ export default function Sidebar() {
       <div className="text-2xl font-bold mb-10 cursor-pointer">Bondy</div>
 
       {SIDEBAR_ITEMS.map((item) => (
-        <div
+        <Link
+          href={item.href || "#"}
           key={item.id}
           onClick={() => setActive(item.id)}
           className={`flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer hover:bg-green/70 transition-colors text-black-always ${
-            active === item.id ? "bg-green/80 font-semibol  d" : ""
+            active === item.id ? "bg-green/80 font-semibold" : ""
           }`}
         >
           <div className="relative">
@@ -29,7 +31,7 @@ export default function Sidebar() {
             )}
           </div>
           <span>{t(item.id)}</span>
-        </div>
+        </Link>
       ))}
     </aside>
   );
