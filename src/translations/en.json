@@ -119,6 +119,7 @@
     "meta": "Meta's Corner"
   },
   "post": {
+    "postBy": "Post by",
     "like": "Like",
     "likes": "likes",
     "comment": "Comment",
@@ -137,10 +138,43 @@
     "image": "Image",
     "video": "Video",
     "message": "what are you thinking about?",
-    "createNewPost": "Create new post"
+    "createNewPost": "Create new post",
+    "loading": "Loading...",
+    "noMorePost": "No more posts 😄",
+    "scrollToLoadMore": "Scroll down to load more",
+    "reply": "Reply",
+    "loadmore": "Load more",
+    "see": "See",
+    "replies": "replies",
+    "noMoreComment": "No more comments 😄",
+    "noPost": "No posts yet 😄",
+    "noComment": "No comments yet 😄",
+    "writeComment": "Write comment",
+    "addToYourPost": "Add to your post",
+    "public": "Public",
+    "private": "Only me",
+    "headerTagsModal": "Friends",
+    "tapToTag": "Tap to tag",
+    "noFriends": "No friends",
+    "searchFriends": "Search friends",
+    "selected": "Selected",
+    "with": "with",
+    "and": "and",
+    "others": "others",
+    "post": "Post",
+    "posting": "Posting",
+    "postCreated": "Post new post successfully",
+    "postFailed": "Post new post fail",
+    "delete": "Delete",
+    "share_confirm_title": "Share this post?",
+    "share_confirm_desc": "Are you sure you want to share this post on your wall?",
+    "cancel": "Cancel",
+    "done": "Done"
   },
   "friend": {
     "friends": "Friends",
-    "contacts": "Contacts"
+    "contacts": "Contacts",
+    "loading": "Loading...",
+    "noFriends": "No friends"
   }
 }

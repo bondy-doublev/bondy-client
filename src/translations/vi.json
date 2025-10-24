@@ -119,6 +119,7 @@
     "meta": "Góc của Meta"
   },
   "post": {
+    "postBy": "Bài viết của",
     "like": "Thích",
     "likes": "lượt thích",
     "comment": "Bình luận",
@@ -137,10 +138,43 @@
     "image": "Hình ảnh",
     "video": "Băng hình",
     "message": "bạn đang nghĩ gì?",
-    "createNewPost": "Tạo bài viết mới"
+    "createNewPost": "Tạo bài viết mới",
+    "loading": "Đang tải...",
+    "noMorePost": "Không còn bài đăng nào 😄",
+    "scrollToLoadMore": "Cuộn xuống để tải thêm",
+    "reply": "Phản hồi",
+    "loadmore": "Xem thêm",
+    "see": "Xem",
+    "replies": "phản hồi",
+    "noMoreComment": "Không còn bình luận nào 😄",
+    "noPost": "Chưa có bài viết nào 😄",
+    "noComment": "Chưa có bình luận nào 😄",
+    "writeComment": "Viết bình luận",
+    "addToYourPost": "Thêm vào bài viết của bạn",
+    "public": "Công khai",
+    "private": "Chỉ mình tôi",
+    "headerTagsModal": "Bạn bè",
+    "tapToTag": "Chọn để đề cập",
+    "noFriends": "Chưa có bạn bè",
+    "searchFriends": "Tìm kiếm bạn bè",
+    "selected": "Đã được chọn",
+    "with": "cùng với",
+    "and": "và",
+    "others": "người khác",
+    "post": "Đăng",
+    "posting": "Đang đăng",
+    "postCreated": "Đăng bài thành công",
+    "postFailed": "Đăng bài thất bại",
+    "delete": "Xóa",
+    "share_confirm_title": "Chia sẻ bài viết?",
+    "share_confirm_desc": "Bạn có chắc chắn muốn chia sẻ bài viết này lên trang cá nhân của mình?",
+    "cancel": "Hủy",
+    "done": "Xong"
   },
   "friend": {
     "friends": "Bạn bè",
-    "contacts": "Danh bạ"
+    "contacts": "Danh bạ",
+    "loading": "Đang tải...",
+    "noFriends": "Chưa có bạn bè"
   }
 }

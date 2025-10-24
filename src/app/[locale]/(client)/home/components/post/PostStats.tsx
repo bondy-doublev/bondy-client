@@ -3,11 +3,13 @@ export default function PostStats({
   comments,
   shares,
   t,
+  onComment,
 }: {
   likes: number;
   comments: number;
   shares: number;
   t: (key: string) => string;
+  onComment?: () => void;
 }) {
   return (
     <div className="flex justify-between pt-2 px-4 text-gray-600 text-sm">
@@ -20,7 +22,7 @@ export default function PostStats({
 
         {/* Bình luận + Chia sẻ */}
         <div className="flex gap-2 justify-around text-gray-600">
-          <div className="cursor-pointer hover:underline">
+          <div className="cursor-pointer hover:underline" onClick={onComment}>
             {comments}{" "}
             {comments > 1
               ? t("comments").toLowerCase()
