@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api } from "../lib/axios";
 import axios, { AxiosResponse } from "axios";
 
@@ -32,6 +31,17 @@ export const userService = {
   async getProfile() {
     try {
       const response: AxiosResponse = await api.get(`${API_URL}/profile`);
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to fetch profile");
+    }
+  },
+
+  async getProfileById({ userId }: { userId: number }) {
+    try {
+      const response: AxiosResponse = await api.get(
+        `${API_URL}/${userId}/profile`
+      );
       return response.data;
     } catch (error) {
       throw new Error("Failed to fetch profile");

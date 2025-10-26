@@ -10,7 +10,9 @@ export default async function RootLayout({
       <AppNavbar />
       <AppSidebar /> {/* sẽ fixed bên trái */}
       {/* Nội dung chính dịch sang phải bằng đúng width sidebar */}
-      <main className="md:ml-[20%] p-4 transition-all">{children}</main>
+      <main className="md:ml-[20%] p-4 transition-all bg-gray-50">
+        {children}
+      </main>
     </div>
   );
 }

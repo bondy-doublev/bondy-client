@@ -32,10 +32,15 @@ export default function CommentSection({
     }
   };
 
-  const handleDeleteComment = async (commentId: number) => {
+  const handleDeleteComment = async (commentId: number, childCount: number) => {
     await commentService.deleteComment({ commentId });
     deleteOptimistic(commentId);
-    onCommentCountChange?.(postId, -1);
+
+    const comment = comments.find((c) => c.id === commentId);
+
+    const deletedCount = comment?.parentId ? 1 : 1 + childCount;
+
+    onCommentCountChange?.(postId, -deletedCount);
   };
 
   return (

@@ -51,7 +51,7 @@ export default function PostCard({ post, onComment, isDetail = false }: Props) {
       />
       <PostContent
         content={post.contentText}
-        urls={post.mediaAttachments.map((m) => m.url) ?? []}
+        mediaAttachments={post.mediaAttachments}
       />
       <PostStats
         t={t}

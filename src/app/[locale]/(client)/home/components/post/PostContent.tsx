@@ -1,90 +1,125 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { MediaAttachment } from "@/models/Post";
+import MediaModal from "@/app/[locale]/(wall)/wall/components/MediaModal";
 
 export default function PostContent({
   content,
-  urls = [],
+  mediaAttachments,
 }: {
   content: string;
-  urls?: Array<string>;
+  mediaAttachments: Array<MediaAttachment>;
 }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [modalData, setModalData] = useState<{
+    url: string;
+    type: "image" | "video";
+  } | null>(null);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", onSelect);
     onSelect();
   }, [emblaApi, onSelect]);
 
-  const scrollPrev = useCallback(
-    () => emblaApi && emblaApi.scrollPrev(),
-    [emblaApi]
-  );
-  const scrollNext = useCallback(
-    () => emblaApi && emblaApi.scrollNext(),
-    [emblaApi]
-  );
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   return (
     <div className="space-y-3">
-      <p className="text-gray-800 px-4">{content}</p>
+      {/* text content */}
+      {content && (
+        <p className="text-gray-800 px-4 text-[15px] leading-relaxed whitespace-pre-wrap">
+          {content}
+        </p>
+      )}
 
-      {urls.length > 0 && (
+      {/* media gallery */}
+      {mediaAttachments.length > 0 && (
         <div className="relative overflow-hidden">
-          {/* Carousel */}
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
-              {urls.map((url, i) => (
-                <div
-                  key={i}
-                  className="flex-[0_0_100%] relative w-full h-64 sm:h-80"
-                >
-                  <Image
-                    src={url}
-                    alt={`post image ${i + 1}`}
-                    fill
-                    loading="lazy"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+              {mediaAttachments.map((media, i) => {
+                const isVideo =
+                  media.type === "VIDEO" || media.url.endsWith(".mp4");
+
+                return (
+                  <div
+                    key={i}
+                    className="flex-[0_0_100%] relative w-full aspect-[4/3] sm:aspect-video bg-black"
+                  >
+                    {isVideo ? (
+                      <div className="relative w-full h-full">
+                        <video
+                          src={media.url}
+                          controls
+                          preload="metadata"
+                          className="w-full h-full object-contain bg-black"
+                        />
+                        {/* Nút mở modal riêng */}
+                        <button
+                          onClick={() =>
+                            setModalData({ url: media.url, type: "video" })
+                          }
+                          className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition z-10"
+                          title="Xem chi tiết"
+                        >
+                          <Maximize2 size={18} />
+                        </button>
+                      </div>
+                    ) : (
+                      <Image
+                        src={media.url}
+                        alt={`post media ${i + 1}`}
+                        fill
+                        priority={i === 0}
+                        loading={i === 0 ? undefined : "lazy"}
+                        className="object-cover select-none cursor-pointer"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        onClick={() =>
+                          setModalData({ url: media.url, type: "image" })
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {urls.length > 1 && (
+          {/* navigation */}
+          {mediaAttachments.length > 1 && (
             <>
-              {/* Nút điều hướng trái/phải */}
               <button
                 onClick={scrollPrev}
-                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
+                className="absolute top-1/2 left-3 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={20} />
               </button>
-
               <button
                 onClick={scrollNext}
-                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition"
+                className="absolute top-1/2 right-3 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={20} />
               </button>
 
-              {/* Dấu chấm nhỏ */}
+              {/* dots */}
               <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-                {urls.map((_, i) => (
+                {mediaAttachments.map((_, i) => (
                   <span
                     key={i}
                     className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                      i === selectedIndex ? "bg-white scale-110" : "bg-white/50"
+                      i === selectedIndex ? "bg-white scale-110" : "bg-white/40"
                     }`}
                   />
                 ))}
@@ -92,6 +127,16 @@ export default function PostContent({
             </>
           )}
         </div>
+      )}
+
+      {/* Modal chi tiết */}
+      {modalData && (
+        <MediaModal
+          open={!!modalData}
+          onClose={() => setModalData(null)}
+          url={modalData.url}
+          type={modalData.type}
+        />
       )}
     </div>
   );

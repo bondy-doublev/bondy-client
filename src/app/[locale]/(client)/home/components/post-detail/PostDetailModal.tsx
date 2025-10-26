@@ -17,7 +17,7 @@ type Props = {
   t: (key: string) => string;
   post: Post;
   onClose?: () => void;
-  onCommentCountChange?: (postId: number, delta: number) => void; // ✅ chữ ký mới
+  onCommentCountChange?: (postId: number, delta: number) => void;
 };
 
 export function PostDetailModal({
@@ -55,7 +55,7 @@ export function PostDetailModal({
           </DialogClose>
         </DialogHeader>
 
-        <div className="overflow-y-auto max-h-[75vh] scroll-custom">
+        <div className="overflow-y-auto max-h-[80vh] scroll-custom">
           <PostCard post={post} isDetail={true} />
           <div className="pt-4">
             {/* ✅ chuyền tiếp (postId, delta) xuống CommentSection */}

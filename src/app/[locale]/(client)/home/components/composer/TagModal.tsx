@@ -2,6 +2,7 @@
 
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 import {
   Dialog,
   DialogClose,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Friendship } from "@/models/Friendship";
 import { friendService } from "@/services/friendService";
+import { useAuthStore } from "@/store/authStore";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -28,37 +30,14 @@ export default function TagModal({
   onClose: () => void;
   onSetTagUserIds: (ids: number[]) => void;
 }) {
-  const [friends, setFriends] = useState<Friendship[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
 
-  const fetchFriends = async () => {
-    if (!currentUserId) return;
-    setLoading(true);
-    try {
-      const res: Friendship[] = await friendService.getFriends(currentUserId);
-      setFriends(res || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { user } = useAuthStore();
 
-  useEffect(() => {
-    if (showModal) fetchFriends();
-  }, [currentUserId, showModal]);
+  const { loading, friendUsers } = useMyFriends(user?.id ?? 0);
 
-  const friendUsers = useMemo(
-    () =>
-      friends.map((f) =>
-        f.senderId === currentUserId ? f.receiverInfo : f.senderInfo
-      ),
-    [friends, currentUserId]
-  );
-
-  // ✅ Lọc theo searchTerm
+  // Lọc theo searchTerm
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return friendUsers;
     return friendUsers.filter((u) =>
@@ -66,13 +45,13 @@ export default function TagModal({
     );
   }, [friendUsers, searchTerm]);
 
-  // ✅ Khi thay đổi selectedUsers => cập nhật danh sách ID ra ngoài
+  // Khi thay đổi selectedUsers => cập nhật danh sách ID ra ngoài
   useEffect(() => {
     const ids = selectedUsers.map((u) => u.id);
     onSetTagUserIds(ids);
   }, [selectedUsers, onSetTagUserIds]);
 
-  // ✅ Chọn hoặc bỏ chọn user
+  // Chọn hoặc bỏ chọn user
   const handleSelectUser = (user: any) => {
     setSelectedUsers((prev) => {
       const exists = prev.find((u) => u.id === user.id);
@@ -81,7 +60,7 @@ export default function TagModal({
     });
   };
 
-  // ✅ Xóa khỏi danh sách đã chọn
+  // Xóa khỏi danh sách đã chọn
   const handleRemoveUser = (userId: number) => {
     setSelectedUsers((prev) => prev.filter((u) => u.id !== userId));
   };
@@ -114,7 +93,7 @@ export default function TagModal({
           </DialogClose>
         </DialogHeader>
 
-        {/* ✅ Danh sách đã chọn */}
+        {/* Danh sách đã chọn */}
         {selectedUsers.length > 0 && (
           <div className="flex flex-wrap gap-2 px-4 py-3">
             {selectedUsers.map((user) => (

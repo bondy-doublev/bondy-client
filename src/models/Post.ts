@@ -21,3 +21,11 @@ export interface Post {
   reacted: boolean;
   mediaAttachments: MediaAttachment[];
 }
+
+export interface Feed {
+  id: number;
+  type: string;
+  user: UserBasic;
+  post: Post;
+  createdAt: string;
+}

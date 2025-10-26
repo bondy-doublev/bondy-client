@@ -5,7 +5,7 @@ import type { ChatMessage } from "@/services/chatService";
 import { FaPaperclip, FaPaperPlane, FaEdit, FaTrash } from "react-icons/fa";
 import { useAuthStore } from "@/store/authStore";
 import { userService } from "@/services/userService";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 
 export default function ChatBox({
   selfUserId,
