@@ -7,6 +7,7 @@ import PostStats from "@/app/[locale]/(client)/home/components/post/PostStats";
 import { Post } from "@/models/Post";
 import { reactionService } from "@/services/reactionService";
 import { shareService } from "@/services/shareService";
+import { useAuthStore } from "@/store/authStore";
 import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -19,6 +20,8 @@ type Props = {
 
 export default function PostCard({ post, onComment, isDetail = false }: Props) {
   const t = useTranslations("post");
+  const { user } = useAuthStore();
+
   const [reacted, setReacted] = useState(post.reacted ?? false);
   const [likeCount, setLikeCount] = useState(post.reactionCount ?? 0);
   const [shareCount, setShareCount] = useState(post.shareCount ?? 0);
@@ -44,10 +47,10 @@ export default function PostCard({ post, onComment, isDetail = false }: Props) {
     >
       <PostHeader
         t={t}
-        name={post.owner.fullName}
+        owner={post.owner}
         seconds={getTimeAgo(post.createdAt)}
-        avatarUrl={post.owner.avatarUrl}
         taggedUsers={post.taggedUsers}
+        isOwner={post.owner.id === user?.id}
       />
       <PostContent
         content={post.contentText}

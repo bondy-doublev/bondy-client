@@ -34,9 +34,19 @@ export default function MediaSidebar({
   return (
     <>
       <aside
-        className={`hidden xl:block w-80 bg-white rounded-xl shadow p-4 space-y-4 h-fit ${className}`}
+        className={`hidden xl:block w-80 bg-white rounded-xl shadow p-4 pt-2 space-y-2 h-fit ${className}`}
       >
-        <h2 className="font-semibold text-gray-700">{t("media")}</h2>
+        <div className="flex justify-between">
+          <h2 className="font-semibold text-gray-700 py-2">{t("media")}</h2>
+
+          {medias.length > 0 && (
+            <div className="text-center">
+              <button className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium">
+                {t("seeAllMedias")}
+              </button>
+            </div>
+          )}
+        </div>
 
         <ul className="grid grid-cols-3 gap-2">
           {medias.map((media) => {

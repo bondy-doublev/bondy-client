@@ -249,18 +249,16 @@ export default function ChatBox({
           />
         )}
 
-        {isUploading && (
-          <button
-            onClick={send}
-            title="Send"
-            className={`rounded-md bg-green-600 p-2 text-white transition-colors hover:bg-green-700 ${
-              isUploading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={isUploading}
-          >
-            {!isUploading && <FaPaperPlane />}
-          </button>
-        )}
+        <button
+          onClick={send}
+          title="Send"
+          className={`rounded-md bg-green-600 p-2 text-white transition-colors hover:bg-green-700 ${
+            isUploading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={isUploading}
+        >
+          {!isUploading && <FaPaperPlane />}
+        </button>
 
         {isUploading && (
           <div className="ml-2 flex items-center gap-2 text-sm text-gray-600">

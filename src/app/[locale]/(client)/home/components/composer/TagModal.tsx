@@ -11,21 +11,17 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Friendship } from "@/models/Friendship";
-import { friendService } from "@/services/friendService";
 import { useAuthStore } from "@/store/authStore";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 export default function TagModal({
   t,
-  currentUserId,
   showModal,
   onClose,
   onSetTagUserIds,
 }: {
   t: (key: string) => string;
-  currentUserId?: number;
   showModal: boolean;
   onClose: () => void;
   onSetTagUserIds: (ids: number[]) => void;
