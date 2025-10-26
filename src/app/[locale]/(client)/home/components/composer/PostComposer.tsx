@@ -1,30 +1,47 @@
 import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/PostComposerModal";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Plus } from "lucide-react";
+import { userService } from "@/services/userService";
+import User from "@/models/User";
 
 export default function PostComposer({
+  owner,
   onPostCreated,
 }: {
+  owner?: User;
   onPostCreated?: () => void;
 }) {
   const t = useTranslations("post");
+  const [userInfo, setUserInfo] = useState<any>(null);
   const { user } = useAuthStore();
+
+  const handleGetUserInfo = async () => {
+    if (owner) {
+      setUserInfo(owner);
+    } else {
+      setUserInfo(user);
+    }
+  };
 
   const [showModal, setShowModal] = useState(false);
 
   const placeholder = user?.firstName + ", " + t("message");
 
+  useEffect(() => {
+    handleGetUserInfo();
+  }, []);
+
   return (
     <div className="bg-white rounded-xl shadow">
       <div className="flex items-center gap-3 p-4">
-        {user?.avatarUrl ? (
-          <UserAvatar avatarUrl={user?.avatarUrl} />
+        {userInfo?.avatarUrl ? (
+          <UserAvatar avatarUrl={userInfo?.avatarUrl} />
         ) : (
-          <DefaultAvatar firstName={user?.firstName} />
+          <DefaultAvatar firstName={userInfo?.firstName} />
         )}
 
         <input

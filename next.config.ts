@@ -40,6 +40,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "picsum.photos", // 👈 thêm cái này
       },
+      {
+        protocol: "http", // hoặc "https" nếu bạn host bằng https
+        hostname: "commondatastorage.googleapis.com",
+      },
     ],
   },
 };

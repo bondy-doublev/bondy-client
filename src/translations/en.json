@@ -169,12 +169,21 @@
     "share_confirm_title": "Share this post?",
     "share_confirm_desc": "Are you sure you want to share this post on your wall?",
     "cancel": "Cancel",
-    "done": "Done"
+    "done": "Done",
+    "you": "You",
+    "sharedPost": "shared"
   },
   "friend": {
     "friends": "Friends",
     "contacts": "Contacts",
     "loading": "Loading...",
-    "noFriends": "No friends"
+    "noFriends": "No friends",
+    "seeAllFriends": "See all friends"
+  },
+  "wall": {
+    "friends": "Friends",
+    "editProfile": "Edit profile",
+    "addStory": "Create new story",
+    "media": "Media"
   }
 }

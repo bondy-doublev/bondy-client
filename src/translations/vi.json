@@ -169,12 +169,21 @@
     "share_confirm_title": "Chia sẻ bài viết?",
     "share_confirm_desc": "Bạn có chắc chắn muốn chia sẻ bài viết này lên trang cá nhân của mình?",
     "cancel": "Hủy",
-    "done": "Xong"
+    "done": "Xong",
+    "you": "Bạn",
+    "sharedPost": "đã chia sẻ một bài viết"
   },
   "friend": {
     "friends": "Bạn bè",
     "contacts": "Danh bạ",
     "loading": "Đang tải...",
-    "noFriends": "Chưa có bạn bè"
+    "noFriends": "Chưa có bạn bè",
+    "seeAllFriends": "Xem tất cả bạn bè"
+  },
+  "wall": {
+    "friends": "Bạn bè",
+    "editProfile": "Chỉnh sửa thông tin",
+    "addStory": "Thêm vào tin",
+    "media": "Ảnh và video"
   }
 }

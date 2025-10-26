@@ -30,13 +30,23 @@ export default function CommentItem({
   comment: Comment;
   seconds: number;
   isChild?: boolean;
-  onDelete: (id: number) => void;
+  onDelete: (id: number, childCount: number) => void;
   onCommentCountChange?: (postId: number, delta: number) => void;
   onCreate?: (comment: Comment) => void;
 }) {
   const { user } = useAuthStore();
   const [seeReplies, setSeeReplies] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
+  const [childCount, setChildCount] = useState(comment.childCount ?? 0);
+
+  const {
+    replies,
+    loading,
+    hasMore,
+    loadMore,
+    addOptimistic,
+    deleteOptimistic,
+  } = useReplies(comment.postId, comment.id);
 
   const handleCreateReply = async (content: string) => {
     const created = await commentService.createComment({
@@ -50,6 +60,10 @@ export default function CommentItem({
       onCommentCountChange?.(comment.postId, 1);
       setSeeReplies(true);
       setShowReplyBox(false);
+      if (!comment.parentId) {
+        addOptimistic(created);
+        setChildCount((prev) => prev + 1);
+      }
     }
   };
 
@@ -90,7 +104,7 @@ export default function CommentItem({
                 >
                   <DropdownMenuItem
                     className="text-red-600 cursor-pointer hover:bg-red-50"
-                    onClick={() => onDelete(comment.id)}
+                    onClick={() => onDelete(comment.id, replies.length)}
                   >
                     {t("delete")}
                   </DropdownMenuItem>
@@ -119,18 +133,24 @@ export default function CommentItem({
             className="ml-2 text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
             onClick={() => setSeeReplies(true)}
           >
-            {t("see")} {comment.childCount}{" "}
-            {comment.childCount! > 1 ? t("replies") : t("reply").toLowerCase()}
+            {t("see")} {childCount}{" "}
+            {childCount > 1 ? t("replies") : t("reply").toLowerCase()}
           </div>
         )}
 
         {/* Replies */}
-        {seeReplies && comment.childCount! > 0 && (
+        {seeReplies && childCount > 0 && (
           <CommentReplies
-            postId={comment.postId}
-            parentId={comment.id}
+            replies={replies}
+            loading={loading}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            addOptimistic={addOptimistic}
+            deleteOptimistic={deleteOptimistic}
             onAnyReplyCreated={() => onCommentCountChange?.(comment.postId, 1)}
-            onAnyReplyDeleted={() => onCommentCountChange?.(comment.postId, -1)}
+            onAnyReplyDeleted={() => {
+              onCommentCountChange?.(comment.postId, -1);
+            }}
           />
         )}
 

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { FiMessageSquare } from "react-icons/fi";
 import { friendService } from "@/services/friendService";
 import { useAuthStore } from "@/store/authStore";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -13,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 
 export default function CreateChatButton() {
   const [friends, setFriends] = useState<any[]>([]);

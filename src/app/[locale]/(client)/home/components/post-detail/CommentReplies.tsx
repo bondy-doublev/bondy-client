@@ -2,29 +2,29 @@ import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 import { commentService } from "@/services/commentService";
 import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
-import { useReplies } from "@/app/hooks/useReplies";
 import { Comment } from "@/models/Comment";
 
 export default function CommentReplies({
-  postId,
-  parentId,
+  replies,
+  loading,
+  hasMore,
+  loadMore,
+  addOptimistic,
+  deleteOptimistic,
   onAnyReplyCreated,
   onAnyReplyDeleted,
 }: {
-  postId: number;
-  parentId: number;
+  replies: Comment[];
+  loading: boolean;
+  hasMore: boolean;
+  loadMore: () => void;
+  addOptimistic: (comment: Comment) => void;
+  deleteOptimistic: (commentId: number) => void;
   onAnyReplyCreated?: () => void;
   onAnyReplyDeleted?: () => void;
 }) {
   const t = useTranslations("post");
-  const {
-    replies,
-    loading,
-    hasMore,
-    loadMore,
-    addOptimistic,
-    deleteOptimistic,
-  } = useReplies(postId, parentId);
+
   return (
     <div className="ml-4 mt-2 relative">
       <div className="absolute top-0 left-[-12px] w-[2px] h-full bg-gray-200 rounded-full" />
