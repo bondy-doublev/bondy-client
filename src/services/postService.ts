@@ -51,19 +51,29 @@ export const postService = {
 
       tagUserIds.forEach((id) => formData.append("tagUserIds", id.toString()));
 
-      console.log(mediaFiles.length);
       mediaFiles.forEach((f) => {
         console.log(f);
         formData.append("mediaFiles", f);
       });
-
-      console.log(formData);
 
       const res = await api.post(API_URL, formData, {});
 
       return res.data.data;
     } catch (error: any) {
       console.error("Error createPost:", error);
+      Toast.error(error);
+      throw error;
+    }
+  },
+  async deletePost({ postId }: { postId: number }) {
+    try {
+      const res = await api.delete(`${API_URL}/${postId}`);
+
+      Toast.success("Delete post successfully");
+      return res.data.data;
+    } catch (error: any) {
+      console.error("Error delete:", error);
+      Toast.error(error);
       throw error;
     }
   },

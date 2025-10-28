@@ -174,7 +174,11 @@
     "sharedPost": "đã chia sẻ một bài viết",
     "edit": "Chỉnh sửa",
     "taggedUsers": "Danh sách bạn bè được đề cập",
-    "noTaggedUsers": "Không có bạn bè được đề cập"
+    "noTaggedUsers": "Không có bạn bè được đề cập",
+    "undoDeleteMessage": "Bạn vừa xóa bài viết này. Hoàn tác trong",
+    "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
+    "undo": "Hoàn tác",
+    "originalPostDeleted": "Bài viết gốc đã bị xóa."
   },
   "friend": {
     "friends": "Bạn bè",

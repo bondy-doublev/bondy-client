@@ -5,7 +5,6 @@ import {
   Video,
   Send,
   Heart,
-  Plus,
   Menu,
   Grid,
 } from "lucide-react";
@@ -29,7 +28,6 @@ export const SIDEBAR_ITEMS = [
     icon: <Heart />,
     badge: 1,
   },
-  { id: "create", href: "/create", label: "Tạo", icon: <Plus /> },
   { id: "more", href: "/more", label: "Xem thêm", icon: <Menu /> },
   { id: "meta", href: "/meta", label: "Củng của Meta", icon: <Grid /> },
 ];

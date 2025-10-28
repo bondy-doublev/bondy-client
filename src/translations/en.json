@@ -174,7 +174,11 @@
     "sharedPost": "shared",
     "edit": "Edit",
     "taggedUsers": "Tagged friends",
-    "noTaggedUsers": "No friend tagged"
+    "noTaggedUsers": "No friend tagged",
+    "undoDeleteMessage": "You just deleted this post. Undo in",
+    "undoDeleteShareMessage": "You just deleted this share post. Undo in",
+    "undo": "Undo",
+    "originalPostDeleted": "The original post has been deleted."
   },
   "friend": {
     "friends": "Friends",

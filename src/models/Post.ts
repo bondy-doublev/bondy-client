@@ -26,6 +26,6 @@ export interface Feed {
   id: number;
   type: string;
   user: UserBasic;
-  post: Post;
+  post?: Post;
   createdAt: string;
 }

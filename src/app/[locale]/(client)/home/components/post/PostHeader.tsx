@@ -14,6 +14,7 @@ export default function PostHeader({
   isOwner = false,
   onEdit,
   onDelete,
+  isSharePost,
 }: {
   t: (key: string) => string;
   owner: UserBasic;
@@ -22,6 +23,7 @@ export default function PostHeader({
   isOwner?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  isSharePost?: boolean;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,7 +86,7 @@ export default function PostHeader({
         </span>
       </div>
 
-      {isOwner && (
+      {isOwner && !isSharePost && (
         <div className="relative mb-2">
           <button
             className="w-8 h-8 rounded-full hover:bg-gray-100"

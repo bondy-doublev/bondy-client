@@ -177,7 +177,10 @@ export default function PostComposerModal({
                 <DefaultAvatar firstName={user?.firstName} />
               )}
               <div className="flex flex-col">
-                <UserName fullname={fullname.trim()} />
+                <UserName
+                  userId={Number(user?.id)}
+                  fullname={fullname.trim()}
+                />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 hover:underline transition">
@@ -349,7 +352,6 @@ export default function PostComposerModal({
 
       <TagsModal
         t={t}
-        currentUserId={user?.id}
         showModal={showTagsModal}
         onClose={() => setShowTagsModal(false)}
         onSetTagUserIds={setTagUserIds}
