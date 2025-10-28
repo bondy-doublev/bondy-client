@@ -3,9 +3,12 @@
 import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
 import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
+import SharePost from "@/app/[locale]/(client)/home/components/post/SharePost";
 import { Feed } from "@/models/Post";
 import User from "@/models/User";
 import { feedService } from "@/services/feedService";
+import { postService } from "@/services/postService";
+import { shareService } from "@/services/shareService";
 import { wallService } from "@/services/wallService";
 import { useAuthStore } from "@/store/authStore";
 import { useTranslations } from "next-intl";
@@ -36,15 +39,12 @@ export default function MainFeed({
       : await feedService.getFeeds({ page, size: 5 });
     setLoading(false);
 
-    console.log(newFeeds);
-
     if (!newFeeds || newFeeds.length < 5) {
       setHasMore(false);
     }
 
     setFeeds((prev) => {
       const merged = reset ? newFeeds : [...prev, ...newFeeds];
-      // const unique = Array.from(new Map(merged.map((f) => [f.id, f])).values());
       return merged;
     });
   };
@@ -81,7 +81,7 @@ export default function MainFeed({
   const incPostCommentCount = (postId: number, delta = 1) => {
     setFeeds((prev) =>
       prev.map((f) =>
-        f.post.id === postId
+        f.post && f.post.id === postId
           ? {
               ...f,
               post: {
@@ -92,6 +92,7 @@ export default function MainFeed({
           : f
       )
     );
+
     setSelectedPost((prev) =>
       prev?.id === postId
         ? { ...prev, commentCount: (prev.commentCount ?? 0) + delta }
@@ -99,41 +100,69 @@ export default function MainFeed({
     );
   };
 
+  const handleDelete = async (feedId: number, type: "POST" | "SHARE") => {
+    if (type === "POST") {
+      await postService.deletePost({ postId: feedId });
+      setFeeds((prev) =>
+        prev
+          .map((f) => {
+            if (f.type === "SHARE" && f.post && f.post.id === feedId) {
+              // Bài gốc bị xóa -> giữ share lại, set post=null
+              return { ...f, post: null };
+            }
+            if (f.type === "POST" && f.post?.id === feedId) {
+              // Xóa bài gốc khỏi feed
+              return null;
+            }
+            return f;
+          })
+          .filter((f): f is Feed => f !== null)
+      );
+    } else if (type === "SHARE") {
+      await shareService.delete({ shareId: feedId });
+      setFeeds((prev) => prev.filter((f) => f.id !== feedId));
+    }
+  };
+
   return (
     <div className={`flex-1 max-w-[500px] space-y-6 mb-4 ${className}`}>
       {/* Composer đăng bài */}
       <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
 
-      {/* <Stories /> */}
-
       {/* Hiển thị feed */}
-      {feeds.map((feed) =>
-        feed.type === "POST" ? (
-          <PostCard
-            key={`post-${feed.id}`}
-            post={feed.post}
-            onComment={() => setSelectedPost(feed.post)}
-          />
-        ) : (
-          <div
+      {feeds.map((feed) => {
+        if (feed.type === "POST") {
+          if (!feed.post) {
+            return (
+              <div
+                key={`post-${feed.id}`}
+                className="p-4 rounded-xl shadow bg-white text-gray-500 italic text-sm"
+              >
+                {t("originalPostDeleted") ?? "Bài viết này không còn tồn tại."}
+              </div>
+            );
+          }
+
+          return (
+            <PostCard
+              key={`post-${feed.id}`}
+              post={feed.post}
+              onComment={() => setSelectedPost(feed.post!)}
+              onDelete={handleDelete}
+            />
+          );
+        }
+
+        // SHARE
+        return (
+          <SharePost
             key={`share-${feed.id}`}
-            className="p-4 rounded-xl shadow bg-white"
-          >
-            <p className="text-sm text-gray-600 mb-2">
-              <span className="font-bold hover:underline cursor-pointer">
-                {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
-              </span>{" "}
-              {t("sharedPost")}
-            </p>
-            {feed.post && (
-              <PostCard
-                post={feed.post}
-                onComment={() => setSelectedPost(feed.post)}
-              />
-            )}
-          </div>
-        )
-      )}
+            feed={feed}
+            onComment={(post) => setSelectedPost(post)}
+            onDelete={handleDelete}
+          />
+        );
+      })}
 
       {/* Infinite scroll loader */}
       {hasMore && (
@@ -151,6 +180,7 @@ export default function MainFeed({
           onCommentCountChange={(postId, delta) =>
             incPostCommentCount(postId, delta)
           }
+          onDeletePost={handleDelete}
         />
       )}
     </div>

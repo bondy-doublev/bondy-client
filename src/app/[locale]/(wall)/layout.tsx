@@ -7,7 +7,9 @@ export default async function RootLayout({
   return (
     <div>
       <AppNavbar />
-      <div className="flex justify-center bg-gray-50">{children}</div>
+      <div className="flex items-start justify-center bg-gray-50 min-h-screen">
+        {children}
+      </div>
     </div>
   );
 }

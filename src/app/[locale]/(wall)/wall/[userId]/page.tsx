@@ -4,14 +4,11 @@ import WallContent from "@/app/[locale]/(wall)/wall/components/WallContent";
 import WallHeader from "@/app/[locale]/(wall)/wall/components/WallHeader";
 import User from "@/models/User";
 import { userService } from "@/services/userService";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-export default function Page({
-  params,
-}: {
-  params: { userId: string; locale: string };
-}) {
-  const { userId } = params;
+export default function Page() {
+  const { userId } = useParams();
   const [userInfo, setUserInfo] = useState<User>();
 
   useEffect(() => {

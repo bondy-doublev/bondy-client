@@ -1,7 +1,22 @@
-import React from "react";
+import { useRouter } from "next/navigation";
 
-export default function UserName({ fullname }: { fullname: string }) {
+export default function UserName({
+  className,
+  userId,
+  fullname,
+}: {
+  className?: string;
+  userId: number;
+  fullname: string;
+}) {
+  const router = useRouter();
+
   return (
-    <p className="font-semibold hover:underline cursor-pointer">{fullname}</p>
+    <p
+      onClick={() => router.push("/wall/" + userId)}
+      className={`font-semibold hover:underline cursor-pointer ${className}`}
+    >
+      {fullname}
+    </p>
   );
 }

@@ -3,5 +3,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div suppressHydrationWarning={true}>{children}</div>;
+  return (
+    <div suppressHydrationWarning={true} className="min-h-screen">
+      {children}
+    </div>
+  );
 }

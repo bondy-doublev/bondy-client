@@ -171,7 +171,14 @@
     "cancel": "Hủy",
     "done": "Xong",
     "you": "Bạn",
-    "sharedPost": "đã chia sẻ một bài viết"
+    "sharedPost": "đã chia sẻ một bài viết",
+    "edit": "Chỉnh sửa",
+    "taggedUsers": "Danh sách bạn bè được đề cập",
+    "noTaggedUsers": "Không có bạn bè được đề cập",
+    "undoDeleteMessage": "Bạn vừa xóa bài viết này. Hoàn tác trong",
+    "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
+    "undo": "Hoàn tác",
+    "originalPostDeleted": "Bài viết gốc đã bị xóa."
   },
   "friend": {
     "friends": "Bạn bè",
@@ -184,6 +191,7 @@
     "friends": "Bạn bè",
     "editProfile": "Chỉnh sửa thông tin",
     "addStory": "Thêm vào tin",
-    "media": "Ảnh và video"
+    "media": "Ảnh và video",
+    "seeAllMedias": "Xem tất cả"
   }
 }
