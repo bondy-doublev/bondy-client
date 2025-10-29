@@ -9,9 +9,11 @@ import React from "react";
 export default function FriendSidebar({
   className,
   userId,
+  onSeeAll,
 }: {
   className?: string;
   userId?: number;
+  onSeeAll?: () => void;
 }) {
   const t = useTranslations("friend");
   const router = useRouter();
@@ -33,9 +35,12 @@ export default function FriendSidebar({
           {isNewFeed ? t("contacts") : t("friends")}
         </h2>
 
-        {!isNewFeed && friendUsers.length > 0 && (
+        {!isNewFeed && friendUsers.length > 0 && onSeeAll && (
           <div className="text-center">
-            <button className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium">
+            <button
+              onClick={onSeeAll}
+              className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
+            >
               {t("seeAllFriends")}
             </button>
           </div>

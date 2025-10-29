@@ -192,6 +192,10 @@
     "editProfile": "Chỉnh sửa thông tin",
     "addStory": "Thêm vào tin",
     "media": "Ảnh và video",
-    "seeAllMedias": "Xem tất cả"
+    "seeAllMedias": "Xem tất cả",
+    "post": "Bài viết",
+    "friend": "Bạn bè",
+    "scrollToLoadMore": "Cuộn xuống để tải thêm",
+    "loading": "Đang tải..."
   }
 }

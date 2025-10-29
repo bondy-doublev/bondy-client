@@ -14,10 +14,12 @@ export default interface User {
   createdAt: string; // Date in ISO string format
   updatedAt: string; // Date in ISO string format
   isActive: boolean;
+  friendCount: number;
 }
 
 export interface UserBasic {
   id: number;
   fullName: string;
   avatarUrl: string;
+  friendCount: number;
 }

@@ -192,6 +192,10 @@
     "editProfile": "Edit profile",
     "addStory": "Create new story",
     "media": "Media",
-    "seeAllMedias": "See all medias"
+    "seeAllMedias": "See all medias",
+    "post": "Post",
+    "friend": "Friend",
+    "scrollToLoadMore": "Scroll down to load more",
+    "loading": "Loading..."
   }
 }
