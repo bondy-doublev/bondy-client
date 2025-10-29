@@ -26,7 +26,11 @@ export default async function RootLayout({
   const messages = (await import(`@/translations/${locale}.json`)).default;
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className="min-h-screen bg-gray-50"
+    >
       <body>
         <ThemeProvider
           attribute="class"

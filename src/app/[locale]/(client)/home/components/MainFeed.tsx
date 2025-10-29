@@ -10,7 +10,6 @@ import { feedService } from "@/services/feedService";
 import { postService } from "@/services/postService";
 import { shareService } from "@/services/shareService";
 import { wallService } from "@/services/wallService";
-import { useAuthStore } from "@/store/authStore";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -29,7 +28,6 @@ export default function MainFeed({
   const [selectedPost, setSelectedPost] = useState<Feed["post"] | null>(null);
 
   const t = useTranslations("post");
-  const { user } = useAuthStore();
 
   // Fetch feed
   const fetchFeeds = async (page: number, reset = false) => {

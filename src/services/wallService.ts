@@ -36,11 +36,20 @@ export const wallService = {
 
   async getWallMedias({
     userId,
-  }: {
-    userId: number;
-  }): Promise<MediaAttachment[]> {
+    page = DEFAULT_PAGINATION.page,
+    size = DEFAULT_PAGINATION.size,
+    sortBy = DEFAULT_PAGINATION.sortBy,
+    direction = DEFAULT_PAGINATION.direction,
+  }: PaginationParams & { userId: number }): Promise<MediaAttachment[]> {
     try {
-      const proxyRes = await api.get(`${API_URL}/${userId}/medias`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+        sortBy,
+        direction,
+      });
+
+      const proxyRes = await api.get(`${API_URL}/${userId}/medias?${params}`);
       const res = proxyRes.data;
       if (!res.data) return [];
 

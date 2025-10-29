@@ -4,16 +4,19 @@ import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar
 import MainFeed from "@/app/[locale]/(client)/home/components/MainFeed";
 import MediaSidebar from "@/app/[locale]/(wall)/wall/components/MediaSidebar";
 import User from "@/models/User";
+import { useTranslations } from "next-intl";
 
 export default function WallContent({ user }: { user: User }) {
+  const t = useTranslations("wall");
+
   const [activeTab, setActiveTab] = useState<"posts" | "friends" | "media">(
     "posts"
   );
 
   const tabs = [
-    { key: "posts", label: "Bài viết" },
-    { key: "friends", label: "Bạn bè" },
-    { key: "media", label: "Media" },
+    { key: "posts", label: t("post") },
+    { key: "friends", label: t("friend") },
+    { key: "media", label: t("media") },
   ] as const;
 
   return (
@@ -45,8 +48,14 @@ export default function WallContent({ user }: { user: User }) {
       {activeTab === "posts" && (
         <div className="flex flex-col xl:flex-row justify-between xl:gap-4 md:px-4 pb-2">
           <div className="space-y-5 hidden xl:block sticky top-20 h-fit">
-            <MediaSidebar userId={user.id} />
-            <FriendSidebar userId={user.id} />
+            <MediaSidebar
+              onSeeAll={() => setActiveTab("media")}
+              userId={user.id}
+            />
+            <FriendSidebar
+              onSeeAll={() => setActiveTab("friends")}
+              userId={user.id}
+            />
           </div>
 
           <MainFeed wallOwner={user} className="w-full max-w-full" />
@@ -54,14 +63,14 @@ export default function WallContent({ user }: { user: User }) {
       )}
 
       {activeTab === "friends" && (
-        <div className="px-4">
+        <div className="md:px-4">
           <FriendSidebar className="w-full" userId={user.id} />
         </div>
       )}
 
       {activeTab === "media" && (
-        <div className="px-4">
-          <MediaSidebar className="w-full" userId={user.id} />
+        <div className="md:px-4">
+          <MediaSidebar className="w-full" userId={user.id} isDetail={true} />
         </div>
       )}
     </div>

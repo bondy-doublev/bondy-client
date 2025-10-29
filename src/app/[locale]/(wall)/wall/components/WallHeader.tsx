@@ -37,7 +37,10 @@ export default function WallHeader({ user }: { user: User }) {
                 {user.firstName} {user.lastName} {user.middleName}
               </span>
               <span className="text-sm text-gray-600">
-                234 {t("friends").toLowerCase()}
+                {user.friendCount}{" "}
+                {user.friendCount > 1
+                  ? t("friends").toLowerCase()
+                  : t("friend").toLowerCase()}
               </span>
             </div>
           </div>
