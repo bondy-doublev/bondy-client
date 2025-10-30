@@ -29,6 +29,9 @@ export default function MediaSidebar({
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
+  // ✅ Fix layout shift bằng cách giữ tham chiếu container
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   // Fetch media
   const fetchMedias = async (page: number, reset = false) => {
     if (!userId) return;
@@ -85,10 +88,12 @@ export default function MediaSidebar({
   return (
     <>
       <aside
+        ref={containerRef}
         className={`${
           !isDetail ? "hidden xl:block" : ""
-        }  w-80 bg-white rounded-xl shadow p-4 pt-2 space-y-2 h-fit ${className}`}
+        } w-80 bg-white rounded-xl shadow p-4 pt-2 space-y-2 h-fit transition-all duration-300 ${className}`}
       >
+        {/* Header */}
         <div className="flex justify-between">
           <h2 className="font-semibold text-gray-700 py-2">{t("media")}</h2>
 
@@ -104,14 +109,17 @@ export default function MediaSidebar({
           )}
         </div>
 
+        {/* Media grid */}
         <ul className="grid grid-cols-3 gap-2">
           {medias.map((media) => {
-            const isVideo = media.url.endsWith(".mp4");
+            const isVideo =
+              media.type === "VIDEO" || media.url.endsWith(".mp4");
+
             return (
               <li
                 key={media.id}
                 onClick={() => setSelectedMedia(media)}
-                className="relative aspect-square overflow-hidden rounded-md group cursor-pointer"
+                className="relative aspect-square overflow-hidden rounded-md group cursor-pointer bg-black"
               >
                 {isVideo ? (
                   <>
@@ -128,6 +136,7 @@ export default function MediaSidebar({
                   </>
                 ) : (
                   <Image
+                    unoptimized
                     src={media.url}
                     alt="media"
                     fill
@@ -154,7 +163,11 @@ export default function MediaSidebar({
           open={!!selectedMedia}
           onClose={() => setSelectedMedia(null)}
           url={selectedMedia.url}
-          type={selectedMedia.url.endsWith(".mp4") ? "video" : "image"}
+          type={
+            selectedMedia.type === "VIDEO" || selectedMedia.url.endsWith(".mp4")
+              ? "video"
+              : "image"
+          }
         />
       )}
     </>

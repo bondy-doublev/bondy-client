@@ -75,7 +75,7 @@ export default function CommentItem({
         <DefaultAvatar firstName={comment.user.fullName} />
       )}
 
-      <div className="flex flex-col gap-1 w-fit">
+      <div className="flex flex-col gap-1 w-full">
         {/* Nội dung comment */}
         <div className="flex items-center gap-1">
           <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
@@ -156,7 +156,7 @@ export default function CommentItem({
 
         {/* Composer trả lời */}
         {showReplyBox && (
-          <div className="ml-4 mt-2">
+          <div className="mt-2">
             <CommentComposer t={t} onSubmit={handleCreateReply} />
           </div>
         )}
