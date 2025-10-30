@@ -56,17 +56,16 @@ export default function PostContent({
                 return (
                   <div
                     key={i}
-                    className="flex-[0_0_100%] relative w-full aspect-[4/3] sm:aspect-video bg-black"
+                    className="flex-[0_0_100%] relative w-full h-auto max-w-full flex justify-center items-center bg-black"
                   >
                     {isVideo ? (
-                      <div className="relative w-full h-full">
+                      <div className="relative w-auto h-auto max-h-[80vh]">
                         <video
                           src={media.url}
                           controls
                           preload="metadata"
-                          className="w-full h-full object-contain bg-black"
+                          className="max-h-[80vh] w-auto object-contain bg-black"
                         />
-                        {/* Nút mở modal riêng */}
                         <button
                           onClick={() =>
                             setModalData({ url: media.url, type: "video" })
@@ -78,18 +77,22 @@ export default function PostContent({
                         </button>
                       </div>
                     ) : (
-                      <Image
-                        src={media.url}
-                        alt={`post media ${i + 1}`}
-                        fill
-                        priority={i === 0}
-                        loading={i === 0 ? undefined : "lazy"}
-                        className="object-cover select-none cursor-pointer"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        onClick={() =>
-                          setModalData({ url: media.url, type: "image" })
-                        }
-                      />
+                      <div className="relative w-auto h-auto max-h-[80vh]">
+                        <Image
+                          unoptimized
+                          src={media.url}
+                          alt={`post media ${i + 1}`}
+                          width={800}
+                          height={600}
+                          priority={i === 0}
+                          loading={i === 0 ? undefined : "lazy"}
+                          className="max-h-[80vh] w-auto object-contain select-none cursor-pointer"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          onClick={() =>
+                            setModalData({ url: media.url, type: "image" })
+                          }
+                        />
+                      </div>
                     )}
                   </div>
                 );
