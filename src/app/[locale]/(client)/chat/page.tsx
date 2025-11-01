@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { chatService, type ChatMessage } from "@/services/chatService";
 import { userService } from "@/services/userService";
 import { useAuthStore } from "@/store/authStore";
-import DefaultAvatar from "@/app/layout/default/DefaultAvatar";
 import ChatBox from "./components/ChatBox";
 import ClientChat from "./components/ClientChat";
 import { friendService } from "@/services/friendService";
 import { useRouter } from "next/navigation";
 import { ConversationItem } from "@/models/ConversationItem";
+import DefaultAvatar from "../home/components/user/DefaultAvatar";
 
 export default function ChatPage() {
   const { user } = useAuthStore();

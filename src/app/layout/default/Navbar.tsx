@@ -28,7 +28,7 @@ export default function Navbar() {
   const navItems = [
     { path: "/", icon: Home },
     { path: "/friends", icon: Users },
-    { path: "/messages", icon: MessageCircle },
+    { path: "/chat", icon: MessageCircle },
     { path: "/videos", icon: Video },
     { path: "/groups", icon: Users2 },
   ];
