@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar";
 import MainFeed from "@/app/[locale]/(client)/home/components/MainFeed";
 import MediaSidebar from "@/app/[locale]/(wall)/wall/components/MediaSidebar";
@@ -15,13 +15,15 @@ export default function WallContent({ user }: { user: User }) {
 
   const tabs = [
     { key: "posts", label: t("post") },
-    { key: "friends", label: t("friend") },
+    { key: "friends", label: t("friends") },
     { key: "media", label: t("media") },
   ] as const;
 
+  const mediaRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="w-full space-y-4">
-      {/* ✅ Mini navbar (Tabs) */}
+      {/* ✅ Mini navbar */}
       <div className="px-4">
         <div className="flex px-2 gap-6 py-2 text-sm font-medium overflow-x-auto border-b">
           {tabs.map((tab) => (
@@ -47,24 +49,31 @@ export default function WallContent({ user }: { user: User }) {
       {/* ✅ Nội dung theo từng Tab */}
       {activeTab === "posts" && (
         <div className="flex flex-col xl:flex-row justify-between xl:gap-4 md:px-4 pb-2">
-          <div className="space-y-5 hidden xl:block sticky top-20 h-fit">
-            <MediaSidebar
-              onSeeAll={() => setActiveTab("media")}
-              userId={user.id}
-            />
-            <FriendSidebar
-              onSeeAll={() => setActiveTab("friends")}
-              userId={user.id}
-            />
+          {/* 🧩 Sidebar trái */}
+          <div className="space-y-5 hidden xl:block relative">
+            <div ref={mediaRef}>
+              <MediaSidebar
+                onSeeAll={() => setActiveTab("media")}
+                userId={user.id}
+              />
+            </div>
+
+            <div className="sticky top-15">
+              <FriendSidebar
+                onSeeAll={() => setActiveTab("friends")}
+                userId={user.id}
+              />
+            </div>
           </div>
 
+          {/* Feed chính */}
           <MainFeed wallOwner={user} className="w-full max-w-full" />
         </div>
       )}
 
       {activeTab === "friends" && (
         <div className="md:px-4">
-          <FriendSidebar className="w-full" userId={user.id} />
+          <FriendSidebar className="w-full" userId={user.id} isDetail={true} />
         </div>
       )}
 
