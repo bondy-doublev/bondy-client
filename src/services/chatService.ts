@@ -100,4 +100,9 @@ export const chatService = {
       };
     }[];
   },
+
+  async getChatSummary() {
+    const res: AxiosResponse = await api.get(`${API_URL}/unread/summary`);
+    return res.data.data;
+  },
 };

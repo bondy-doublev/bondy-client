@@ -60,4 +60,4 @@ export default function ChatPage() {
       user={{ id: selfUserId, role: user?.role, email: user?.email }}
     />
   );
-}
+} 

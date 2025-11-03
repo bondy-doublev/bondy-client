@@ -69,11 +69,6 @@ export default function ChatBox({
   };
 
   useEffect(() => {
-    console.log("DEBUG - selfUserId:", selfUserId);
-    console.log("DEBUG - first messages:", messages.slice(0, 3));
-  }, [selfUserId, messages]);
-
-  useEffect(() => {
     const fetchOtherUser = async () => {
       const firstMsg = messages.find((m) => m.senderId !== selfUserId);
       if (!firstMsg) return;

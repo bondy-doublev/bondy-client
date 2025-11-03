@@ -19,20 +19,27 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useRef } from "react";
+import { useAuthStore } from "@/store/authStore";
+import { useUnreadSummary } from "@/hooks/useUnreadSummary";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuthStore(); // hoặc lấy từ auth context
+  const unreadSummary = useUnreadSummary(user);
 
   const navItems = [
     { path: "/", icon: Home },
     { path: "/friends", icon: Users },
-    { path: "/chat", icon: MessageCircle },
+    {
+      path: "/chat",
+      icon: MessageCircle,
+      badge: unreadSummary?.total || 0, // số chưa đọc
+    },
     { path: "/videos", icon: Video },
     { path: "/groups", icon: Users2 },
   ];
-
   return (
     <header className="w-full bg-green text-foreground shadow-md sticky top-0 z-50">
       <div className="max-w-8xl mx-auto flex items-center justify-between px-4 py-2">
@@ -83,14 +90,21 @@ export default function Navbar() {
 
         {/* Center: Navigation icons */}
         <div className="hidden sm:flex items-center space-x-8 justify-center flex-1">
-          {navItems.map(({ path, icon: Icon }) => (
-            <Icon
-              key={path}
-              onClick={() => router.push(path)}
-              className={`w-6 h-6 cursor-pointer transition ${
-                pathname === path ? "text-cyan" : "hover:text-cyan"
-              }`}
-            />
+          {navItems.map(({ path, icon: Icon, badge }) => (
+            <div key={path} className="relative">
+              <Icon
+                onClick={() => router.push(path)}
+                className={`w-6 h-6 cursor-pointer transition ${
+                  pathname === path ? "text-cyan" : "hover:text-cyan"
+                }`}
+              />
+              {/* Badge */}
+              {!!badge && (
+                <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white rounded-full px-1">
+                  {badge}
+                </span>
+              )}
+            </div>
           ))}
         </div>
 

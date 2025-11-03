@@ -22,7 +22,8 @@ export type ChatSocket = {
 export function createChatSocket(opts: {
   conversationId?: number;
   onMessage?: (msg: ChatMessage) => void;
-  onConnected?: () => void; // NEW: callback sau khi CONNECT
+  onUnreadSummary?: (summary: any) => void;
+  onConnected?: () => void;
   xUser: { id: number; role?: string; email?: string };
   debug?: boolean;
 }): ChatSocket {
@@ -37,32 +38,47 @@ export function createChatSocket(opts: {
     connectHeaders,
     debug: opts.debug ? (s) => console.log("[STOMP]", s) : () => {},
     reconnectDelay: 5000,
-    heartbeatIncoming: 10000, // keep-alive
+    heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
   });
 
   const queue: Array<{ destination: string; body: string }> = [];
 
   client.onConnect = () => {
+    console.log("[WS] Connected as", opts.xUser.id);
+
+    // 1️⃣ Sub conversation message
     if (opts.conversationId) {
-      client.subscribe(
-        `/topic/conversations.${opts.conversationId}`,
-        (msg: IMessage) => {
-          opts.onMessage?.(JSON.parse(msg.body));
-        }
-      );
+      client.subscribe(`/topic/conversations.${opts.conversationId}`, (msg) => {
+        console.log("Subscribe topic conversation");
+        opts.onMessage?.(JSON.parse(msg.body));
+      });
     }
-    client.subscribe("/user/queue/messages", (msg: IMessage) => {
+
+    // 2️⃣ Sub direct message
+    client.subscribe("/user/queue/messages", (msg) => {
+      console.log("Subscribe queue message");
       opts.onMessage?.(JSON.parse(msg.body));
     });
 
-    // Flush queued frames (nếu publish trước CONNECT)
+    // 3️⃣ Sub unread summary (badge)
+    client.subscribe(`/user/queue/unread.summary`, (msg) => {
+      try {
+        const summary = JSON.parse(msg.body);
+        console.log("Subscribe queue user");
+        opts.onUnreadSummary?.(summary);
+      } catch (err) {
+        console.error("Failed to parse unread summary:", err);
+      }
+    });
+
+    // Flush queued frames
     while (queue.length && client.connected) {
       const item = queue.shift()!;
       client.publish(item);
     }
 
-    // Gọi callback để FE reload history một lần cho chắc
+    // Notify when ready
     opts.onConnected?.();
   };
 
