@@ -1,18 +1,22 @@
 import Image from "next/image";
-import React from "react";
+import Link from "next/link";
 
 export default function UserAvatar({
   className,
+  userId,
   avatarUrl,
 }: {
   className?: string;
+  userId: number;
   avatarUrl: string;
 }) {
   return (
-    <div
-      className={`relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:brightness-105 transition ${className}`}
-    >
-      <Image src={avatarUrl} alt="post" fill className="object-cover" />
-    </div>
+    <Link href={`/wall/${userId}`} className={className}>
+      <div
+        className={`relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:brightness-105 transition ${className}`}
+      >
+        <Image src={avatarUrl} alt="avatar" fill className="object-cover" />
+      </div>
+    </Link>
   );
 }

@@ -172,9 +172,9 @@ export default function PostComposerModal({
             {/* User */}
             <div className="flex items-center gap-2 p-4 pb-2 shrink-0 relative z-10">
               {user?.avatarUrl ? (
-                <UserAvatar avatarUrl={user?.avatarUrl} />
+                <UserAvatar userId={user?.id} avatarUrl={user?.avatarUrl} />
               ) : (
-                <DefaultAvatar firstName={user?.firstName} />
+                <DefaultAvatar userId={user!.id!} firstName={user?.firstName} />
               )}
               <div className="flex flex-col">
                 <UserName

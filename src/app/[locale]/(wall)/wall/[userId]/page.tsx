@@ -1,14 +1,16 @@
 "use client";
 
-import WallContent from "@/app/[locale]/(wall)/wall/components/WallContent";
-import WallHeader from "@/app/[locale]/(wall)/wall/components/WallHeader";
-import User from "@/models/User";
+import MainFeed from "@/app/[locale]/(client)/home/components/MainFeed";
+import MediaSidebar from "@/app/[locale]/(wall)/wall/components/MediaSidebar";
+import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar";
+import { useEffect, useState } from "react";
 import { userService } from "@/services/userService";
+import User from "@/models/User";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
 
 export default function Page() {
   const { userId } = useParams();
+
   const [userInfo, setUserInfo] = useState<User>();
 
   useEffect(() => {
@@ -17,12 +19,13 @@ export default function Page() {
       .then((res) => setUserInfo(res.data as User));
   }, [userId]);
 
-  if (!userInfo) return <div>Loading...</div>;
-
   return (
-    <div className="flex flex-col w-full justify-center gap-4 p-4 items-center lg:w-[60%]">
-      <WallHeader user={userInfo} />
-      <WallContent user={userInfo} />
+    <div className="flex flex-col xl:flex-row justify-between xl:gap-4 md:px-4 pb-2 w-full">
+      <div className="space-y-5 hidden xl:block">
+        <MediaSidebar userId={Number(userId)} />
+        <FriendSidebar userId={Number(userId)} />
+      </div>
+      <MainFeed wallOwner={userInfo} className="w-full max-w-full" />
     </div>
   );
 }

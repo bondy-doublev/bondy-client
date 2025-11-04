@@ -22,10 +22,12 @@ export default function WallHeader({ user }: { user: User }) {
               {user.avatarUrl ? (
                 <UserAvatar
                   className="w-full h-full"
+                  userId={user.id}
                   avatarUrl={user.avatarUrl}
                 />
               ) : (
                 <DefaultAvatar
+                  userId={user.id}
                   className="w-full h-full"
                   firstName={user.firstName}
                 />
@@ -33,7 +35,7 @@ export default function WallHeader({ user }: { user: User }) {
             </div>
 
             <div className="flex flex-col items-center md:items-start">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-semibold text-gray-900">
                 {user.firstName} {user.lastName} {user.middleName}
               </span>
               <span className="text-sm text-gray-600">

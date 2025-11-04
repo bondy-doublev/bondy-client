@@ -197,5 +197,11 @@
     "friend": "Friend",
     "scrollToLoadMore": "Scroll down to load more",
     "loading": "Loading..."
+  },
+  "notification": {
+    "notification": "Notification",
+    "noNotification": "No notifications",
+    "loading": "Loading...",
+    "markAllRead": "Mark all read"
   }
 }

@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import NotificationProvider from "@/app/providers/NotificationProvider";
 
 export const metadata = {
   title: "Bondy | Keep connect with the world!",
@@ -29,7 +30,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-gray-50 "
     >
       <body>
         <ThemeProvider
@@ -40,7 +41,7 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider locale={locale} messages={messages}>
             <ToastContainer />
-            {children}
+            <NotificationProvider>{children}</NotificationProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

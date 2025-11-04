@@ -123,7 +123,7 @@ export default function MainFeed({
   };
 
   return (
-    <div className={`flex-1 max-w-[500px] space-y-6 mb-4 ${className}`}>
+    <div className={`max-w-[500px] space-y-6 mb-4 ${className}`}>
       {/* Composer đăng bài */}
       <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
 

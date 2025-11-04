@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function UserName({
   className,
@@ -9,14 +9,12 @@ export default function UserName({
   userId: number;
   fullname: string;
 }) {
-  const router = useRouter();
-
   return (
-    <p
-      onClick={() => router.push("/wall/" + userId)}
-      className={`font-semibold hover:underline cursor-pointer ${className}`}
+    <Link
+      href={"/wall/" + userId}
+      className={`hover:underline cursor-pointer ${className}`}
     >
       {fullname}
-    </p>
+    </Link>
   );
 }

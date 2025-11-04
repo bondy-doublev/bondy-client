@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { formatTime } from "@/utils/format";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
@@ -27,6 +29,26 @@ export default function PostHeader({
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const renderTaggedText = () => {
     if (!taggedUsers || taggedUsers.length === 0) return null;
@@ -68,9 +90,9 @@ export default function PostHeader({
   return (
     <div className="flex items-center p-4 pb-0 gap-3 relative">
       {owner.avatarUrl ? (
-        <UserAvatar avatarUrl={owner.avatarUrl} />
+        <UserAvatar userId={owner.id} avatarUrl={owner.avatarUrl} />
       ) : (
-        <DefaultAvatar firstName={owner.fullName} />
+        <DefaultAvatar userId={owner.id} firstName={owner.fullName} />
       )}
 
       <div className="flex flex-col gap-0 flex-1">
@@ -87,7 +109,7 @@ export default function PostHeader({
       </div>
 
       {isOwner && !isSharePost && (
-        <div className="relative mb-2">
+        <div className="relative mb-2" ref={menuRef}>
           <button
             className="w-8 h-8 rounded-full hover:bg-gray-100"
             onClick={() => setIsMenuOpen((prev) => !prev)}

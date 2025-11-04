@@ -197,5 +197,11 @@
     "friend": "Bạn bè",
     "scrollToLoadMore": "Cuộn xuống để tải thêm",
     "loading": "Đang tải..."
+  },
+  "notification": {
+    "notification": "Thông báo",
+    "noNotification": "Không có thông báo nào",
+    "loading": "Đang tải...",
+    "markAllRead": "Đánh dấu tất cả là đã đọc"
   }
 }
