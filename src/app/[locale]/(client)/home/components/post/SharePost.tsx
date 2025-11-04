@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useTranslations } from "next-intl";
 import { Feed } from "@/models/Post";
@@ -23,6 +23,29 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
+  // 🧩 Ref cho vùng menu
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // 🧠 Đóng menu khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  // 🗑️ Bắt đầu đếm ngược xoá
   const handleDeleteShare = () => {
     setIsDeleted(true);
     setDeleteCountdown(10);
@@ -42,18 +65,21 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
     setIsMenuOpen(false);
   };
 
+  // ↩️ Hoàn tác xoá
   const handleUndoDelete = () => {
     if (deleteTimer) clearInterval(deleteTimer);
     setIsDeleted(false);
     setPendingDelete(false);
   };
 
+  // ⏰ Sau khi đếm ngược xong thì xoá thật
   useEffect(() => {
     if (pendingDelete) {
       onDelete?.(feed.id, "SHARE");
     }
   }, [pendingDelete, onDelete, feed.id]);
 
+  // 🧹 Dọn timer khi unmount
   useEffect(() => {
     return () => {
       if (deleteTimer) clearInterval(deleteTimer);
@@ -88,8 +114,9 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
           {t("sharedPost")}
         </p>
 
+        {/* ⚙️ Menu */}
         {feed.user.id === user?.id && (
-          <div className="relative mb-2">
+          <div className="relative mb-2" ref={menuRef}>
             <button
               className="w-8 h-8 rounded-full hover:bg-gray-100"
               onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -111,6 +138,7 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
         )}
       </div>
 
+      {/* 📄 Bài gốc */}
       {feed.post ? (
         <PostCard
           post={feed.post}

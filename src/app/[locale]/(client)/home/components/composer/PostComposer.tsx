@@ -5,7 +5,6 @@ import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultA
 import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/PostComposerModal";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Plus } from "lucide-react";
-import { userService } from "@/services/userService";
 import User from "@/models/User";
 
 export default function PostComposer({
@@ -39,9 +38,12 @@ export default function PostComposer({
     <div className="bg-white rounded-xl shadow">
       <div className="flex items-center gap-3 p-4">
         {userInfo?.avatarUrl ? (
-          <UserAvatar avatarUrl={userInfo?.avatarUrl} />
+          <UserAvatar userId={userInfo.id} avatarUrl={userInfo?.avatarUrl} />
         ) : (
-          <DefaultAvatar firstName={userInfo?.firstName} />
+          <DefaultAvatar
+            userId={userInfo?.id ?? ""}
+            firstName={userInfo?.firstName}
+          />
         )}
 
         <input

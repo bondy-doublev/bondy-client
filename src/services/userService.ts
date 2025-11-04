@@ -42,6 +42,9 @@ export const userService = {
       const response: AxiosResponse = await api.get(
         `${API_URL}/${userId}/profile`
       );
+
+      console.log(response.data);
+
       return response.data;
     } catch (error) {
       throw new Error("Failed to fetch profile");

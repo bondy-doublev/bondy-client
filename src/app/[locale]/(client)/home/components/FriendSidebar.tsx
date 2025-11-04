@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 
 export default function FriendSidebar({
   className,
@@ -68,7 +69,6 @@ export default function FriendSidebar({
                 {visibleFriends.map((friend) => (
                   <li
                     key={friend.id}
-                    onClick={() => router.push("/wall/" + friend.id)}
                     className={`group cursor-pointer ${
                       isDetail
                         ? "flex items-center md:justify-between gap-0 md:gap-3 hover:bg-gray-50 p-2 rounded-lg shadow-2xs"
@@ -89,6 +89,7 @@ export default function FriendSidebar({
                       <div className="relative">
                         {friend?.avatarUrl ? (
                           <UserAvatar
+                            userId={friend.id}
                             avatarUrl={friend.avatarUrl}
                             className={
                               isNewFeed ? "w-10 h-10" : "w-24 h-24 rounded-lg"
@@ -96,6 +97,7 @@ export default function FriendSidebar({
                           />
                         ) : (
                           <DefaultAvatar
+                            userId={friend.id}
                             firstName={friend?.fullName}
                             className={
                               isNewFeed ? "w-10 h-10" : "w-24 h-24 rounded-lg"
@@ -116,7 +118,11 @@ export default function FriendSidebar({
                         }`}
                         title={friend.fullName}
                       >
-                        {friend.fullName}
+                        <UserName
+                          userId={friend.id}
+                          fullname={friend.fullName ?? ""}
+                          className="font"
+                        />
                       </p>
                     </div>
 

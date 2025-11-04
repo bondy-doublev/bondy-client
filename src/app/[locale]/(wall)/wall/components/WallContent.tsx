@@ -58,7 +58,7 @@ export default function WallContent({ user }: { user: User }) {
               />
             </div>
 
-            <div className="sticky top-15">
+            <div className="sticky top-0">
               <FriendSidebar
                 onSeeAll={() => setActiveTab("friends")}
                 userId={user.id}

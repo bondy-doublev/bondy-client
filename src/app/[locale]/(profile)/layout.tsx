@@ -6,9 +6,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="h-screen flex flex-col overflow-hidden">
       <AppNavbar />
-      <div className="p-4">{children}</div>
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
