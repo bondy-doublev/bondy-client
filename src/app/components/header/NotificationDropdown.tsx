@@ -6,30 +6,30 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { NotificationContext } from "@/app/providers/NotificationProvider";
 import { notificationService } from "@/services/notificationService";
 import { useTranslations } from "next-intl";
+import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import { Notification, NotificationType, RefType } from "@/models/Notfication";
 
 export default function NotificationDropdown() {
   const t = useTranslations("notification");
-
   const { notifications, setNotifications } = useContext(NotificationContext);
+
   const [isOpen, setIsOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  // 🧮 Đếm số lượng chưa đọc
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.isRead).length,
     [notifications]
   );
 
-  // 🧩 Fetch thêm thông báo khi cuộn
   const fetchMoreNotifications = async () => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -38,13 +38,10 @@ export default function NotificationDropdown() {
       size: 10,
     });
     setLoading(false);
-
     if (!newData.length) {
       setHasMore(false);
       return;
     }
-
-    // merge tránh trùng (do WS có thể push thêm ở đầu)
     setNotifications((prev) => {
       const ids = new Set(prev.map((n) => n.id));
       const merged = [...prev, ...newData.filter((n) => !ids.has(n.id))];
@@ -52,14 +49,12 @@ export default function NotificationDropdown() {
     });
   };
 
-  // 🧠 Infinite scroll trong dropdown
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         const target = entries[0];
-        if (target.isIntersecting && hasMore && !loading) {
+        if (target.isIntersecting && hasMore && !loading)
           setPage((prev) => prev + 1);
-        }
       },
       { threshold: 1 }
     );
@@ -68,33 +63,34 @@ export default function NotificationDropdown() {
     return () => observer.disconnect();
   }, [loading, hasMore]);
 
-  // ⏫ Khi page tăng → fetch thêm
   useEffect(() => {
     fetchMoreNotifications();
   }, [page]);
 
-  // 🧭 Khi mở dropdown → mark read + reset pagination
   const handleDropdownOpen = async (open: boolean) => {
     setIsOpen(open);
-
     if (open) {
-      // ✅ Cập nhật UI local ngay (cho mượt)
-      setNotifications((prev) =>
-        prev.map((n) => ({
-          ...n,
-          isRead: true,
-        }))
-      );
-
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       try {
-        await notificationService.markAllAsRead();
+        await markAllNotificationsAsRead();
       } catch (err) {
         console.error("❌ markAllAsRead failed:", err);
       }
-
       setPage(0);
       setHasMore(true);
     }
+  };
+
+  const handleNotificationMsg = (n: Notification) => {
+    const map: Record<string, string> = {
+      [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
+      [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
+      [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
+        "repliedYourComment",
+    };
+
+    const key = `${n.type}_${n.refType}`;
+    return t(map[key] || "newNotification");
   };
 
   return (
@@ -102,7 +98,7 @@ export default function NotificationDropdown() {
       {/* 🔔 Icon chuông */}
       <DropdownMenuTrigger asChild>
         <div className="relative w-8 h-8 flex items-center justify-center cursor-pointer rounded-full hover:bg-gray-100 transition">
-          <Bell className="w-5 h-5 text-white" />
+          <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
               {unreadCount}
@@ -114,14 +110,14 @@ export default function NotificationDropdown() {
       {/* 📋 Danh sách thông báo */}
       <DropdownMenuContent
         align="end"
-        className="w-80 rounded-lg border bg-white shadow-lg max-h-[400px] overflow-y-auto scroll-custom"
+        className="w-96 p-0 rounded-xl border bg-white shadow-xl max-h-[460px] overflow-y-auto scroll-custom"
       >
-        <div className="p-3 font-semibold text-gray-700 border-b flex items-center justify-between">
+        {/* Header */}
+        <div className="p-4 font-semibold text-gray-800 border-b flex items-center justify-between sticky top-0 bg-white z-10">
           <span>{t("notification")}</span>
-          {/* Nút “Đánh dấu tất cả là đã đọc” thủ công (tùy chọn) */}
           <button
-            onClick={async () => {
-              await notificationService.markAllAsRead();
+            onClick={() => {
+              markAllNotificationsAsRead();
               setNotifications((prev) =>
                 prev.map((n) => ({ ...n, isRead: true }))
               );
@@ -132,34 +128,64 @@ export default function NotificationDropdown() {
           </button>
         </div>
 
+        {/* Body */}
         {notifications.length === 0 && !loading ? (
-          <div className="p-3 text-sm text-gray-500 text-center">
+          <div className="p-4 text-sm text-gray-500 text-center">
             {t("noNotification")}
           </div>
         ) : (
           <>
-            {notifications.map((n) => (
-              <DropdownMenuItem
-                key={n.id}
-                className="flex flex-col items-start py-2 gap-1 hover:bg-gray-50 cursor-pointer"
-              >
-                <span
-                  className={`text-sm ${
-                    n.isRead ? "text-gray-600" : "text-gray-900 font-medium"
-                  }`}
-                >
-                  {n.message}
-                </span>
-                <span className="text-[11px] text-gray-400">
-                  {new Date(n.createdAt).toLocaleString("vi-VN")}
-                </span>
-              </DropdownMenuItem>
-            ))}
+            <div className="divide divide-gray-100">
+              {notifications.map((n) => {
+                return (
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition ${
+                      !n.isRead ? "bg-[#f0f2f5]" : ""
+                    }`}
+                  >
+                    {n.actorAvatarUrl ? (
+                      <UserAvatar
+                        className="w-10 h-10"
+                        userId={n.actorId}
+                        avatarUrl={n.actorAvatarUrl}
+                      />
+                    ) : (
+                      <DefaultAvatar
+                        userId={n.actorId}
+                        firstName={n.actorName}
+                        className="w-10 h-10"
+                      />
+                    )}
+
+                    <div className="flex flex-col">
+                      <span
+                        className={`text-sm leading-snug ${
+                          n.isRead
+                            ? "text-gray-700"
+                            : "text-gray-900 font-medium"
+                        }`}
+                      >
+                        {n.actorName} {handleNotificationMsg(n)}
+                      </span>
+                      <span className="text-[11px] text-gray-500 mt-1">
+                        {new Date(n.createdAt).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* 🌀 Loader cuối danh sách */}
             <div
               ref={loaderRef}
-              className="py-2 text-center text-gray-400 text-xs"
+              className={`${
+                loading ? "py-2" : ""
+              } text-center text-gray-400 text-xs`}
             >
               {loading && t("loading")}
             </div>

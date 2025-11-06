@@ -202,6 +202,12 @@
     "notification": "Thông báo",
     "noNotification": "Không có thông báo nào",
     "loading": "Đang tải...",
-    "markAllRead": "Đánh dấu tất cả là đã đọc"
+    "markAllRead": "Đánh dấu tất cả là đã đọc",
+    "likedYourPost": "đã thích bài viết của bạn",
+    "commentedYourPost": "đã bình luận bài viết của bạn",
+    "repliedYourComment": "đã trả lời bình luận của bạn",
+    "yourPost": "bài viết của bạn",
+    "yourComment": "bình luận của bạn",
+    "newNotification": "thông báo mới"
   }
 }

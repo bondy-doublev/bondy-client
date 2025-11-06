@@ -7,9 +7,18 @@ import { MdEdit } from "react-icons/md";
 import { useTranslations } from "next-intl";
 import User from "@/models/User";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
+import Link from "next/link";
 
 export default function WallHeader({ user }: { user: User }) {
   const t = useTranslations("wall");
+
+  const fullname =
+    (user.firstName ?? "") +
+    " " +
+    (user.lastName ?? "") +
+    " " +
+    (user.middleName ?? "");
 
   return (
     <div className="md:px-4 w-full">
@@ -35,15 +44,19 @@ export default function WallHeader({ user }: { user: User }) {
             </div>
 
             <div className="flex flex-col items-center md:items-start">
-              <span className="text-2xl font-semibold text-gray-900">
-                {user.firstName} {user.lastName} {user.middleName}
-              </span>
-              <span className="text-sm text-gray-600">
-                {user.friendCount}{" "}
-                {user.friendCount > 1
-                  ? t("friends").toLowerCase()
-                  : t("friend").toLowerCase()}
-              </span>
+              <UserName
+                className="text-2xl font-bold"
+                userId={user.id}
+                fullname={fullname}
+              />
+              <Link href={"/wall/" + user.id + "/friends"}>
+                <span className="text-sm text-gray-600 hover:underline">
+                  {user.friendCount}{" "}
+                  {user.friendCount > 1
+                    ? t("friends").toLowerCase()
+                    : t("friend").toLowerCase()}
+                </span>
+              </Link>
             </div>
           </div>
 
