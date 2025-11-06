@@ -7,16 +7,15 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Play } from "lucide-react";
 import MediaModal from "./MediaModal";
+import Link from "next/link";
 
 export default function MediaSidebar({
   className,
   userId,
-  onSeeAll,
   isDetail = false,
 }: {
   className?: string;
   userId: number;
-  onSeeAll?: () => void;
   isDetail?: boolean;
 }) {
   const t = useTranslations("wall");
@@ -94,17 +93,17 @@ export default function MediaSidebar({
         } w-80 bg-white rounded-xl shadow p-4 pt-2 space-y-2 h-fit transition-all duration-300 ${className}`}
       >
         {/* Header */}
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <h2 className="font-semibold text-gray-700 py-2">{t("media")}</h2>
 
-          {medias.length > 0 && onSeeAll && (
+          {medias.length > 0 && !isDetail && (
             <div className="text-center">
-              <button
-                onClick={onSeeAll}
+              <Link
+                href={"/wall/" + userId + "/media"}
                 className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
               >
                 {t("seeAllMedias")}
-              </button>
+              </Link>
             </div>
           )}
         </div>

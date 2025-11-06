@@ -3,7 +3,7 @@ import { PaginationParams } from "@/types/PaginationParams";
 import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
 import { Feed } from "@/models/Post";
-import { Notification } from "@/app/providers/NotificationProvider";
+import { Notification } from "@/models/Notfication";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 

@@ -33,7 +33,7 @@ export function PostDetailModal({
   return (
     <Dialog open={!!post} onOpenChange={onClose}>
       <DialogOverlay className="fixed inset-0 bg-black/30" />
-      <DialogContent className="w-[90%] md:w-full md:max-w-2xl bg-white rounded-2xl shadow-xl p-0 gap-0 overflow-hidden flex flex-col">
+      <DialogContent className="w-[95%] md:w-full max-w-2xl bg-white rounded-2xl sm:rounded-2xl shadow-xl p-0 gap-0 overflow-hidden flex flex-col">
         <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10">
           <DialogTitle className="text-base pt-2 font-semibold text-gray-800 leading-none">
             {t("postBy")}{" "}

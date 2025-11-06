@@ -7,20 +7,18 @@ import { useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
 import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
+import Link from "next/link";
 
 export default function FriendSidebar({
   className,
   userId,
-  onSeeAll,
   isDetail = false,
 }: {
   className?: string;
   userId?: number;
-  onSeeAll?: () => void;
   isDetail?: boolean;
 }) {
   const t = useTranslations("friend");
-  const router = useRouter();
 
   const { user } = useAuthStore();
   const currentUserId = userId ?? user?.id ?? 0;
@@ -40,13 +38,13 @@ export default function FriendSidebar({
           {isNewFeed ? t("contacts") : t("friends")}
         </h2>
 
-        {!isNewFeed && friendUsers.length > 0 && onSeeAll && !isDetail && (
-          <button
-            onClick={onSeeAll}
+        {!isNewFeed && friendUsers.length > 0 && !isDetail && (
+          <Link
+            href={"/wall/" + userId + "/friends"}
             className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
           >
             {t("seeAllFriends")}
-          </button>
+          </Link>
         )}
       </div>
 

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Feed } from "@/models/Post";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type Props = {
   feed: Feed;
@@ -107,12 +108,14 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
   return (
     <div className="p-4 rounded-xl shadow bg-white">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-600 mb-2">
-          <span className="font-bold hover:underline cursor-pointer">
-            {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
-          </span>{" "}
-          {t("sharedPost")}
-        </p>
+        <Link href={"/wall/" + feed.user.id}>
+          <p className="text-sm text-gray-600 mb-2">
+            <span className="font-bold hover:underline cursor-pointer">
+              {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
+            </span>{" "}
+            {t("sharedPost")}
+          </p>
+        </Link>
 
         {/* ⚙️ Menu */}
         {feed.user.id === user?.id && (

@@ -6,18 +6,10 @@ import {
   subscribeToNotifications,
 } from "@/lib/notificationSocket";
 import { useAuthStore } from "@/store/authStore";
-
-export type Notification = {
-  id: number;
-  userId: number;
-  actorId: number;
-  type: string;
-  refType: string;
-  refId: number;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-};
+import { toast } from "react-toastify";
+import NotificationToast from "@/components/common/NotificationToast";
+import { Notification, NotificationType, RefType } from "@/models/Notfication";
+import { useTranslations } from "next-intl";
 
 export const NotificationContext = createContext<{
   notifications: Notification[];
@@ -34,7 +26,11 @@ export default function NotificationProvider({
 }) {
   const { user } = useAuthStore();
 
+  const t = useTranslations("notification");
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const [notificationMsg, setNotificationMsg] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -49,8 +45,28 @@ export default function NotificationProvider({
         console.log("📡 Connected to notification service");
 
         sub = subscribeToNotifications((msg: Notification) => {
-          console.log("📩 New notification:", msg);
-          setNotifications((prev) => [msg, ...prev]);
+          setNotifications((prev) => [
+            msg,
+            ...prev.filter((n) => n.id !== msg.id),
+          ]);
+
+          // ✅ Hiển thị toast kiểu Facebook
+          toast(
+            <NotificationToast notification={msg} createdAt={msg.createdAt} />,
+            {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeButton: false,
+              icon: false,
+              style: {
+                background: "transparent",
+                boxShadow: "none",
+                padding: 0,
+                marginBottom: "20px",
+              },
+            }
+          );
         });
       } catch (err) {
         console.error("❌ WS connection failed:", err);
@@ -62,6 +78,18 @@ export default function NotificationProvider({
       sub?.unsubscribe?.();
     };
   }, [user]);
+
+  const handleNotificationMsg = (n: Notification) => {
+    const map: Record<string, string> = {
+      [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
+      [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
+      [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
+        "repliedYourComment",
+    };
+
+    const key = `${n.type}_${n.refType}`;
+    return t(map[key] || "newNotification");
+  };
 
   return (
     <NotificationContext.Provider value={{ notifications, setNotifications }}>

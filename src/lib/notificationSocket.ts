@@ -19,7 +19,7 @@ function createClient(): Client {
   // 🧩 Thêm token & apikey vào query string
   const brokerURL = `${WS_BASE}?access_token=${encodeURIComponent(
     accessToken ?? ""
-  )}&x_api_key=${encodeURIComponent(INTERNAL_API_KEY!)}`;
+  )}`;
 
   client = new Client({
     brokerURL,
@@ -84,6 +84,18 @@ export function sendTestMessage(content: string) {
     destination: "/app/test",
     body: JSON.stringify({ message: content }),
   });
+}
+
+export function markAllNotificationsAsRead() {
+  const c = createClient();
+
+  // Vì server chỉ cần userId từ session, không cần body
+  c.publish({
+    destination: "/app/notification.markRead",
+    body: "{}", // hoặc để trống ""
+  });
+
+  console.log("📤 Sent markAllNotificationsAsRead");
 }
 
 /**

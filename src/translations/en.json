@@ -202,6 +202,12 @@
     "notification": "Notification",
     "noNotification": "No notifications",
     "loading": "Loading...",
-    "markAllRead": "Mark all read"
+    "markAllRead": "Mark all read",
+    "likedYourPost": "liked your post",
+    "commentedYourPost": "commented on your post",
+    "repliedYourComment": "replied to your comment",
+    "yourPost": "your post",
+    "yourComment": "your comment",
+    "newNotification": "new notification"
   }
 }
