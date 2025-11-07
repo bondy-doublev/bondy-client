@@ -8,7 +8,10 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { NotificationContext } from "@/app/providers/NotificationProvider";
-import { notificationService } from "@/services/notificationService";
+import {
+  handleNotificationMsg,
+  notificationService,
+} from "@/services/notificationService";
 import { useTranslations } from "next-intl";
 import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
@@ -79,18 +82,6 @@ export default function NotificationDropdown() {
       setPage(0);
       setHasMore(true);
     }
-  };
-
-  const handleNotificationMsg = (n: Notification) => {
-    const map: Record<string, string> = {
-      [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
-      [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
-      [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
-        "repliedYourComment",
-    };
-
-    const key = `${n.type}_${n.refType}`;
-    return t(map[key] || "newNotification");
   };
 
   return (
@@ -166,7 +157,7 @@ export default function NotificationDropdown() {
                             : "text-gray-900 font-medium"
                         }`}
                       >
-                        {n.actorName} {handleNotificationMsg(n)}
+                        {n.actorName} {handleNotificationMsg(n, t)}
                       </span>
                       <span className="text-[11px] text-gray-500 mt-1">
                         {new Date(n.createdAt).toLocaleTimeString("vi-VN", {

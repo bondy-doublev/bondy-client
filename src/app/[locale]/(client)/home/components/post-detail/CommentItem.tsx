@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useReplies } from "@/app/hooks/useReplies";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 
 export default function CommentItem({
   t,
@@ -70,19 +71,40 @@ export default function CommentItem({
   return (
     <div className="flex gap-2 group">
       {comment.user.avatarUrl ? (
-        <RoundedAvatar avatarUrl={comment.user.avatarUrl} />
+        <RoundedAvatar
+          userId={comment.user.id}
+          avatarUrl={comment.user.avatarUrl}
+        />
       ) : (
-        <DefaultAvatar firstName={comment.user.fullName} />
+        <DefaultAvatar
+          userId={comment.user.id}
+          firstName={comment.user.fullName}
+        />
       )}
 
       <div className="flex flex-col gap-1 w-full">
         {/* Nội dung comment */}
         <div className="flex items-center gap-1">
           <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
-            <p className="text-sm font-semibold hover:underline cursor-pointer">
-              {comment.user.fullName}
-            </p>
-            <p className="text-sm text-gray-800">{comment.contentText}</p>
+            <UserName
+              userId={comment.user.id}
+              fullname={comment.user.fullName}
+              className="text-sm text-gray-800 font-semibold"
+            />
+            <div
+              className={`text-sm text-gray-800 ${
+                comment.parentComment && "flex gap-1"
+              }`}
+            >
+              {comment.parentComment && (
+                <UserName
+                  userId={comment.parentComment.userId}
+                  fullname={comment.parentComment.userName}
+                  className="font-semibold"
+                />
+              )}
+              <p>{comment.contentText}</p>
+            </div>
           </div>
 
           {/* Menu delete */}
