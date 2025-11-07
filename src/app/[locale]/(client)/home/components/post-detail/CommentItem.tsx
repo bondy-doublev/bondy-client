@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import CommentComposer from "./CommentComposer";
 import CommentReplies from "@/app/[locale]/(client)/home/components/post-detail/CommentReplies";
 import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
@@ -70,6 +70,7 @@ export default function CommentItem({
 
   return (
     <div className="flex gap-2 group">
+      {/* Avatar */}
       {comment.user.avatarUrl ? (
         <RoundedAvatar
           userId={comment.user.id}
@@ -84,26 +85,27 @@ export default function CommentItem({
 
       <div className="flex flex-col gap-1 w-full">
         {/* Nội dung comment */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center">
           <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
             <UserName
               userId={comment.user.id}
               fullname={comment.user.fullName}
               className="text-sm text-gray-800 font-semibold"
             />
-            <div
-              className={`text-sm text-gray-800 ${
-                comment.parentComment && "flex gap-1"
-              }`}
-            >
-              {comment.parentComment && (
-                <UserName
-                  userId={comment.parentComment.userId}
-                  fullname={comment.parentComment.userName}
-                  className="font-semibold"
-                />
-              )}
-              <p>{comment.contentText}</p>
+            <div className="text-sm text-gray-800 leading-relaxed">
+              {comment.mentions?.length > 0 &&
+                comment.mentions.map((m) => (
+                  <UserName
+                    key={m.id}
+                    userId={m.id}
+                    fullname={m.fullName}
+                    className="font-semibold text-green-600 inline"
+                  />
+                ))}
+
+              <span className={`${comment.mentions.length > 0 && "ml-1"}`}>
+                {comment.contentText}
+              </span>
             </div>
           </div>
 
