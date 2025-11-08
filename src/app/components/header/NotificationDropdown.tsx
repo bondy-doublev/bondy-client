@@ -16,7 +16,6 @@ import { useTranslations } from "next-intl";
 import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
-import { Notification, NotificationType, RefType } from "@/models/Notfication";
 
 export default function NotificationDropdown() {
   const t = useTranslations("notification");
@@ -72,15 +71,18 @@ export default function NotificationDropdown() {
 
   const handleDropdownOpen = async (open: boolean) => {
     setIsOpen(open);
+
     if (open) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       try {
         await markAllNotificationsAsRead();
       } catch (err) {
         console.error("❌ markAllAsRead failed:", err);
       }
+
       setPage(0);
       setHasMore(true);
+    } else {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     }
   };
 
@@ -131,8 +133,10 @@ export default function NotificationDropdown() {
                 return (
                   <div
                     key={n.id}
-                    className={`flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition ${
-                      !n.isRead ? "bg-[#f0f2f5]" : ""
+                    className={`flex items-start gap-3 p-3 cursor-pointer transition-colors duration-500 ease-in-out ${
+                      !n.isRead
+                        ? "bg-green-100 hover:bg-green-100"
+                        : "bg-white hover:bg-green-100"
                     }`}
                   >
                     {n.actorAvatarUrl ? (

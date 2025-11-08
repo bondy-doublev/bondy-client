@@ -146,9 +146,15 @@ export default function TagModal({
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                       {user.avatarUrl ? (
-                        <UserAvatar avatarUrl={user.avatarUrl} />
+                        <UserAvatar
+                          userId={user.id}
+                          avatarUrl={user.avatarUrl}
+                        />
                       ) : (
-                        <DefaultAvatar firstName={user.fullName} />
+                        <DefaultAvatar
+                          userId={user.id}
+                          firstName={user.fullName}
+                        />
                       )}
                     </div>
 

@@ -1,7 +1,7 @@
 import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 import { commentService } from "@/services/commentService";
-import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
+import CommentItem from "@/app/[locale]/(client)/home/components/comment/CommentItem";
 import { Comment } from "@/models/Comment";
 
 export default function CommentReplies({

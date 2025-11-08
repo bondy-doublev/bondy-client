@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import CommentComposer from "./CommentComposer";
-import CommentReplies from "@/app/[locale]/(client)/home/components/post-detail/CommentReplies";
+import CommentReplies from "@/app/[locale]/(client)/home/components/comment/CommentReplies";
 import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { Comment } from "@/models/Comment";
@@ -49,11 +49,15 @@ export default function CommentItem({
     deleteOptimistic,
   } = useReplies(comment.postId, comment.id);
 
-  const handleCreateReply = async (content: string) => {
+  const handleCreateReply = async (
+    content: string,
+    mentionUserIds: number[]
+  ) => {
     const created = await commentService.createComment({
       postId: comment.postId,
       parentId: comment.parentId ?? comment.id,
       content,
+      mentionUserIds,
     });
 
     if (created) {
@@ -99,13 +103,11 @@ export default function CommentItem({
                     key={m.id}
                     userId={m.id}
                     fullname={m.fullName}
-                    className="font-semibold text-green-600 inline"
+                    className="font-semibold text-green-600 inline mr-1"
                   />
                 ))}
 
-              <span className={`${comment.mentions.length > 0 && "ml-1"}`}>
-                {comment.contentText}
-              </span>
+              <span>{comment.contentText}</span>
             </div>
           </div>
 
@@ -181,7 +183,11 @@ export default function CommentItem({
         {/* Composer trả lời */}
         {showReplyBox && (
           <div className="mt-2">
-            <CommentComposer t={t} onSubmit={handleCreateReply} />
+            <CommentComposer
+              t={t}
+              replyToUser={comment.user}
+              onSubmit={handleCreateReply}
+            />
           </div>
         )}
       </div>

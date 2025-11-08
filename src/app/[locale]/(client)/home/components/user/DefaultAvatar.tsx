@@ -6,7 +6,7 @@ export default function DefaultAvatar({
   firstName,
   className,
 }: {
-  userId: number;
+  userId?: number;
   firstName?: string;
   className?: string;
 }) {

@@ -178,7 +178,8 @@
     "undoDeleteMessage": "Bạn vừa xóa bài viết này. Hoàn tác trong",
     "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
     "undo": "Hoàn tác",
-    "originalPostDeleted": "Bài viết gốc đã bị xóa."
+    "originalPostDeleted": "Bài viết gốc đã bị xóa.",
+    "notFound": "Không tìm thấy"
   },
   "friend": {
     "friends": "Bạn bè",

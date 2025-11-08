@@ -4,7 +4,7 @@ import CommentComposer from "./CommentComposer";
 import { getTimeAgo } from "@/utils/format";
 import { commentService } from "@/services/commentService";
 import { useRootComments } from "@/app/hooks/useRootComments";
-import CommentItem from "@/app/[locale]/(client)/home/components/post-detail/CommentItem";
+import CommentItem from "@/app/[locale]/(client)/home/components/comment/CommentItem";
 
 export default function CommentSection({
   t,
@@ -24,8 +24,15 @@ export default function CommentSection({
     deleteOptimistic,
   } = useRootComments(postId);
 
-  const handleCreateComment = async (content: string) => {
-    const created = await commentService.createComment({ postId, content });
+  const handleCreateComment = async (
+    content: string,
+    mentionUserIds: number[]
+  ) => {
+    const created = await commentService.createComment({
+      postId,
+      content,
+      mentionUserIds,
+    });
     if (created) {
       addOptimistic(created);
       onCommentCountChange?.(postId, 1);

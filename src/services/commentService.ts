@@ -50,15 +50,18 @@ export const commentService = {
     postId,
     parentId,
     content,
+    mentionUserIds,
   }: {
     postId: number;
     parentId?: number;
     content: string;
+    mentionUserIds?: number[];
   }): Promise<Comment> {
     try {
       const body = {
         parentId: parentId ?? null,
         content,
+        mentionUserIds: mentionUserIds ?? null,
       };
 
       const proxyRes = await api.post(

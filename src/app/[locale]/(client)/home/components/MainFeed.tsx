@@ -1,7 +1,7 @@
 "use client";
 
 import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
-import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
+import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import SharePost from "@/app/[locale]/(client)/home/components/post/SharePost";
 import { Feed } from "@/models/Post";

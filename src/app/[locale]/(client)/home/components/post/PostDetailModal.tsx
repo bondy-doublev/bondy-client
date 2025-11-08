@@ -1,6 +1,6 @@
 "use client";
 
-import CommentSection from "@/app/[locale]/(client)/home/components/post-detail/CommentSection";
+import CommentSection from "@/app/[locale]/(client)/home/components/comment/CommentSection";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import {
   Dialog,
