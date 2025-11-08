@@ -95,4 +95,15 @@ export const chatService = {
     const res: AxiosResponse = await api.get(`/chat/public-rooms/${userId}`);
     return res.data;
   },
+
+  async getUnreadCount(userId: number): Promise<number> {
+    try {
+      const res: AxiosResponse<{ total: number }> = await api.get(
+        `${API_URL}/unread-count/${userId}`
+      );
+      return res.data.total || 0;
+    } catch (error) {
+      return 0; // fallback nếu lỗi
+    }
+  },
 };

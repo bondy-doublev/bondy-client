@@ -117,6 +117,9 @@ export default function ChatPage() {
 
     if (socket && user) {
       socket.emit("joinRoom", { roomId: room.id, userId: user.id });
+
+      // đánh dấu tất cả tin nhắn là đã đọc
+      socket.emit("openRoom", { userId: user.id, roomId: room.id });
     }
   };
 
