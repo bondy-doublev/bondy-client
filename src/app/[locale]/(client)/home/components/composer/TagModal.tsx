@@ -11,6 +11,7 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
+import User, { mapUserToUserBasic, UserBasic } from "@/models/User";
 import { useAuthStore } from "@/store/authStore";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -19,15 +20,15 @@ export default function TagModal({
   t,
   showModal,
   onClose,
-  onSetTagUserIds,
+  onSetTagUsers,
 }: {
   t: (key: string) => string;
   showModal: boolean;
   onClose: () => void;
-  onSetTagUserIds: (ids: number[]) => void;
+  onSetTagUsers: (ids: UserBasic[]) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
 
   const { user } = useAuthStore();
 
@@ -43,12 +44,12 @@ export default function TagModal({
 
   // Khi thay đổi selectedUsers => cập nhật danh sách ID ra ngoài
   useEffect(() => {
-    const ids = selectedUsers.map((u) => u.id);
-    onSetTagUserIds(ids);
-  }, [selectedUsers, onSetTagUserIds]);
+    const users = selectedUsers.map((u) => mapUserToUserBasic(u));
+    onSetTagUsers(users);
+  }, [selectedUsers, onSetTagUsers]);
 
   // Chọn hoặc bỏ chọn user
-  const handleSelectUser = (user: any) => {
+  const handleSelectUser = (user: User) => {
     setSelectedUsers((prev) => {
       const exists = prev.find((u) => u.id === user.id);
       if (exists) return prev.filter((u) => u.id !== user.id);

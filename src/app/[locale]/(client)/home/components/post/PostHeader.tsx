@@ -58,32 +58,39 @@ export default function PostHeader({
 
     if (taggedUsers.length === 1) {
       return (
-        <span className="text-gray-700 flex gap-1">
+        <>
           {" "}
-          {t("with")} <UserName userId={first.id} fullname={first.fullName} />
-        </span>
+          <div className="mr-1">{t("with")} </div>
+          <UserName
+            userId={first.id}
+            fullname={first.fullName}
+            className="font-semibold"
+          />
+        </>
       );
     }
 
     return (
-      <span className="text-gray-700 flex gap-1">
+      <>
         {" "}
-        {t("with")}{" "}
+        <div className="mr-1">{t("with")} </div>
         <UserName
-          className="max-w-[100px] truncate sm:max-w-none sm:whitespace-normal sm:overflow-visible sm:text-ellipsis-none"
+          className="font-semibold mr-1"
           userId={first.id}
           fullname={first.fullName}
         />{" "}
-        {t("and")}{" "}
+        <div className="mr-1">{t("and")} </div>
         <span
           onClick={() => setIsModalOpen(true)}
           className="flex gap-1 font-semibold hover:underline cursor-pointer"
         >
-          {others.length === 1
-            ? others[0].fullName
-            : `${others.length} ${t("others")}`}
+          {others.length === 1 ? (
+            <UserName userId={others[0].id} fullname={others[0].fullName} />
+          ) : (
+            `${others.length} ${t("others")}`
+          )}
         </span>
-      </span>
+      </>
     );
   };
 
@@ -96,8 +103,8 @@ export default function PostHeader({
       )}
 
       <div className="flex flex-col gap-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1 leading-tight">
-          <span className="font-semibold text-gray-900">
+        <div className="flex flex-wrap leading-tight">
+          <span className="font-semibold mr-1">
             <UserName userId={owner.id} fullname={owner.fullName} />
           </span>
           {renderTaggedText()}

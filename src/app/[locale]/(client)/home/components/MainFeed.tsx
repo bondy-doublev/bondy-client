@@ -47,16 +47,20 @@ export default function MainFeed({
     });
   };
 
-  // Reload feed (sau khi đăng post mới)
+  const [isReloading, setIsReloading] = useState(false);
+
   const reloadFeeds = async () => {
+    setIsReloading(true);
     setPage(0);
     setHasMore(true);
     await fetchFeeds(0, true);
+    setIsReloading(false);
   };
 
-  // Fetch khi page thay đổi
   useEffect(() => {
-    fetchFeeds(page);
+    if (!isReloading) {
+      fetchFeeds(page);
+    }
   }, [page]);
 
   // Infinite scroll

@@ -39,7 +39,7 @@ export default function PostContent({
     <div className="space-y-3">
       {/* text content */}
       {content && (
-        <p className="text-gray-800 px-4 text-[15px] leading-relaxed whitespace-pre-wrap">
+        <p className="px-4 text-base leading-relaxed whitespace-pre-wrap">
           {content}
         </p>
       )}

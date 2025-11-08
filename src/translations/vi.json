@@ -207,9 +207,12 @@
     "likedYourPost": "đã thích bài viết của bạn",
     "commentedYourPost": "đã bình luận bài viết của bạn",
     "repliedYourComment": "đã trả lời bình luận của bạn",
+    "taggedYouInPost": "đã gắn thẻ bạn trong một bài viết",
+    "mentionedYouInComment": "đã nhắc đến bạn trong một bình luận",
     "yourPost": "bài viết của bạn",
     "yourComment": "bình luận của bạn",
     "newNotification": "thông báo mới",
-    "recently": "vừa xong"
+    "recently": "vừa xong",
+    "loadMore": "Xem thêm"
   }
 }

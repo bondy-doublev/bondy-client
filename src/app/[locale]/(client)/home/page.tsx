@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <div className="flex justify-center overflow-x-hidden min-w-full">
       {/* Feed chính */}
-      <div className="xl:mr-[20%]">
-        <MainFeed />
+      <div className="w-full xl:mr-[20%] flex justify-center">
+        <MainFeed className="w-full" />
       </div>
 
       {/* Sidebar bạn bè (to hơn) */}

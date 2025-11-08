@@ -27,6 +27,7 @@ import { BiSolidImage } from "react-icons/bi";
 import { FaVideo, FaUserTag } from "react-icons/fa";
 import { postService } from "@/services/postService";
 import { Toast } from "@/lib/toast";
+import { UserBasic } from "@/models/User";
 
 export default function PostComposerModal({
   t,
@@ -61,7 +62,7 @@ export default function PostComposerModal({
   const [content, setContent] = useState<string>("");
 
   const [showTagsModal, setShowTagsModal] = useState(false);
-  const [tagUserIds, setTagUserIds] = useState<number[]>([]);
+  const [tagUsers, setTagUsers] = useState<UserBasic[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleImageClick = () => imageInputRef.current?.click();
@@ -122,7 +123,7 @@ export default function PostComposerModal({
       const files = selectedFiles.map((f) => f.file);
       await postService.createPost({
         content,
-        tagUserIds,
+        tagUserIds: tagUsers.map((u) => u.id),
         mediaFiles: files,
         visibility,
       });
@@ -130,7 +131,7 @@ export default function PostComposerModal({
       Toast.success(t("postCreated"));
       setContent("");
       setSelectedFiles([]);
-      setTagUserIds([]);
+      setTagUsers([]);
       onClose();
 
       onPostCreated?.();
@@ -140,6 +141,26 @@ export default function PostComposerModal({
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderTaggedText = () => {
+    if (!tagUsers || tagUsers.length === 0) return null;
+
+    return (
+      <>
+        {t("with")}{" "}
+        {tagUsers.map((user, index) => (
+          <span key={user.id}>
+            <UserName
+              userId={user.id}
+              fullname={user.fullName}
+              className="font-semibold text-green-700"
+            />
+            {index < tagUsers.length - 1 && ","}
+          </span>
+        ))}
+      </>
+    );
   };
 
   return (
@@ -177,10 +198,15 @@ export default function PostComposerModal({
                 <DefaultAvatar userId={user!.id!} firstName={user?.firstName} />
               )}
               <div className="flex flex-col">
-                <UserName
-                  userId={Number(user?.id)}
-                  fullname={fullname.trim()}
-                />
+                <div className="flex flex-wrap gap-1 items-center text-sm leading-tight">
+                  <UserName
+                    userId={Number(user?.id)}
+                    fullname={fullname.trim()}
+                    className="font-semibold"
+                  />
+                  {renderTaggedText()}
+                </div>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 hover:underline transition">
@@ -354,7 +380,7 @@ export default function PostComposerModal({
         t={t}
         showModal={showTagsModal}
         onClose={() => setShowTagsModal(false)}
-        onSetTagUserIds={setTagUserIds}
+        onSetTagUsers={setTagUsers}
       />
     </div>
   );

@@ -51,6 +51,8 @@ export const handleNotificationMsg = (
     [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
     [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
       "repliedYourComment",
+    [`${NotificationType.MENTION}_${RefType.COMMENT}`]: "mentionedYouInComment",
+    [`${NotificationType.MENTION}_${RefType.POST}`]: "taggedYouInPost",
   };
 
   const key = `${n.type}_${n.refType}`;
