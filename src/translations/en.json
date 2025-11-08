@@ -178,7 +178,8 @@
     "undoDeleteMessage": "You just deleted this post. Undo in",
     "undoDeleteShareMessage": "You just deleted this share post. Undo in",
     "undo": "Undo",
-    "originalPostDeleted": "The original post has been deleted."
+    "originalPostDeleted": "The original post has been deleted.",
+    "notFound": "Not found"
   },
   "friend": {
     "friends": "Friends",
@@ -206,8 +207,12 @@
     "likedYourPost": "liked your post",
     "commentedYourPost": "commented on your post",
     "repliedYourComment": "replied to your comment",
+    "taggedYouInPost": "tagged you in a post",
+    "mentionedYouInComment": "mentioned you in a comment",
     "yourPost": "your post",
     "yourComment": "your comment",
-    "newNotification": "new notification"
+    "newNotification": "new notification",
+    "recently": "recently",
+    "loadMore": "Load more"
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
-import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
+import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
 import SharePost from "@/app/[locale]/(client)/home/components/post/SharePost";
 import { Feed } from "@/models/Post";
@@ -47,16 +47,20 @@ export default function MainFeed({
     });
   };
 
-  // Reload feed (sau khi đăng post mới)
+  const [isReloading, setIsReloading] = useState(false);
+
   const reloadFeeds = async () => {
+    setIsReloading(true);
     setPage(0);
     setHasMore(true);
     await fetchFeeds(0, true);
+    setIsReloading(false);
   };
 
-  // Fetch khi page thay đổi
   useEffect(() => {
-    fetchFeeds(page);
+    if (!isReloading) {
+      fetchFeeds(page);
+    }
   }, [page]);
 
   // Infinite scroll

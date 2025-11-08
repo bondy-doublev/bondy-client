@@ -23,7 +23,10 @@ export default function Page() {
     <div className="flex flex-col xl:flex-row justify-between xl:gap-4 md:px-4 pb-2 w-full">
       <div className="space-y-5 hidden xl:block">
         <MediaSidebar userId={Number(userId)} />
-        <FriendSidebar userId={Number(userId)} />
+        <FriendSidebar
+          userId={Number(userId)}
+          className="sticky top-0 self-start"
+        />
       </div>
       <MainFeed wallOwner={userInfo} className="w-full max-w-full" />
     </div>

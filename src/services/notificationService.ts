@@ -3,7 +3,7 @@ import { PaginationParams } from "@/types/PaginationParams";
 import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
 import { Feed } from "@/models/Post";
-import { Notification } from "@/models/Notfication";
+import { Notification, NotificationType, RefType } from "@/models/Notfication";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
@@ -40,4 +40,21 @@ export const notificationService = {
       Toast.error("Không thể đánh dấu đã đọc.");
     }
   },
+};
+
+export const handleNotificationMsg = (
+  n: Notification,
+  t: (key: string) => string
+) => {
+  const map: Record<string, string> = {
+    [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
+    [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
+    [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
+      "repliedYourComment",
+    [`${NotificationType.MENTION}_${RefType.COMMENT}`]: "mentionedYouInComment",
+    [`${NotificationType.MENTION}_${RefType.POST}`]: "taggedYouInPost",
+  };
+
+  const key = `${n.type}_${n.refType}`;
+  return t(map[key] || "newNotification");
 };

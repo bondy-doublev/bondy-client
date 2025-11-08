@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Bell } from "lucide-react";
 import {
   DropdownMenu,
@@ -8,12 +8,15 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { NotificationContext } from "@/app/providers/NotificationProvider";
-import { notificationService } from "@/services/notificationService";
+import {
+  handleNotificationMsg,
+  notificationService,
+} from "@/services/notificationService";
 import { useTranslations } from "next-intl";
 import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
-import { Notification, NotificationType, RefType } from "@/models/Notfication";
+import { Button } from "@/components/ui/button";
 
 export default function NotificationDropdown() {
   const t = useTranslations("notification");
@@ -23,74 +26,58 @@ export default function NotificationDropdown() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.isRead).length,
     [notifications]
   );
 
-  const fetchMoreNotifications = async () => {
-    if (loading || !hasMore) return;
+  const fetchMoreNotifications = async (reset = false) => {
+    if (loading || (!hasMore && !reset)) return;
     setLoading(true);
     const newData = await notificationService.getNotifications({
-      page,
+      page: reset ? 0 : page,
       size: 10,
     });
     setLoading(false);
+
+    if (reset) {
+      setNotifications(newData);
+      setPage(1);
+      setHasMore(newData.length === 10);
+      return;
+    }
+
     if (!newData.length) {
       setHasMore(false);
       return;
     }
+
     setNotifications((prev) => {
       const ids = new Set(prev.map((n) => n.id));
       const merged = [...prev, ...newData.filter((n) => !ids.has(n.id))];
       return merged;
     });
+    setPage((prev) => prev + 1);
+    setHasMore(newData.length === 10);
   };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && hasMore && !loading)
-          setPage((prev) => prev + 1);
-      },
-      { threshold: 1 }
-    );
-
-    if (loaderRef.current) observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [loading, hasMore]);
-
-  useEffect(() => {
-    fetchMoreNotifications();
-  }, [page]);
+    fetchMoreNotifications(true); // load trang đầu khi mount
+  }, []);
 
   const handleDropdownOpen = async (open: boolean) => {
     setIsOpen(open);
+
     if (open) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       try {
         await markAllNotificationsAsRead();
       } catch (err) {
         console.error("❌ markAllAsRead failed:", err);
       }
-      setPage(0);
-      setHasMore(true);
+    } else {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     }
-  };
-
-  const handleNotificationMsg = (n: Notification) => {
-    const map: Record<string, string> = {
-      [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
-      [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
-      [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
-        "repliedYourComment",
-    };
-
-    const key = `${n.type}_${n.refType}`;
-    return t(map[key] || "newNotification");
   };
 
   return (
@@ -122,7 +109,7 @@ export default function NotificationDropdown() {
                 prev.map((n) => ({ ...n, isRead: true }))
               );
             }}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-green-600 hover:underline"
           >
             {t("markAllRead")}
           </button>
@@ -135,60 +122,62 @@ export default function NotificationDropdown() {
           </div>
         ) : (
           <>
-            <div className="divide divide-gray-100">
-              {notifications.map((n) => {
-                return (
-                  <div
-                    key={n.id}
-                    className={`flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition ${
-                      !n.isRead ? "bg-[#f0f2f5]" : ""
-                    }`}
-                  >
-                    {n.actorAvatarUrl ? (
-                      <UserAvatar
-                        className="w-10 h-10"
-                        userId={n.actorId}
-                        avatarUrl={n.actorAvatarUrl}
-                      />
-                    ) : (
-                      <DefaultAvatar
-                        userId={n.actorId}
-                        firstName={n.actorName}
-                        className="w-10 h-10"
-                      />
-                    )}
+            <div className="divide-y divide-gray-100">
+              {notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`flex items-start gap-3 p-3 cursor-pointer transition-colors duration-500 ease-in-out ${
+                    !n.isRead
+                      ? "bg-green-100 hover:bg-green-100"
+                      : "bg-white hover:bg-green-100"
+                  }`}
+                >
+                  {n.actorAvatarUrl ? (
+                    <UserAvatar
+                      className="w-10 h-10"
+                      userId={n.actorId}
+                      avatarUrl={n.actorAvatarUrl}
+                    />
+                  ) : (
+                    <DefaultAvatar
+                      userId={n.actorId}
+                      firstName={n.actorName}
+                      className="w-10 h-10"
+                    />
+                  )}
 
-                    <div className="flex flex-col">
-                      <span
-                        className={`text-sm leading-snug ${
-                          n.isRead
-                            ? "text-gray-700"
-                            : "text-gray-900 font-medium"
-                        }`}
-                      >
-                        {n.actorName} {handleNotificationMsg(n)}
-                      </span>
-                      <span className="text-[11px] text-gray-500 mt-1">
-                        {new Date(n.createdAt).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
+                  <div className="flex flex-col">
+                    <span
+                      className={`text-sm leading-snug ${
+                        n.isRead ? "text-gray-700" : "text-gray-900 font-medium"
+                      }`}
+                    >
+                      {n.actorName} {handleNotificationMsg(n, t)}
+                    </span>
+                    <span className="text-[11px] text-gray-500 mt-1">
+                      {new Date(n.createdAt).toLocaleTimeString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
-            {/* 🌀 Loader cuối danh sách */}
-            <div
-              ref={loaderRef}
-              className={`${
-                loading ? "py-2" : ""
-              } text-center text-gray-400 text-xs`}
-            >
-              {loading && t("loading")}
-            </div>
+            {/* 🔘 Nút Load More */}
+            {hasMore && (
+              <div className="p-3 text-center">
+                <Button
+                  variant="default"
+                  disabled={loading}
+                  onClick={() => fetchMoreNotifications()}
+                  className="w-full text-sm text-black font-bold bg-gray-200 hover:bg-gray-300 rounded-md focus:ring-0 focus:outline-none"
+                >
+                  {loading ? t("loading") + "..." : t("loadMore")}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </DropdownMenuContent>

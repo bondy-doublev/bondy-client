@@ -178,7 +178,8 @@
     "undoDeleteMessage": "Bạn vừa xóa bài viết này. Hoàn tác trong",
     "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
     "undo": "Hoàn tác",
-    "originalPostDeleted": "Bài viết gốc đã bị xóa."
+    "originalPostDeleted": "Bài viết gốc đã bị xóa.",
+    "notFound": "Không tìm thấy"
   },
   "friend": {
     "friends": "Bạn bè",
@@ -206,8 +207,12 @@
     "likedYourPost": "đã thích bài viết của bạn",
     "commentedYourPost": "đã bình luận bài viết của bạn",
     "repliedYourComment": "đã trả lời bình luận của bạn",
+    "taggedYouInPost": "đã gắn thẻ bạn trong một bài viết",
+    "mentionedYouInComment": "đã nhắc đến bạn trong một bình luận",
     "yourPost": "bài viết của bạn",
     "yourComment": "bình luận của bạn",
-    "newNotification": "thông báo mới"
+    "newNotification": "thông báo mới",
+    "recently": "vừa xong",
+    "loadMore": "Xem thêm"
   }
 }

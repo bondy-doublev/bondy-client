@@ -1,7 +1,7 @@
 export enum NotificationType {
   LIKE = "LIKE",
   COMMENT = "COMMENT",
-  TAG = "TAG",
+  MENTION = "MENTION",
   FRIEND_REQUEST = "FRIEND_REQUEST",
   ACCEPT = "ACCEPT",
   SHARE = "SHARE",

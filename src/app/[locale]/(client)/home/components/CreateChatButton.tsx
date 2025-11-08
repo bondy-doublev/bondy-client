@@ -74,7 +74,10 @@ export default function CreateChatButton() {
                       className="h-8 w-8 rounded-full object-cover"
                     />
                   ) : (
-                    <DefaultAvatar firstName={friend.fullName.split(" ")[0]} />
+                    <DefaultAvatar
+                      userId={friend.id}
+                      firstName={friend.fullName.split(" ")[0]}
+                    />
                   )}
                   <div className="text-gray-800">{friend.fullName}</div>
                 </div>
