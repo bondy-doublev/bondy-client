@@ -15,6 +15,7 @@ export type Message = {
   content?: string;
   fileUrl?: string;
   imageUrl?: string;
+  attachments?: { url: string; type: "image" | "file"; fileName?: string }[];
   replyToMessageId?: string;
   isEdited: boolean;
   isDeleted: boolean;

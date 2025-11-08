@@ -9,6 +9,10 @@ import { userService } from "@/services/userService";
 import { Sidebar } from "./components/Sidebar";
 import { ChatArea } from "./components/ChatArea";
 import { CreateRoomDialog } from "./components/CreateRoomDialog";
+import {
+  uploadCloudinaryMultiple,
+  uploadCloudinarySingle,
+} from "@/services/uploadService";
 
 export default function ChatPage() {
   const { user } = useAuthStore();
@@ -22,6 +26,7 @@ export default function ChatPage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const messageEndRef = useRef<HTMLDivElement>(null);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
@@ -116,13 +121,49 @@ export default function ChatPage() {
 
   // --- Send
   const handleSend = async () => {
-    if (!newMsg || !selectedRoom || !socket || !user) return;
-    socket.emit("sendMessage", {
-      senderId: user.id,
-      roomId: selectedRoom.id,
-      content: newMsg,
-    });
-    setNewMsg("");
+    if (!selectedRoom || !socket || !user) return;
+
+    let fileUrl: string = "";
+    let uploadedAttachments: {
+      url: string;
+      type: "image" | "file";
+      fileName?: string;
+    }[] = [];
+
+    try {
+      if (attachments.length === 1) {
+        const uploaded = await uploadCloudinarySingle(attachments[0]);
+        fileUrl = uploaded;
+      }
+
+      if (attachments.length > 1) {
+        const uploadedUrls = await uploadCloudinaryMultiple(attachments);
+        uploadedAttachments = uploadedUrls.map((url, i) => ({
+          url,
+          fileName: attachments[i].name,
+          type: attachments[i].type.startsWith("image") ? "image" : "file",
+        }));
+
+        console.log("Upload attachment", uploadedAttachments);
+      }
+
+      socket.emit("sendMessage", {
+        senderId: user.id,
+        roomId: selectedRoom.id,
+        content: newMsg,
+        fileUrl: fileUrl.length === 1 ? fileUrl : undefined,
+        imageUrl: fileUrl.length > 1 ? fileUrl : undefined,
+        attachments: uploadedAttachments.length
+          ? uploadedAttachments
+          : undefined,
+      });
+
+      setNewMsg("");
+      setAttachments([]);
+    } catch (err) {
+      console.error(err);
+      alert("Upload file thất bại");
+    }
   };
 
   // --- Create room
@@ -198,6 +239,8 @@ export default function ChatPage() {
         setNewMsg={setNewMsg}
         onSend={handleSend}
         messageEndRef={messageEndRef}
+        attachments={attachments}
+        setAttachments={setAttachments}
         onEditMessage={handleEditMessage}
         onDeleteMessage={handleDeleteMessage}
         onReplyMessage={handleReplyMessage}
