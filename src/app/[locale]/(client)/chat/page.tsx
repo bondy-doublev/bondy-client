@@ -167,23 +167,35 @@ export default function ChatPage() {
   };
 
   // --- Create room
-  const handleCreateRoom = async () => {
+  const handleCreateRoom = async (
+    groupName?: string,
+    personalFriendId?: string
+  ) => {
     if (!user) return;
-    if (
-      (tab === "personal" && selectedFriends.length !== 1) ||
-      (tab === "group" && selectedFriends.length < 2)
-    ) {
-      alert("Chọn đúng số bạn bè theo loại phòng");
-      return;
-    }
-    const memberIds = [user.id, ...selectedFriends];
-    const name = tab === "personal" ? "Chat cá nhân" : "Chat nhóm";
-    const room = await chatService.createRoom(name, tab === "group", memberIds);
 
-    setConversations((prev) => [...prev, room]);
-    setOpenDialog(false);
-    setSelectedFriends([]);
-    loadRoomMessages(room);
+    if (tab === "personal") {
+      if (!personalFriendId) return;
+      // tạo private room với friend này
+      const room = await chatService.createRoom("Chat cá nhân", false, [
+        user.id,
+        personalFriendId,
+      ]);
+      setConversations((prev) => [...prev, room]);
+      setOpenDialog(false);
+      loadRoomMessages(room);
+    } else {
+      // group
+      if (!groupName || selectedFriends.length < 2) {
+        alert("Chọn ít nhất 2 bạn và nhập tên nhóm");
+        return;
+      }
+      const memberIds = [user.id, ...selectedFriends];
+      const room = await chatService.createRoom(groupName, true, memberIds);
+      setConversations((prev) => [...prev, room]);
+      setOpenDialog(false);
+      setSelectedFriends([]);
+      loadRoomMessages(room);
+    }
   };
 
   // Trong ChatPage, thêm các hàm xử lý edit/delete/reply
@@ -224,7 +236,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-[90vh]">
       <Sidebar
         tab={tab}
         setTab={setTab}
@@ -255,7 +267,13 @@ export default function ChatPage() {
             if (checked) setSelectedFriends((prev) => [...prev, id]);
             else setSelectedFriends((prev) => prev.filter((x) => x !== id));
           }}
-          onCreate={handleCreateRoom}
+          onCreate={(arg?: string | string[]) => {
+            if (tab === "personal") {
+              handleCreateRoom(undefined, arg as string); // arg = friendId
+            } else {
+              handleCreateRoom(arg as string); // arg = groupName
+            }
+          }}
           tab={tab}
         />
       )}

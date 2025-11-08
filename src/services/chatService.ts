@@ -85,13 +85,13 @@ export const chatService = {
   },
 
   // Lấy các phòng chat cá nhân của user
-  async getPrivateRooms(userId: string): Promise<ChatRoom[]> {
+  async getPrivateRooms(userId: number): Promise<ChatRoom[]> {
     const res: AxiosResponse = await api.get(`/chat/private-rooms/${userId}`);
     return res.data;
   },
 
   // Lấy các phòng chat nhóm/public của user
-  async getPublicRooms(userId: string): Promise<ChatRoom[]> {
+  async getPublicRooms(userId: number): Promise<ChatRoom[]> {
     const res: AxiosResponse = await api.get(`/chat/public-rooms/${userId}`);
     return res.data;
   },

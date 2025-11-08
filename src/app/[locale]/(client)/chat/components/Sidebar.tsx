@@ -23,7 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <div className="w-80 border-r border-gray-200 p-4 flex flex-col">
-      <Tabs value={tab} onValue={setTab} className="mb-4">
+      <Tabs value={tab} onValueChange={setTab} className="mb-4">
         <TabsList>
           <TabsTrigger value="personal">Cá nhân</TabsTrigger>
           <TabsTrigger value="group">Nhóm</TabsTrigger>
