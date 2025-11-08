@@ -20,14 +20,12 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { useUnreadSummary } from "@/hooks/useUnreadSummary";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore(); // hoặc lấy từ auth context
-  const unreadSummary = useUnreadSummary(user);
 
   const navItems = [
     { path: "/", icon: Home },
@@ -35,7 +33,7 @@ export default function Navbar() {
     {
       path: "/chat",
       icon: MessageCircle,
-      badge: unreadSummary?.total || 0, // số chưa đọc
+      badge: 0, // số chưa đọc
     },
     { path: "/videos", icon: Video },
     { path: "/groups", icon: Users2 },

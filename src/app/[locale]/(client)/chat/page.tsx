@@ -1,226 +1,220 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { chatService, type ChatMessage } from "@/services/chatService";
-import { userService } from "@/services/userService";
+import { useState, useEffect, useRef } from "react";
+import { chatService, ChatRoom, Message } from "@/services/chatService";
+import io, { Socket } from "socket.io-client";
 import { useAuthStore } from "@/store/authStore";
-import ChatBox from "./components/ChatBox";
-import ClientChat from "./components/ClientChat";
 import { friendService } from "@/services/friendService";
-import { useRouter } from "next/navigation";
-import { ConversationItem } from "@/models/ConversationItem";
-import DefaultAvatar from "../home/components/user/DefaultAvatar";
+import { userService } from "@/services/userService";
+
+import { Sidebar } from "./components/Sidebar";
+import { ChatArea } from "./components/ChatArea";
+import { CreateRoomDialog } from "./components/CreateRoomDialog";
 
 export default function ChatPage() {
   const { user } = useAuthStore();
-  const [conversations, setConversations] = useState<
-    (ConversationItem & { otherUser?: any })[]
-  >([]);
-  const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showFriends, setShowFriends] = useState(false);
+
+  const [tab, setTab] = useState<"personal" | "group">("personal");
+  const [conversations, setConversations] = useState<ChatRoom[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [friends, setFriends] = useState<any[]>([]);
-  const router = useRouter();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
-  // Load danh sách hội thoại
+  const messageEndRef = useRef<HTMLDivElement>(null);
+  const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
   useEffect(() => {
-    const loadConvs = async () => {
-      setLoading(true);
-      try {
-        const data = await chatService.listConversations(0, 20);
+    selectedRoomRef.current = selectedRoom;
+  }, [selectedRoom]);
 
-        // Với mỗi cuộc trò chuyện, lấy thông tin người còn lại
-        const withProfiles = await Promise.all(
-          data.map(async (conv: ConversationItem) => {
-            const otherUserId =
-              conv.receiverId === user?.id
-                ? conv.lastMessage?.senderId // mình là người nhận → người kia là sender
-                : conv.receiverId; // mình là người gửi → người kia là receiver
-
-            if (!otherUserId) return conv;
-
-            try {
-              const res = await userService.getBasicProfile(otherUserId);
-              return { ...conv, otherUser: res.data || res }; // tuỳ backend có bọc data
-            } catch {
-              return conv;
-            }
-          })
-        );
-
-        setConversations(withProfiles);
-        if (withProfiles.length > 0) setSelectedConvId(withProfiles[0].id);
-      } catch (err) {
-        console.error("Failed to load conversations", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadConvs();
+  // --- Load friends
+  const handleGetFriends = async () => {
+    if (!user?.id) return;
+    const res = await friendService.getFriends(user.id);
+    const friendList = res.map((f: any) =>
+      f.senderId === user.id ? f.receiverInfo : f.senderInfo
+    );
+    setFriends(friendList);
+  };
+  useEffect(() => {
+    handleGetFriends();
   }, [user?.id]);
 
+  // --- Load conversations
   useEffect(() => {
-    if (!showFriends || !user?.id) return;
-
-    const loadFriends = async () => {
-      try {
-        const res = await friendService.getFriends(user.id);
-        setFriends(res);
-      } catch (err) {
-        console.error("Failed to load friends", err);
+    const fetchConversations = async () => {
+      if (!user?.id) return;
+      if (tab === "personal") {
+        const rooms = await chatService.getPrivateRooms(user.id);
+        const roomsWithNames = await Promise.all(
+          rooms.map(async (room) => {
+            const member = room.members.find((m: any) => m.id !== user.id);
+            let displayName = "Unknown";
+            if (member) {
+              try {
+                const profile = await userService.getBasicProfile(member.id);
+                displayName =
+                  profile.data.fullName || profile.username || "Unknown";
+              } catch {}
+            }
+            return { ...room, displayName };
+          })
+        );
+        setConversations(roomsWithNames);
+      } else {
+        const rooms = await chatService.getPublicRooms(user.id);
+        setConversations(rooms);
       }
     };
-    loadFriends();
-  }, [showFriends, user?.id]);
+    fetchConversations();
+  }, [tab, user?.id]);
 
-  // Load tin nhắn của hội thoại đang chọn
+  // --- Socket
   useEffect(() => {
-    if (!selectedConvId) return;
-    const loadMsgs = async () => {
-      try {
-        const data = await chatService.getHistory(selectedConvId, 0, 30);
-        setMessages(data);
-      } catch (err) {
-        console.error("Failed to load messages", err);
-      }
-    };
-    loadMsgs();
-  }, [selectedConvId]);
+    if (!user) return;
+    const s = io(`${process.env.NEXT_PUBLIC_CHAT_URL}`);
+    setSocket(s);
 
-  const formatTime = (time?: string) => {
-    if (!time) return "";
-    return new Date(time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
+    s.on("newMessage", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => [...prev, msg]);
+      }
     });
+
+    s.on("messageEdited", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    });
+
+    s.on("messageDeleted", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    });
+
+    return () => s.disconnect();
+  }, [user]);
+
+  // --- Scroll
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // --- Load room messages
+  const loadRoomMessages = async (room: ChatRoom) => {
+    setSelectedRoom(room);
+    const msgs = await chatService.getRoomMessages(room.id);
+    setMessages(msgs);
+
+    if (socket && user) {
+      socket.emit("joinRoom", { roomId: room.id, userId: user.id });
+    }
+  };
+
+  // --- Send
+  const handleSend = async () => {
+    if (!newMsg || !selectedRoom || !socket || !user) return;
+    socket.emit("sendMessage", {
+      senderId: user.id,
+      roomId: selectedRoom.id,
+      content: newMsg,
+    });
+    setNewMsg("");
+  };
+
+  // --- Create room
+  const handleCreateRoom = async () => {
+    if (!user) return;
+    if (
+      (tab === "personal" && selectedFriends.length !== 1) ||
+      (tab === "group" && selectedFriends.length < 2)
+    ) {
+      alert("Chọn đúng số bạn bè theo loại phòng");
+      return;
+    }
+    const memberIds = [user.id, ...selectedFriends];
+    const name = tab === "personal" ? "Chat cá nhân" : "Chat nhóm";
+    const room = await chatService.createRoom(name, tab === "group", memberIds);
+
+    setConversations((prev) => [...prev, room]);
+    setOpenDialog(false);
+    setSelectedFriends([]);
+    loadRoomMessages(room);
+  };
+
+  // Trong ChatPage, thêm các hàm xử lý edit/delete/reply
+  const handleEditMessage = async (msg: Message, newContent: string) => {
+    if (!socket || !user) return;
+    try {
+      const updated = await chatService.editMessage(
+        msg.id,
+        newContent,
+        user.id
+      );
+      socket.emit("editMessage", updated); // gửi socket
+      setMessages((prev) =>
+        prev.map((m) => (m.id === updated.id ? updated : m))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Không thể chỉnh sửa tin nhắn");
+    }
+  };
+
+  const handleDeleteMessage = async (msg: Message) => {
+    if (!socket || !user) return;
+    try {
+      const deleted = await chatService.deleteMessage(msg.id, user.id);
+      socket.emit("deleteMessage", deleted);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === deleted.id ? deleted : m))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Không thể xóa tin nhắn");
+    }
+  };
+
+  const handleReplyMessage = (msg: Message) => {
+    setNewMsg(`@${msg.senderId} `); // hoặc tùy chỉnh hiển thị mention
   };
 
   return (
-    <div className="flex h-[88vh] border border-gray-200 rounded-lg overflow-hidden bg-white shadow">
-      {/* LEFT: List conversations */}
-      <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-        <div className="flex items-center justify-between p-3 border-b">
-          <div className="font-semibold text-gray-700">Chats</div>
-          <button
-            onClick={() => setShowFriends((prev) => !prev)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            + New
-          </button>
-        </div>
+    <div className="flex h-screen">
+      <Sidebar
+        tab={tab}
+        setTab={setTab}
+        conversations={conversations}
+        selectedRoomId={selectedRoom?.id || null}
+        onSelectRoom={loadRoomMessages}
+        onOpenDialog={() => setOpenDialog(true)}
+      />
+      <ChatArea
+        messages={messages}
+        newMsg={newMsg}
+        setNewMsg={setNewMsg}
+        onSend={handleSend}
+        messageEndRef={messageEndRef}
+        onEditMessage={handleEditMessage}
+        onDeleteMessage={handleDeleteMessage}
+        onReplyMessage={handleReplyMessage}
+      />
 
-        {loading && <div className="p-3 text-sm text-gray-500">Loading...</div>}
-
-        {conversations.map((c) => {
-          const lastMsg = c.lastMessage;
-          const mine = lastMsg?.senderId === user?.id;
-          const lastText =
-            lastMsg?.type === "TEXT"
-              ? lastMsg.content
-              : lastMsg?.type === "IMAGE"
-              ? "📷 Ảnh"
-              : lastMsg?.type === "FILE"
-              ? "📎 Tệp"
-              : "";
-
-          return (
-            <div
-              key={c.id}
-              onClick={() => setSelectedConvId(c.id)}
-              className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 ${
-                selectedConvId === c.id ? "bg-gray-100" : ""
-              }`}
-            >
-              {/* Avatar */}
-              {c.otherUser?.avatarUrl ? (
-                <img
-                  src={c.otherUser.avatarUrl}
-                  alt="avatar"
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <DefaultAvatar
-                  firstName={c.otherUser?.fullName?.split(" ")[0] ?? "?"}
-                />
-              )}
-
-              {/* Info */}
-              <div className="flex-1">
-                <div className="font-medium text-gray-800">
-                  {c.otherUser?.fullName || `User ${c.id}`}
-                </div>
-                <div className="text-sm text-gray-500 truncate">
-                  {lastMsg
-                    ? mine
-                      ? `Tôi: ${lastText}`
-                      : `${
-                          c.otherUser?.fullName?.split(" ")[0] || "Người kia"
-                        }: ${lastText || ""}`
-                    : "Chưa có tin nhắn"}
-                </div>
-              </div>
-
-              {/* Time */}
-              <div className="text-xs text-gray-400">
-                {formatTime(lastMsg?.createdAt)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* RIGHT: Chat box */}
-      <div className="flex-1 p-3">
-        {selectedConvId ? (
-          <ClientChat
-            conversationId={selectedConvId}
-            initialMessages={messages}
-            selfUserId={user?.id ?? 0}
-            user={{ id: user?.id ?? 0, role: user?.role, email: user?.email }}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-gray-500">
-            Chọn một cuộc trò chuyện để bắt đầu
-          </div>
-        )}
-      </div>
-      {showFriends && (
-        <div className="absolute left-1/3 top-16 z-10 bg-white border border-gray-200 rounded-lg shadow-lg w-64 max-h-80 overflow-y-auto">
-          <div className="p-3 font-medium text-gray-700 border-b">
-            Chọn bạn để bắt đầu
-          </div>
-
-          {friends.length === 0 && (
-            <div className="p-3 text-sm text-gray-500">Không có bạn nào</div>
-          )}
-
-          {friends.map((f) => {
-            const friend =
-              f.senderId === user?.id ? f.receiverInfo : f.senderInfo;
-            return (
-              <div
-                key={friend.id}
-                onClick={() => {
-                  setShowFriends(false);
-                  router.push(`/chat/${friend.id}`);
-                }}
-                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
-              >
-                {friend.avatarUrl ? (
-                  <img
-                    src={friend.avatarUrl}
-                    alt={friend.fullName}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <DefaultAvatar firstName={friend.fullName.split(" ")[0]} />
-                )}
-                <div className="text-gray-800">{friend.fullName}</div>
-              </div>
-            );
-          })}
-        </div>
+      {openDialog && (
+        <CreateRoomDialog
+          friends={friends}
+          selectedFriends={selectedFriends}
+          onClose={() => setOpenDialog(false)}
+          onSelectFriend={(id, checked) => {
+            if (checked) setSelectedFriends((prev) => [...prev, id]);
+            else setSelectedFriends((prev) => prev.filter((x) => x !== id));
+          }}
+          onCreate={handleCreateRoom}
+          tab={tab}
+        />
       )}
     </div>
   );
