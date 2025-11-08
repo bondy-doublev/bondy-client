@@ -22,6 +22,7 @@ export default function ChatPage() {
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
+  const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [friends, setFriends] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -143,14 +144,13 @@ export default function ChatPage() {
           fileName: attachments[i].name,
           type: attachments[i].type.startsWith("image") ? "image" : "file",
         }));
-
-        console.log("Upload attachment", uploadedAttachments);
       }
 
       socket.emit("sendMessage", {
         senderId: user.id,
         roomId: selectedRoom.id,
         content: newMsg,
+        replyToMessageId: replyingMessage?.id, // <-- thêm dòng này
         fileUrl: fileUrl.length === 1 ? fileUrl : undefined,
         imageUrl: fileUrl.length > 1 ? fileUrl : undefined,
         attachments: uploadedAttachments.length
@@ -160,6 +160,7 @@ export default function ChatPage() {
 
       setNewMsg("");
       setAttachments([]);
+      setReplyingMessage(null); // reset reply
     } catch (err) {
       console.error(err);
       alert("Upload file thất bại");
@@ -175,7 +176,6 @@ export default function ChatPage() {
 
     if (tab === "personal") {
       if (!personalFriendId) return;
-      // tạo private room với friend này
       const room = await chatService.createRoom("Chat cá nhân", false, [
         user.id,
         personalFriendId,
@@ -184,7 +184,6 @@ export default function ChatPage() {
       setOpenDialog(false);
       loadRoomMessages(room);
     } else {
-      // group
       if (!groupName || selectedFriends.length < 2) {
         alert("Chọn ít nhất 2 bạn và nhập tên nhóm");
         return;
@@ -198,7 +197,7 @@ export default function ChatPage() {
     }
   };
 
-  // Trong ChatPage, thêm các hàm xử lý edit/delete/reply
+  // --- Edit/Delete/Reply
   const handleEditMessage = async (msg: Message, newContent: string) => {
     if (!socket || !user) return;
     try {
@@ -207,7 +206,7 @@ export default function ChatPage() {
         newContent,
         user.id
       );
-      socket.emit("editMessage", updated); // gửi socket
+      socket.emit("editMessage", updated);
       setMessages((prev) =>
         prev.map((m) => (m.id === updated.id ? updated : m))
       );
@@ -232,7 +231,7 @@ export default function ChatPage() {
   };
 
   const handleReplyMessage = (msg: Message) => {
-    setNewMsg(`@${msg.senderId} `); // hoặc tùy chỉnh hiển thị mention
+    setReplyingMessage(msg);
   };
 
   return (
@@ -256,6 +255,7 @@ export default function ChatPage() {
         onEditMessage={handleEditMessage}
         onDeleteMessage={handleDeleteMessage}
         onReplyMessage={handleReplyMessage}
+        replyingMessage={replyingMessage} // <-- thêm đây
       />
 
       {openDialog && (
@@ -269,9 +269,9 @@ export default function ChatPage() {
           }}
           onCreate={(arg?: string | string[]) => {
             if (tab === "personal") {
-              handleCreateRoom(undefined, arg as string); // arg = friendId
+              handleCreateRoom(undefined, arg as string);
             } else {
-              handleCreateRoom(arg as string); // arg = groupName
+              handleCreateRoom(arg as string);
             }
           }}
           tab={tab}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface ChatAreaProps {
   onEditMessage: (msg: Message, newContent: string) => void;
   onDeleteMessage: (msg: Message) => void;
   onReplyMessage: (msg: Message) => void;
+  replyingMessage: Message | null;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -31,8 +32,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   onEditMessage,
   onDeleteMessage,
   onReplyMessage,
+  replyingMessage,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -48,7 +51,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     setUploading(true);
     try {
       await onSend();
-      setAttachments([]); // reset file chọn sau khi gửi
+      setAttachments([]);
     } finally {
       setUploading(false);
     }
@@ -62,20 +65,27 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             Chưa có tin nhắn nào
           </div>
         ) : (
-          messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              msg={msg}
-              onEdit={onEditMessage}
-              onDelete={onDeleteMessage}
-              onReply={onReplyMessage}
-            />
-          ))
+          messages.map((msg) => {
+            const replyMsg = msg.replyToMessageId
+              ? messages.find((x) => x.id === msg.replyToMessageId)
+              : undefined;
+            return (
+              <ChatMessage
+                key={msg.id}
+                ref={(el) => (messageRefs.current[msg.id] = el)}
+                id={`msg-${msg.id}`}
+                msg={msg}
+                replyMessage={replyMsg}
+                onEdit={onEditMessage}
+                onDelete={onDeleteMessage}
+                onReply={onReplyMessage}
+              />
+            );
+          })
         )}
         <div ref={messageEndRef} />
       </ScrollArea>
 
-      {/* Attachment Preview */}
       {attachments.length > 0 && (
         <div className="p-2 border-t border-gray-200 flex flex-wrap gap-2 bg-gray-100">
           {attachments.map((file, i) => (
@@ -106,8 +116,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         </div>
       )}
 
+      {replyingMessage && (
+        <div className="px-4 py-2 border-t border-gray-200 bg-gray-100 text-sm text-gray-600 italic">
+          Replying to: {replyingMessage.content}
+        </div>
+      )}
+
       <div className="p-4 border-t border-gray-200 flex items-center space-x-2 bg-white">
-        {/* Nút chọn file bằng icon */}
         <label className="cursor-pointer text-gray-600 hover:text-gray-800">
           <FaPaperclip size={20} />
           <input
