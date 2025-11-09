@@ -23,7 +23,10 @@ interface ChatMessageProps {
 export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
   ({ msg, replyMessage, onEdit, onDelete, onReply }, ref) => {
     const { user } = useAuthStore();
-    const [senderName, setSenderName] = useState(msg.senderId);
+    const [sender, setSender] = useState<{
+      name: string;
+      avatarUrl?: string;
+    }>({ name: msg.senderId.toString() });
     const [menuVisible, setMenuVisible] = useState(false);
     const [menuPosition, setMenuPosition] = useState<{
       x: number;
@@ -42,19 +45,23 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             const profile = await userService.getBasicProfile(
               Number(msg.senderId)
             );
-            setSenderName(
-              profile.data.fullName || profile.data.username || msg.senderId
-            );
+            const { fullName, username, avatarUrl } = profile.data;
+            setSender({
+              name: fullName || username || msg.senderId.toString(),
+              avatarUrl,
+            });
           } catch {
-            setSenderName(msg.senderId);
+            setSender({ name: msg.senderId.toString() });
           }
         })();
       } else {
-        setSenderName("Bạn");
+        setSender({
+          name: user?.fullName || user?.username || "Bạn",
+          avatarUrl: user?.avatarUrl,
+        });
       }
-    }, [msg.senderId, isMine]);
+    }, [msg.senderId, isMine, user]);
 
-    // --- Click trái = scroll tới replyMessage
     const handleLeftClick = (e: MouseEvent<HTMLDivElement>) => {
       if (e.type === "click" && replyMessage) {
         const el = document.getElementById(`msg-${replyMessage.id}`);
@@ -67,7 +74,6 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       }
     };
 
-    // --- Click phải = menu
     const handleRightClick = (e: MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
       setMenuVisible(true);
@@ -95,7 +101,6 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       setModalOpen(true);
     };
 
-    // --- Click outside để tắt menu và modal
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
         if (
@@ -119,13 +124,39 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     const hasAttachments = attachments.length > 0;
 
     const containerClass =
-      "flex mb-2 flex-col " + (isMine ? "items-end" : "items-start");
+      "flex mb-2 w-full " + (isMine ? "justify-end" : "justify-start");
+
     const bubbleClass =
       "p-2 rounded max-w-[70%] break-words cursor-pointer " +
       (isMine ? "bg-green-500 text-white" : "bg-blue-200 text-black");
 
+    // Avatar fallback (chữ cái đầu)
+    const renderAvatar = () => {
+      if (sender.avatarUrl) {
+        return (
+          <img
+            src={sender.avatarUrl}
+            alt={sender.name}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        );
+      } else {
+        const initial = sender.name?.charAt(0)?.toUpperCase() || "?";
+        return (
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-400 text-white font-semibold"
+            title={sender.name}
+          >
+            {initial}
+          </div>
+        );
+      }
+    };
+
     return (
       <div ref={ref} className={containerClass} id={`msg-${msg.id}`}>
+        {!isMine && <div className="mr-2">{renderAvatar()}</div>}
+
         <div
           className={bubbleClass}
           onClick={handleLeftClick}
@@ -137,15 +168,10 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 ? "<Đã xóa>"
                 : replyMessage.content
                 ? replyMessage.content
-                : replyMessage.attachments &&
-                  replyMessage.attachments.length > 0
+                : replyMessage.attachments?.length
                 ? replyMessage.attachments
                     .map((a) => (a.type === "image" ? "Image" : "File"))
                     .join(", ")
-                : replyMessage.imageUrl
-                ? "Image"
-                : replyMessage.fileUrl
-                ? "File"
                 : "<Không có nội dung>"}
             </div>
           )}
@@ -192,12 +218,15 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
           </div>
 
           <div className="text-sm mt-1">
-            {!isMine && <b>{senderName}: </b>}
             {msg.isDeleted ? <i>Đã xóa</i> : msg.content}{" "}
             {msg.isEdited && !msg.isDeleted && <span>(edited)</span>}
           </div>
 
-          <div className="text-xs text-white text-right mt-1">
+          <div
+            className={`text-xs ${
+              isMine ? "text-white text-right" : "text-gray-600 text-left"
+            } mt-1`}
+          >
             {new Date(msg.createdAt).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -242,6 +271,8 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             </div>
           )}
         </div>
+
+        {isMine && <div className="ml-2">{renderAvatar()}</div>}
 
         <Modal
           isOpen={modalOpen}
