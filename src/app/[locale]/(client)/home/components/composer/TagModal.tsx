@@ -14,52 +14,82 @@ import {
 import User, { mapUserToUserBasic, UserBasic } from "@/models/User";
 import { useAuthStore } from "@/store/authStore";
 import { X } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export default function TagModal({
   t,
   showModal,
   onClose,
   onSetTagUsers,
+  initialTagged = [], // ✅ THÊM: danh sách đã tag sẵn
 }: {
   t: (key: string) => string;
   showModal: boolean;
   onClose: () => void;
-  onSetTagUsers: (ids: UserBasic[]) => void;
+  onSetTagUsers: (users: UserBasic[]) => void;
+  initialTagged?: UserBasic[]; // ✅ THÊM
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+
+  // ✅ Dùng ID để quản lý lựa chọn, tránh lệ thuộc object
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { user } = useAuthStore();
-
   const { loading, friendUsers } = useMyFriends(user?.id ?? 0);
+
+  // ✅ Khi modal mở, khởi tạo selectedIds theo initialTagged (một lần mỗi lần mở)
+  const prevOpenRef = useRef<boolean>(false);
+  useEffect(() => {
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = showModal;
+
+    // Khi chuyển trạng thái: false -> true
+    if (!wasOpen && showModal) {
+      const ids = (initialTagged ?? []).map((u) => u.id);
+      setSelectedIds(ids);
+      // KHÔNG gọi onSetTagUsers ở đây để tránh ghi đè state của cha
+    }
+  }, [showModal, initialTagged]);
 
   // Lọc theo searchTerm
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return friendUsers;
     return friendUsers.filter((u) =>
-      u.fullName!.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.fullName ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [friendUsers, searchTerm]);
 
-  // Khi thay đổi selectedUsers => cập nhật danh sách ID ra ngoài
-  useEffect(() => {
-    const users = selectedUsers.map((u) => mapUserToUserBasic(u));
-    onSetTagUsers(users);
-  }, [selectedUsers, onSetTagUsers]);
+  // ✅ Tính danh sách user đã chọn từ friendUsers + selectedIds
+  const selectedUsers: User[] = useMemo(() => {
+    if (!friendUsers?.length || !selectedIds.length) return [];
+    const selectedSet = new Set(selectedIds);
+    return friendUsers.filter((u) => selectedSet.has(u.id));
+  }, [friendUsers, selectedIds]);
 
-  // Chọn hoặc bỏ chọn user
+  // ✅ Chỉ sync ra ngoài KHI người dùng thao tác (selectedIds thay đổi),
+  //    bỏ qua lần khởi tạo đầu khi modal mở.
+  const firstSyncRef = useRef(true);
+  useEffect(() => {
+    if (firstSyncRef.current) {
+      firstSyncRef.current = false;
+      return; // bỏ qua lần đầu (khi mở modal)
+    }
+    const basics = selectedUsers.map((u) => mapUserToUserBasic(u));
+    onSetTagUsers(basics);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds]); // cố ý không đưa onSetTagUsers vào deps để tránh loop
+
+  // Chọn/Bỏ chọn user
   const handleSelectUser = (user: User) => {
-    setSelectedUsers((prev) => {
-      const exists = prev.find((u) => u.id === user.id);
-      if (exists) return prev.filter((u) => u.id !== user.id);
-      return [...prev, user];
+    setSelectedIds((prev) => {
+      const exists = prev.includes(user.id);
+      return exists ? prev.filter((id) => id !== user.id) : [...prev, user.id];
     });
   };
 
-  // Xóa khỏi danh sách đã chọn
+  // Xóa khỏi danh sách đã chọn (chip)
   const handleRemoveUser = (userId: number) => {
-    setSelectedUsers((prev) => prev.filter((u) => u.id !== userId));
+    setSelectedIds((prev) => prev.filter((id) => id !== userId));
   };
 
   return (
@@ -68,7 +98,7 @@ export default function TagModal({
 
       <DialogContent
         className="
-          w-[90%] md:max-w-2xl 
+          w[90%] md:max-w-2xl 
           bg-white rounded-2xl shadow-xl
           p-0 flex flex-col overflow-hidden
           data-[state=open]:animate-none
@@ -134,7 +164,7 @@ export default function TagModal({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto scroll-custom">
               {filteredUsers.map((user) => {
-                const isSelected = selectedUsers.some((u) => u.id === user.id);
+                const isSelected = selectedIds.includes(user.id);
                 return (
                   <div
                     key={user.id}

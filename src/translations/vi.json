@@ -179,7 +179,12 @@
     "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
     "undo": "Hoàn tác",
     "originalPostDeleted": "Bài viết gốc đã bị xóa.",
-    "notFound": "Không tìm thấy"
+    "notFound": "Không tìm thấy",
+    "editPost": "Chỉnh sửa bài viết",
+    "save": "Lưu",
+    "editTags": "Chỉnh sửa gắn thẻ",
+    "saySomething": "Bạn đang nghĩ gì?",
+    "media": "Ảnh và video"
   },
   "friend": {
     "friends": "Bạn bè",

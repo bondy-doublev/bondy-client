@@ -179,7 +179,12 @@
     "undoDeleteShareMessage": "You just deleted this share post. Undo in",
     "undo": "Undo",
     "originalPostDeleted": "The original post has been deleted.",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "editPost": "Edit post",
+    "save": "Save",
+    "editTags": "Edit tags",
+    "saySomething": "What are you thinking about?",
+    "media": "Media"
   },
   "friend": {
     "friends": "Friends",

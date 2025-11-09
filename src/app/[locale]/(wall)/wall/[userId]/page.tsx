@@ -28,7 +28,9 @@ export default function Page() {
           className="sticky top-0 self-start"
         />
       </div>
-      <MainFeed wallOwner={userInfo} className="w-full max-w-full" />
+      {userInfo && (
+        <MainFeed wallOwner={userInfo} className="w-full max-w-full" />
+      )}
     </div>
   );
 }

@@ -65,6 +65,37 @@ export const postService = {
       throw error;
     }
   },
+  async update({
+    postId,
+    content,
+    isPublic,
+    tagUserIds,
+    removeAttachmentIds,
+  }: {
+    postId: number;
+    content?: string;
+    isPublic?: boolean;
+    tagUserIds?: number[];
+    removeAttachmentIds?: number[];
+  }) {
+    try {
+      const body: any = {};
+      if (content !== undefined) body.content = content;
+      if (isPublic !== undefined) body.isPublic = isPublic;
+      if (tagUserIds !== undefined) body.tagUserIds = tagUserIds;
+      if (removeAttachmentIds && removeAttachmentIds.length > 0) {
+        body.removeAttachmentIds = removeAttachmentIds;
+      }
+
+      const res = await api.put(`${API_URL}/${postId}`, body);
+      Toast.success("Updated post successfully");
+      return res.data;
+    } catch (error: any) {
+      console.error("Error update post:", error);
+      Toast.error(error);
+      throw error;
+    }
+  },
   async deletePost({ postId }: { postId: number }) {
     try {
       const res = await api.delete(`${API_URL}/${postId}`);
