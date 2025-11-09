@@ -226,7 +226,7 @@ export default function PostComposerModal({
                   <DropdownMenuContent
                     align="start"
                     sideOffset={4}
-                    className="p-2 bg-gray-200 rounded-xl z-[9999]"
+                    className="p-2 text-sm bg-gray-200 rounded-xl z-[9999]"
                   >
                     <DropdownMenuItem
                       onClick={() => setVisibility(true)}

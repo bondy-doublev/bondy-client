@@ -7,6 +7,7 @@ import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar"
 import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 import { UserBasic } from "@/models/User";
 import TaggedModal from "@/app/[locale]/(client)/home/components/post/TaggedModal";
+import { Globe, Lock } from "lucide-react"; // ✅ THÊM
 
 export default function PostHeader({
   t,
@@ -17,6 +18,7 @@ export default function PostHeader({
   onEdit,
   onDelete,
   isSharePost,
+  isPublic, // đã có
 }: {
   t: (key: string) => string;
   owner: UserBasic;
@@ -26,10 +28,10 @@ export default function PostHeader({
   onEdit?: () => void;
   onDelete?: () => void;
   isSharePost?: boolean;
+  isPublic: boolean;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -38,21 +40,13 @@ export default function PostHeader({
         setIsMenuOpen(false);
       }
     }
-
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
+    else document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
 
   const renderTaggedText = () => {
     if (!taggedUsers || taggedUsers.length === 0) return null;
-
     const first = taggedUsers[0];
     const others = taggedUsers.slice(1);
 
@@ -110,9 +104,25 @@ export default function PostHeader({
           {renderTaggedText()}
         </div>
 
-        <span className="text-xs text-gray-500 hover:underline cursor-pointer">
-          {formatTime(seconds, t)} {t("ago")}
-        </span>
+        <div className="text-xs text-gray-500 flex items-center gap-1">
+          <span className="hover:underline cursor-pointer">
+            {formatTime(seconds, t)} {t("ago")}
+          </span>
+
+          <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
+
+          <span className="inline-flex items-center gap-1">
+            {isPublic ? (
+              <>
+                <Globe size={12} />
+              </>
+            ) : (
+              <>
+                <Lock size={12} />
+              </>
+            )}
+          </span>
+        </div>
       </div>
 
       {isOwner && !isSharePost && (

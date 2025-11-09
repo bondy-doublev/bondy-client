@@ -12,6 +12,7 @@ import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import EditPostModal from "@/app/[locale]/(client)/home/components/post/EditPostModal";
 
 type Props = {
   post: Post;
@@ -31,6 +32,9 @@ export default function PostCard({
   const t = useTranslations("post");
   const { user } = useAuthStore();
 
+  const [editablePost, setEditablePost] = useState<Post>(post);
+  const [showEdit, setShowEdit] = useState(false);
+
   const [reacted, setReacted] = useState(post.reacted ?? false);
   const [likeCount, setLikeCount] = useState(post.reactionCount ?? 0);
   const [shareCount, setShareCount] = useState(post.shareCount ?? 0);
@@ -38,6 +42,14 @@ export default function PostCard({
   const [deleteCountdown, setDeleteCountdown] = useState(10);
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false); // ✅ mới thêm
+
+  useEffect(() => {
+    // đồng bộ khi prop post thay đổi từ bên ngoài (ví dụ PostDetailModal)
+    setEditablePost(post);
+    setReacted(post.reacted ?? false);
+    setLikeCount(post.reactionCount ?? 0);
+    setShareCount(post.shareCount ?? 0);
+  }, [post]);
 
   const handleToggleLike = async () => {
     setReacted((prev) => !prev);
@@ -113,21 +125,23 @@ export default function PostCard({
     >
       <PostHeader
         t={t}
-        owner={post.owner}
-        seconds={getTimeAgo(post.createdAt)}
-        taggedUsers={post.taggedUsers}
-        isOwner={post.owner.id === user?.id}
+        owner={editablePost.owner}
+        seconds={getTimeAgo(editablePost.createdAt)}
+        taggedUsers={editablePost.taggedUsers}
+        isOwner={editablePost.owner.id === user?.id}
         isSharePost={isSharePost}
+        isPublic={editablePost.visibility}
         onDelete={handleDeletePost}
+        onEdit={() => setShowEdit(true)}
       />
       <PostContent
-        content={post.contentText}
-        mediaAttachments={post.mediaAttachments}
+        content={editablePost.contentText}
+        mediaAttachments={editablePost.mediaAttachments}
       />
       <PostStats
         t={t}
         likes={likeCount}
-        comments={post.commentCount}
+        comments={editablePost.commentCount}
         shares={shareCount}
         onComment={onComment}
       />
@@ -138,6 +152,28 @@ export default function PostCard({
         onToggleLike={handleToggleLike}
         onShare={handleShare}
       />
+      {/* ✅ Modal sửa bài */}
+      {showEdit && (
+        <EditPostModal
+          t={t}
+          open={showEdit}
+          onClose={() => setShowEdit(false)}
+          post={editablePost}
+          onSaved={(updated) => {
+            setEditablePost((prev) => ({
+              ...prev,
+              contentText: updated.contentText,
+              taggedUsers: updated.taggedUsers,
+              mediaAttachments: updated.mediaAttachments,
+              mediaCount: updated.mediaAttachments?.length ?? 0,
+              reactionCount: updated.reactionCount ?? prev.reactionCount,
+              shareCount: updated.shareCount ?? prev.shareCount,
+              commentCount: updated.commentCount ?? prev.commentCount,
+              visibility: updated.visibility ?? prev.visibility,
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }
