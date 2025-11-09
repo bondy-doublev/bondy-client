@@ -2,6 +2,7 @@
 
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 import {
   Dialog,
   DialogClose,
@@ -10,80 +11,85 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Friendship } from "@/models/Friendship";
-import { friendService } from "@/services/friendService";
+import User, { mapUserToUserBasic, UserBasic } from "@/models/User";
+import { useAuthStore } from "@/store/authStore";
 import { X } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export default function TagModal({
   t,
-  currentUserId,
   showModal,
   onClose,
-  onSetTagUserIds,
+  onSetTagUsers,
+  initialTagged = [], // ✅ THÊM: danh sách đã tag sẵn
 }: {
   t: (key: string) => string;
-  currentUserId?: number;
   showModal: boolean;
   onClose: () => void;
-  onSetTagUserIds: (ids: number[]) => void;
+  onSetTagUsers: (users: UserBasic[]) => void;
+  initialTagged?: UserBasic[]; // ✅ THÊM
 }) {
-  const [friends, setFriends] = useState<Friendship[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
 
-  const fetchFriends = async () => {
-    if (!currentUserId) return;
-    setLoading(true);
-    try {
-      const res: Friendship[] = await friendService.getFriends(currentUserId);
-      setFriends(res || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ✅ Dùng ID để quản lý lựa chọn, tránh lệ thuộc object
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  const { user } = useAuthStore();
+  const { loading, friendUsers } = useMyFriends(user?.id ?? 0);
+
+  // ✅ Khi modal mở, khởi tạo selectedIds theo initialTagged (một lần mỗi lần mở)
+  const prevOpenRef = useRef<boolean>(false);
   useEffect(() => {
-    if (showModal) fetchFriends();
-  }, [currentUserId, showModal]);
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = showModal;
 
-  const friendUsers = useMemo(
-    () =>
-      friends.map((f) =>
-        f.senderId === currentUserId ? f.receiverInfo : f.senderInfo
-      ),
-    [friends, currentUserId]
-  );
+    // Khi chuyển trạng thái: false -> true
+    if (!wasOpen && showModal) {
+      const ids = (initialTagged ?? []).map((u) => u.id);
+      setSelectedIds(ids);
+      // KHÔNG gọi onSetTagUsers ở đây để tránh ghi đè state của cha
+    }
+  }, [showModal, initialTagged]);
 
-  // ✅ Lọc theo searchTerm
+  // Lọc theo searchTerm
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return friendUsers;
     return friendUsers.filter((u) =>
-      u.fullName!.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.fullName ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [friendUsers, searchTerm]);
 
-  // ✅ Khi thay đổi selectedUsers => cập nhật danh sách ID ra ngoài
-  useEffect(() => {
-    const ids = selectedUsers.map((u) => u.id);
-    onSetTagUserIds(ids);
-  }, [selectedUsers, onSetTagUserIds]);
+  // ✅ Tính danh sách user đã chọn từ friendUsers + selectedIds
+  const selectedUsers: User[] = useMemo(() => {
+    if (!friendUsers?.length || !selectedIds.length) return [];
+    const selectedSet = new Set(selectedIds);
+    return friendUsers.filter((u) => selectedSet.has(u.id));
+  }, [friendUsers, selectedIds]);
 
-  // ✅ Chọn hoặc bỏ chọn user
-  const handleSelectUser = (user: any) => {
-    setSelectedUsers((prev) => {
-      const exists = prev.find((u) => u.id === user.id);
-      if (exists) return prev.filter((u) => u.id !== user.id);
-      return [...prev, user];
+  // ✅ Chỉ sync ra ngoài KHI người dùng thao tác (selectedIds thay đổi),
+  //    bỏ qua lần khởi tạo đầu khi modal mở.
+  const firstSyncRef = useRef(true);
+  useEffect(() => {
+    if (firstSyncRef.current) {
+      firstSyncRef.current = false;
+      return; // bỏ qua lần đầu (khi mở modal)
+    }
+    const basics = selectedUsers.map((u) => mapUserToUserBasic(u));
+    onSetTagUsers(basics);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds]); // cố ý không đưa onSetTagUsers vào deps để tránh loop
+
+  // Chọn/Bỏ chọn user
+  const handleSelectUser = (user: User) => {
+    setSelectedIds((prev) => {
+      const exists = prev.includes(user.id);
+      return exists ? prev.filter((id) => id !== user.id) : [...prev, user.id];
     });
   };
 
-  // ✅ Xóa khỏi danh sách đã chọn
+  // Xóa khỏi danh sách đã chọn (chip)
   const handleRemoveUser = (userId: number) => {
-    setSelectedUsers((prev) => prev.filter((u) => u.id !== userId));
+    setSelectedIds((prev) => prev.filter((id) => id !== userId));
   };
 
   return (
@@ -92,7 +98,7 @@ export default function TagModal({
 
       <DialogContent
         className="
-          w-[90%] md:max-w-2xl 
+          w[90%] md:max-w-2xl 
           bg-white rounded-2xl shadow-xl
           p-0 flex flex-col overflow-hidden
           data-[state=open]:animate-none
@@ -114,7 +120,7 @@ export default function TagModal({
           </DialogClose>
         </DialogHeader>
 
-        {/* ✅ Danh sách đã chọn */}
+        {/* Danh sách đã chọn */}
         {selectedUsers.length > 0 && (
           <div className="flex flex-wrap gap-2 px-4 py-3">
             {selectedUsers.map((user) => (
@@ -158,7 +164,7 @@ export default function TagModal({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto scroll-custom">
               {filteredUsers.map((user) => {
-                const isSelected = selectedUsers.some((u) => u.id === user.id);
+                const isSelected = selectedIds.includes(user.id);
                 return (
                   <div
                     key={user.id}
@@ -171,9 +177,15 @@ export default function TagModal({
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                       {user.avatarUrl ? (
-                        <UserAvatar avatarUrl={user.avatarUrl} />
+                        <UserAvatar
+                          userId={user.id}
+                          avatarUrl={user.avatarUrl}
+                        />
                       ) : (
-                        <DefaultAvatar firstName={user.fullName} />
+                        <DefaultAvatar
+                          userId={user.id}
+                          firstName={user.fullName}
+                        />
                       )}
                     </div>
 

@@ -1,7 +1,20 @@
-import React from "react";
+import Link from "next/link";
 
-export default function UserName({ fullname }: { fullname: string }) {
+export default function UserName({
+  className,
+  userId,
+  fullname,
+}: {
+  className?: string;
+  userId: number;
+  fullname: string;
+}) {
   return (
-    <p className="font-semibold hover:underline cursor-pointer">{fullname}</p>
+    <Link
+      href={"/wall/" + userId}
+      className={`hover:underline cursor-pointer ${className}`}
+    >
+      {fullname}
+    </Link>
   );
 }

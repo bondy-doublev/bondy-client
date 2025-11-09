@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import Spinner from "@/app/components/ui/spinner";
 import Image from "next/image";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 
 export default function ProfileForm() {
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -122,13 +123,21 @@ export default function ProfileForm() {
             }`}
             onClick={handleAvatarClick}
           >
-            <Image
-              width={20}
-              height={20}
-              src={`${userInfo.avatarUrl}`}
-              alt="avatar"
-              className="w-full h-full object-cover"
-            />
+            {userInfo.avatarUrl ? (
+              <Image
+                width={20}
+                height={20}
+                src={`${userInfo.avatarUrl}`}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <DefaultAvatar
+                className="w-full h-full"
+                firstName={userInfo.firstName}
+              />
+            )}
+
             {isEditing && (
               <div className="absolute inset-0 bg-black/40 text-white text-sm flex items-center justify-center">
                 Change

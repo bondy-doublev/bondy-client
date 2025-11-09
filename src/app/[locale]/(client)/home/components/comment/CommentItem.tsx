@@ -1,8 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import CommentComposer from "./CommentComposer";
-import CommentReplies from "@/app/[locale]/(client)/home/components/post-detail/CommentReplies";
+import CommentReplies from "@/app/[locale]/(client)/home/components/comment/CommentReplies";
 import RoundedAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { Comment } from "@/models/Comment";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useReplies } from "@/app/hooks/useReplies";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 
 export default function CommentItem({
   t,
@@ -30,19 +31,33 @@ export default function CommentItem({
   comment: Comment;
   seconds: number;
   isChild?: boolean;
-  onDelete: (id: number) => void;
+  onDelete: (id: number, childCount: number) => void;
   onCommentCountChange?: (postId: number, delta: number) => void;
   onCreate?: (comment: Comment) => void;
 }) {
   const { user } = useAuthStore();
   const [seeReplies, setSeeReplies] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
+  const [childCount, setChildCount] = useState(comment.childCount ?? 0);
 
-  const handleCreateReply = async (content: string) => {
+  const {
+    replies,
+    loading,
+    hasMore,
+    loadMore,
+    addOptimistic,
+    deleteOptimistic,
+  } = useReplies(comment.postId, comment.id);
+
+  const handleCreateReply = async (
+    content: string,
+    mentionUserIds: number[]
+  ) => {
     const created = await commentService.createComment({
       postId: comment.postId,
       parentId: comment.parentId ?? comment.id,
       content,
+      mentionUserIds,
     });
 
     if (created) {
@@ -50,25 +65,50 @@ export default function CommentItem({
       onCommentCountChange?.(comment.postId, 1);
       setSeeReplies(true);
       setShowReplyBox(false);
+      if (!comment.parentId) {
+        addOptimistic(created);
+        setChildCount((prev) => prev + 1);
+      }
     }
   };
 
   return (
     <div className="flex gap-2 group">
+      {/* Avatar */}
       {comment.user.avatarUrl ? (
-        <RoundedAvatar avatarUrl={comment.user.avatarUrl} />
+        <RoundedAvatar
+          userId={comment.user.id}
+          avatarUrl={comment.user.avatarUrl}
+        />
       ) : (
-        <DefaultAvatar firstName={comment.user.fullName} />
+        <DefaultAvatar
+          userId={comment.user.id}
+          firstName={comment.user.fullName}
+        />
       )}
 
-      <div className="flex flex-col gap-1 w-fit">
+      <div className="flex flex-col gap-1 w-full">
         {/* Nội dung comment */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center">
           <div className="bg-gray-100 rounded-xl px-3 py-2 inline-block">
-            <p className="text-sm font-semibold hover:underline cursor-pointer">
-              {comment.user.fullName}
-            </p>
-            <p className="text-sm text-gray-800">{comment.contentText}</p>
+            <UserName
+              userId={comment.user.id}
+              fullname={comment.user.fullName}
+              className="text-sm text-gray-800 font-semibold"
+            />
+            <div className="text-sm text-gray-800 leading-relaxed">
+              {comment.mentions?.length > 0 &&
+                comment.mentions.map((m) => (
+                  <UserName
+                    key={m.id}
+                    userId={m.id}
+                    fullname={m.fullName}
+                    className="font-semibold text-green-600 inline mr-1"
+                  />
+                ))}
+
+              <span>{comment.contentText}</span>
+            </div>
           </div>
 
           {/* Menu delete */}
@@ -90,7 +130,7 @@ export default function CommentItem({
                 >
                   <DropdownMenuItem
                     className="text-red-600 cursor-pointer hover:bg-red-50"
-                    onClick={() => onDelete(comment.id)}
+                    onClick={() => onDelete(comment.id, replies.length)}
                   >
                     {t("delete")}
                   </DropdownMenuItem>
@@ -119,25 +159,35 @@ export default function CommentItem({
             className="ml-2 text-sm text-gray-400 font-semibold cursor-pointer hover:underline hover:text-gray-700 transition"
             onClick={() => setSeeReplies(true)}
           >
-            {t("see")} {comment.childCount}{" "}
-            {comment.childCount! > 1 ? t("replies") : t("reply").toLowerCase()}
+            {t("see")} {childCount}{" "}
+            {childCount > 1 ? t("replies") : t("reply").toLowerCase()}
           </div>
         )}
 
         {/* Replies */}
-        {seeReplies && comment.childCount! > 0 && (
+        {seeReplies && childCount > 0 && (
           <CommentReplies
-            postId={comment.postId}
-            parentId={comment.id}
+            replies={replies}
+            loading={loading}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            addOptimistic={addOptimistic}
+            deleteOptimistic={deleteOptimistic}
             onAnyReplyCreated={() => onCommentCountChange?.(comment.postId, 1)}
-            onAnyReplyDeleted={() => onCommentCountChange?.(comment.postId, -1)}
+            onAnyReplyDeleted={() => {
+              onCommentCountChange?.(comment.postId, -1);
+            }}
           />
         )}
 
         {/* Composer trả lời */}
         {showReplyBox && (
-          <div className="ml-4 mt-2">
-            <CommentComposer t={t} onSubmit={handleCreateReply} />
+          <div className="mt-2">
+            <CommentComposer
+              t={t}
+              replyToUser={comment.user}
+              onSubmit={handleCreateReply}
+            />
           </div>
         )}
       </div>

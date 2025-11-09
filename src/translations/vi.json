@@ -169,12 +169,55 @@
     "share_confirm_title": "Chia sẻ bài viết?",
     "share_confirm_desc": "Bạn có chắc chắn muốn chia sẻ bài viết này lên trang cá nhân của mình?",
     "cancel": "Hủy",
-    "done": "Xong"
+    "done": "Xong",
+    "you": "Bạn",
+    "sharedPost": "đã chia sẻ một bài viết",
+    "edit": "Chỉnh sửa",
+    "taggedUsers": "Danh sách bạn bè được đề cập",
+    "noTaggedUsers": "Không có bạn bè được đề cập",
+    "undoDeleteMessage": "Bạn vừa xóa bài viết này. Hoàn tác trong",
+    "undoDeleteShareMessage": "Bạn vừa xóa bài chia sẻ này. Hoàn tác trong",
+    "undo": "Hoàn tác",
+    "originalPostDeleted": "Bài viết gốc đã bị xóa.",
+    "notFound": "Không tìm thấy",
+    "editPost": "Chỉnh sửa bài viết",
+    "save": "Lưu",
+    "editTags": "Chỉnh sửa gắn thẻ",
+    "saySomething": "Bạn đang nghĩ gì?",
+    "media": "Ảnh và video"
   },
   "friend": {
     "friends": "Bạn bè",
     "contacts": "Danh bạ",
     "loading": "Đang tải...",
-    "noFriends": "Chưa có bạn bè"
+    "noFriends": "Chưa có bạn bè",
+    "seeAllFriends": "Xem tất cả bạn bè"
+  },
+  "wall": {
+    "friends": "Bạn bè",
+    "editProfile": "Chỉnh sửa thông tin",
+    "addStory": "Thêm vào tin",
+    "media": "Ảnh và video",
+    "seeAllMedias": "Xem tất cả",
+    "post": "Bài viết",
+    "friend": "Bạn bè",
+    "scrollToLoadMore": "Cuộn xuống để tải thêm",
+    "loading": "Đang tải..."
+  },
+  "notification": {
+    "notification": "Thông báo",
+    "noNotification": "Không có thông báo nào",
+    "loading": "Đang tải...",
+    "markAllRead": "Đánh dấu tất cả là đã đọc",
+    "likedYourPost": "đã thích bài viết của bạn",
+    "commentedYourPost": "đã bình luận bài viết của bạn",
+    "repliedYourComment": "đã trả lời bình luận của bạn",
+    "taggedYouInPost": "đã gắn thẻ bạn trong một bài viết",
+    "mentionedYouInComment": "đã nhắc đến bạn trong một bình luận",
+    "yourPost": "bài viết của bạn",
+    "yourComment": "bình luận của bạn",
+    "newNotification": "thông báo mới",
+    "recently": "vừa xong",
+    "loadMore": "Xem thêm"
   }
 }

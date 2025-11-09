@@ -1,6 +1,15 @@
+import Link from "next/link";
 import React from "react";
 
-export default function DefaultAvatar({ firstName }: { firstName?: string }) {
+export default function DefaultAvatar({
+  userId,
+  firstName,
+  className,
+}: {
+  userId?: number;
+  firstName?: string;
+  className?: string;
+}) {
   const initial = firstName?.charAt(0)?.toUpperCase() || "?";
 
   const colors = [
@@ -14,10 +23,12 @@ export default function DefaultAvatar({ firstName }: { firstName?: string }) {
   const color = colors[initial.charCodeAt(0) % colors.length];
 
   return (
-    <div
-      className={`relative w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold cursor-pointer hover:brightness-105 transition ring-2 ring-white ${color}`}
-    >
-      {initial}
-    </div>
+    <Link href={"/wall/" + userId}>
+      <div
+        className={`relative w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold cursor-pointer hover:brightness-105 transition ring-2 ring-white ${color} ${className}`}
+      >
+        {initial}
+      </div>
+    </Link>
   );
 }

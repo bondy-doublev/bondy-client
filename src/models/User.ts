@@ -14,10 +14,26 @@ export default interface User {
   createdAt: string; // Date in ISO string format
   updatedAt: string; // Date in ISO string format
   isActive: boolean;
+  friendCount: number;
 }
 
 export interface UserBasic {
   id: number;
   fullName: string;
   avatarUrl: string;
+  friendCount: number;
+}
+
+export function mapUserToUserBasic(user: User): UserBasic {
+  return {
+    id: user.id,
+    fullName:
+      user.fullName ||
+      [user.lastName, user.middleName, user.firstName]
+        .filter(Boolean)
+        .join(" ")
+        .trim(),
+    avatarUrl: user.avatarUrl || "",
+    friendCount: user.friendCount ?? 0,
+  };
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuthStore } from "@/store/authStore";
-import Image from "next/image";
 import { useTranslations } from "use-intl";
 import Home from "./home/page";
 

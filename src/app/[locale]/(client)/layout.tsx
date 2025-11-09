@@ -7,10 +7,15 @@ export default async function RootLayout({
 }) {
   return (
     <div>
-      <AppNavbar />
-      <AppSidebar /> {/* sẽ fixed bên trái */}
-      {/* Nội dung chính dịch sang phải bằng đúng width sidebar */}
-      <main className="md:ml-[20%] p-4 transition-all">{children}</main>
+      <div className="h-screen flex flex-col overflow-hidden">
+        <AppNavbar />
+        <div className="flex flex-1 overflow-hidden">
+          <AppSidebar />
+          <main className="flex-1 overflow-y-auto md:ml-[20%] p-4 bg-gray-50">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

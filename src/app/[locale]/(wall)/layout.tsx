@@ -1,5 +1,5 @@
-import AppSidebar from "@/app/layout/default/Sidebar";
 import AppNavbar from "@/app/layout/default/Navbar";
+
 export default async function RootLayout({
   children,
 }: {
@@ -10,7 +10,7 @@ export default async function RootLayout({
       <AppNavbar />
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
-          {children}
+          <div className="flex justify-center">{children}</div>
         </main>
       </div>
     </div>

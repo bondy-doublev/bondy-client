@@ -51,19 +51,60 @@ export const postService = {
 
       tagUserIds.forEach((id) => formData.append("tagUserIds", id.toString()));
 
-      console.log(mediaFiles.length);
       mediaFiles.forEach((f) => {
         console.log(f);
         formData.append("mediaFiles", f);
       });
-
-      console.log(formData);
 
       const res = await api.post(API_URL, formData, {});
 
       return res.data.data;
     } catch (error: any) {
       console.error("Error createPost:", error);
+      Toast.error(error);
+      throw error;
+    }
+  },
+  async update({
+    postId,
+    content,
+    isPublic,
+    tagUserIds,
+    removeAttachmentIds,
+  }: {
+    postId: number;
+    content?: string;
+    isPublic?: boolean;
+    tagUserIds?: number[];
+    removeAttachmentIds?: number[];
+  }) {
+    try {
+      const body: any = {};
+      if (content !== undefined) body.content = content;
+      if (isPublic !== undefined) body.isPublic = isPublic;
+      if (tagUserIds !== undefined) body.tagUserIds = tagUserIds;
+      if (removeAttachmentIds && removeAttachmentIds.length > 0) {
+        body.removeAttachmentIds = removeAttachmentIds;
+      }
+
+      const res = await api.put(`${API_URL}/${postId}`, body);
+      Toast.success("Updated post successfully");
+      return res.data;
+    } catch (error: any) {
+      console.error("Error update post:", error);
+      Toast.error(error);
+      throw error;
+    }
+  },
+  async deletePost({ postId }: { postId: number }) {
+    try {
+      const res = await api.delete(`${API_URL}/${postId}`);
+
+      Toast.success("Delete post successfully");
+      return res.data.data;
+    } catch (error: any) {
+      console.error("Error delete:", error);
+      Toast.error(error);
       throw error;
     }
   },

@@ -58,7 +58,10 @@ export default function UserDropdown() {
       <DropdownMenuContent align="end" className="w-44">
         {user ? (
           <>
-            <div className="px-3 py-2 border-b border-gray-200 text-sm font-medium">
+            <div
+              onClick={() => router.push("/wall/" + user.id)}
+              className="px-3 py-2 border-b border-gray-200 text-sm font-medium cursor-pointer hover:bg-gray-100 hover:rounded-md"
+            >
               {user?.firstName} {user?.lastName}
             </div>
             <DropdownMenuItem asChild>

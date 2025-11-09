@@ -4,14 +4,16 @@ import MainFeed from "./components/MainFeed";
 
 export default function Home() {
   return (
-    <div className="flex justify-center xl:gap-24 overflow-x-hidden min-w-full">
-      <div className=""></div>
-
+    <div className="flex justify-center overflow-x-hidden min-w-full">
       {/* Feed chính */}
-      <MainFeed />
+      <div className="w-full xl:mr-[20%] flex justify-center">
+        <MainFeed className="w-full" />
+      </div>
 
       {/* Sidebar bạn bè (to hơn) */}
-      <FriendSidebar />
+      <div className="hidden xl:block fixed right-10 top-20">
+        <FriendSidebar />
+      </div>
 
       {/* Nút tạo bài viết (floating) */}
       <CreateChatButton />

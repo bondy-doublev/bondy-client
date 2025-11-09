@@ -1,49 +1,66 @@
 "use client";
+
 import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
-import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post-detail/PostDetailModal";
+import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
-import Stories from "@/app/[locale]/(client)/home/components/Stories";
-import { Post } from "@/models/Post";
+import SharePost from "@/app/[locale]/(client)/home/components/post/SharePost";
+import { Feed } from "@/models/Post";
+import User from "@/models/User";
+import { feedService } from "@/services/feedService";
 import { postService } from "@/services/postService";
+import { shareService } from "@/services/shareService";
+import { wallService } from "@/services/wallService";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
 
-export default function MainFeed() {
-  const [posts, setPosts] = useState<Post[]>([]);
+export default function MainFeed({
+  className,
+  wallOwner,
+}: {
+  className?: string;
+  wallOwner?: User;
+}) {
+  const [feeds, setFeeds] = useState<Feed[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement | null>(null);
-
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Feed["post"] | null>(null);
 
   const t = useTranslations("post");
 
-  const fetchPosts = async (page: number, reset = false) => {
+  // Fetch feed
+  const fetchFeeds = async (page: number, reset = false) => {
     setLoading(true);
-    const newPosts = await postService.getNewfeed({ page, size: 5 });
+    const newFeeds = wallOwner
+      ? await wallService.getWallFeeds({ userId: wallOwner.id, page, size: 5 })
+      : await feedService.getFeeds({ page, size: 5 });
     setLoading(false);
 
-    if (!newPosts || newPosts.length === 0) {
+    if (!newFeeds || newFeeds.length < 5) {
       setHasMore(false);
-      return;
     }
 
-    setPosts((prev) => {
-      const merged = reset ? newPosts : [...prev, ...newPosts];
-      const unique = Array.from(new Map(merged.map((p) => [p.id, p])).values());
-      return unique;
+    setFeeds((prev) => {
+      const merged = reset ? newFeeds : [...prev, ...newFeeds];
+      return merged;
     });
   };
 
-  const reloadPosts = async () => {
+  const [isReloading, setIsReloading] = useState(false);
+
+  const reloadFeeds = async () => {
+    setIsReloading(true);
     setPage(0);
     setHasMore(true);
-    await fetchPosts(0, true);
+    await fetchFeeds(0, true);
+    setIsReloading(false);
   };
 
   useEffect(() => {
-    fetchPosts(page);
+    if (!isReloading) {
+      fetchFeeds(page);
+    }
   }, [page]);
 
   // Infinite scroll
@@ -57,19 +74,27 @@ export default function MainFeed() {
       },
       { threshold: 0.2 }
     );
+
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
   }, [loading, hasMore]);
 
-  // ✅ Cập nhật commentCount theo postId + delta
+  // Cập nhật commentCount cho post trong feed
   const incPostCommentCount = (postId: number, delta = 1) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, commentCount: (p.commentCount ?? 0) + delta }
-          : p
+    setFeeds((prev) =>
+      prev.map((f) =>
+        f.post && f.post.id === postId
+          ? {
+              ...f,
+              post: {
+                ...f.post,
+                commentCount: (f.post.commentCount ?? 0) + delta,
+              },
+            }
+          : f
       )
     );
+
     setSelectedPost((prev) =>
       prev?.id === postId
         ? { ...prev, commentCount: (prev.commentCount ?? 0) + delta }
@@ -77,29 +102,78 @@ export default function MainFeed() {
     );
   };
 
+  const handleDelete = async (feedId: number, type: "POST" | "SHARE") => {
+    if (type === "POST") {
+      await postService.deletePost({ postId: feedId });
+      setFeeds((prev) =>
+        prev
+          .map((f) => {
+            if (f.type === "SHARE" && f.post && f.post.id === feedId) {
+              // Bài gốc bị xóa -> giữ share lại, set post=null
+              return { ...f, post: null };
+            }
+            if (f.type === "POST" && f.post?.id === feedId) {
+              // Xóa bài gốc khỏi feed
+              return null;
+            }
+            return f;
+          })
+          .filter((f): f is Feed => f !== null)
+      );
+    } else if (type === "SHARE") {
+      await shareService.delete({ shareId: feedId });
+      setFeeds((prev) => prev.filter((f) => f.id !== feedId));
+    }
+  };
+
   return (
-    <div className="flex-1 max-w-[500px] space-y-6">
-      <PostComposer onPostCreated={reloadPosts} />
-      <Stories />
+    <div className={`max-w-[500px] space-y-6 mb-4 ${className}`}>
+      {/* Composer đăng bài */}
+      <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
 
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          onComment={() => setSelectedPost(post)}
-        />
-      ))}
+      {/* Hiển thị feed */}
+      {feeds.map((feed) => {
+        if (feed.type === "POST") {
+          if (!feed.post) {
+            return (
+              <div
+                key={`post-${feed.id}`}
+                className="p-4 rounded-xl shadow bg-white text-gray-500 italic text-sm"
+              >
+                {t("originalPostDeleted") ?? "Bài viết này không còn tồn tại."}
+              </div>
+            );
+          }
 
-      {hasMore ? (
+          return (
+            <PostCard
+              key={`post-${feed.id}`}
+              post={feed.post}
+              onComment={() => setSelectedPost(feed.post!)}
+              onDelete={handleDelete}
+            />
+          );
+        }
+
+        // SHARE
+        return (
+          <SharePost
+            key={`share-${feed.id}`}
+            feed={feed}
+            onComment={(post) => setSelectedPost(post)}
+            onDelete={handleDelete}
+          />
+        );
+      })}
+
+      {/* Infinite scroll loader */}
+      {hasMore && (
         <div ref={loaderRef} className="text-center py-6 text-gray-500">
           {loading ? t("loading") : t("scrollToLoadMore")}
         </div>
-      ) : !hasMore && page > 0 ? (
-        <div className="text-center py-4 text-gray-400">{t("noMorePost")}</div>
-      ) : (
-        <div className="text-center py-4 text-gray-400">{t("noPost")}</div>
       )}
 
+      {/* Modal chi tiết bài viết */}
       {selectedPost && (
         <PostDetailModal
           t={t}
@@ -108,6 +182,7 @@ export default function MainFeed() {
           onCommentCountChange={(postId, delta) =>
             incPostCommentCount(postId, delta)
           }
+          onDeletePost={handleDelete}
         />
       )}
     </div>
