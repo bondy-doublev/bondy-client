@@ -138,6 +138,12 @@ export default function ChatPage() {
     return () => s.disconnect();
   }, [user]);
 
+  useEffect(() => {
+    setMessages([]); // reset messages khi đổi tab
+    setSelectedRoom(null); // reset room
+    fetchConversations(tabRef.current);
+  }, [tab]);
+
   // --- Load room messages + pagination
   const loadRoomMessages = async (room: ChatRoom, reset = true) => {
     setSelectedRoom(room);
@@ -149,7 +155,7 @@ export default function ChatPage() {
 
       if (reset) {
         // Load phòng mới
-        setMessages(msgs);
+        setMessages((prev) => [...msgs.reverse(), ...prev]);
         setPage(2);
         setHasMore(msgs.length === 10);
 
