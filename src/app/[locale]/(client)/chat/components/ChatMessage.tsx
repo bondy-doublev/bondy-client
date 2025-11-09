@@ -206,7 +206,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 className="max-w-xs rounded mt-1"
               />
             )}
-            {!hasAttachments && msg.fileUrl && (
+            {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
               <a
                 href={msg.fileUrl}
                 target="_blank"

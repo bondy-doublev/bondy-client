@@ -41,9 +41,14 @@ export const chatService = {
     return res.data;
   },
 
-  // Lấy tin nhắn của phòng
-  async getRoomMessages(roomId: string): Promise<Message[]> {
-    const res: AxiosResponse = await api.get(`${API_URL}/${roomId}/messages`);
+  async getRoomMessages(
+    roomId: string,
+    page = 1,
+    limit = 10
+  ): Promise<Message[]> {
+    const res = await api.get(`${API_URL}/${roomId}/messages`, {
+      params: { page, limit },
+    });
     return res.data;
   },
 
