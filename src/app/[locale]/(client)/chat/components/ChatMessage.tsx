@@ -227,7 +227,10 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               isMine ? "text-white text-right" : "text-gray-600 text-left"
             } mt-1`}
           >
-            {new Date(msg.createdAt).toLocaleTimeString([], {
+            {new Date(msg.createdAt).toLocaleString([], {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
               hour: "2-digit",
               minute: "2-digit",
             })}

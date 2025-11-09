@@ -28,12 +28,17 @@ export default function ChatPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const tabRef = useRef(tab);
 
   const messageEndRef = useRef<HTMLDivElement>(null);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
   useEffect(() => {
     selectedRoomRef.current = selectedRoom;
   }, [selectedRoom]);
+
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
 
   // --- Load friends
   const handleGetFriends = async () => {
@@ -48,33 +53,34 @@ export default function ChatPage() {
     handleGetFriends();
   }, [user?.id]);
 
+  const fetchConversations = async (currentTab: "personal" | "group") => {
+    if (!user?.id) return;
+    if (currentTab === "personal") {
+      const rooms = await chatService.getPrivateRooms(user.id);
+      const roomsWithNames = await Promise.all(
+        rooms.map(async (room) => {
+          const member = room.members.find((m: any) => m.id !== user.id);
+          let displayName = "Unknown";
+          if (member) {
+            try {
+              const profile = await userService.getBasicProfile(member.id);
+              displayName =
+                profile.data.fullName || profile.username || "Unknown";
+            } catch {}
+          }
+          return { ...room, displayName };
+        })
+      );
+      setConversations(roomsWithNames);
+    } else {
+      const rooms = await chatService.getPublicRooms(user.id);
+      setConversations(rooms);
+    }
+  };
+
   // --- Load conversations
   useEffect(() => {
-    const fetchConversations = async () => {
-      if (!user?.id) return;
-      if (tab === "personal") {
-        const rooms = await chatService.getPrivateRooms(user.id);
-        const roomsWithNames = await Promise.all(
-          rooms.map(async (room) => {
-            const member = room.members.find((m: any) => m.id !== user.id);
-            let displayName = "Unknown";
-            if (member) {
-              try {
-                const profile = await userService.getBasicProfile(member.id);
-                displayName =
-                  profile.data.fullName || profile.username || "Unknown";
-              } catch {}
-            }
-            return { ...room, displayName };
-          })
-        );
-        setConversations(roomsWithNames);
-      } else {
-        const rooms = await chatService.getPublicRooms(user.id);
-        setConversations(rooms);
-      }
-    };
-    fetchConversations();
+    fetchConversations(tabRef.current);
   }, [tab, user?.id]);
 
   // --- Socket
@@ -87,6 +93,7 @@ export default function ChatPage() {
       if (selectedRoomRef.current?.id === msg.roomId) {
         setMessages((prev) => [...prev, msg]);
       }
+      fetchConversations(tabRef.current);
     });
 
     s.on("messageEdited", (msg: Message) => {
@@ -164,6 +171,7 @@ export default function ChatPage() {
       setNewMsg("");
       setAttachments([]);
       setReplyingMessage(null); // reset reply
+      fetchConversations(tabRef.current);
     } catch (err) {
       console.error(err);
       alert("Upload file thất bại");
@@ -242,6 +250,7 @@ export default function ChatPage() {
       <Sidebar
         tab={tab}
         setTab={setTab}
+        currentUserId={user?.id}
         conversations={conversations}
         selectedRoomId={selectedRoom?.id || null}
         onSelectRoom={loadRoomMessages}
