@@ -27,7 +27,7 @@ export const postService = {
     } catch (error: any) {
       console.error("Error:", error);
       Toast.error(error);
-      return []; // 👈 thêm dòng này
+      return [];
     }
   },
 
@@ -52,12 +52,10 @@ export const postService = {
       tagUserIds.forEach((id) => formData.append("tagUserIds", id.toString()));
 
       mediaFiles.forEach((f) => {
-        console.log(f);
         formData.append("mediaFiles", f);
       });
 
       const res = await api.post(API_URL, formData, {});
-
       return res.data.data;
     } catch (error: any) {
       console.error("Error createPost:", error);
@@ -65,29 +63,41 @@ export const postService = {
       throw error;
     }
   },
+
   async update({
     postId,
     content,
     isPublic,
     tagUserIds,
     removeAttachmentIds,
+    newMediaFiles = [],
   }: {
     postId: number;
     content?: string;
     isPublic?: boolean;
     tagUserIds?: number[];
     removeAttachmentIds?: number[];
+    newMediaFiles?: File[];
   }) {
     try {
-      const body: any = {};
-      if (content !== undefined) body.content = content;
-      if (isPublic !== undefined) body.isPublic = isPublic;
-      if (tagUserIds !== undefined) body.tagUserIds = tagUserIds;
-      if (removeAttachmentIds && removeAttachmentIds.length > 0) {
-        body.removeAttachmentIds = removeAttachmentIds;
-      }
+      // Gửi multipart/form-data để kèm file mới
+      const form = new FormData();
 
-      const res = await api.put(`${API_URL}/${postId}`, body);
+      if (content !== undefined) form.append("content", content);
+      if (isPublic !== undefined) form.append("isPublic", String(isPublic));
+
+      (tagUserIds ?? []).forEach((id) => form.append("tagUserIds", String(id)));
+      (removeAttachmentIds ?? []).forEach((id) =>
+        form.append("removeAttachmentIds", String(id))
+      );
+      (newMediaFiles ?? []).forEach((file) =>
+        form.append("newMediaFiles", file)
+      );
+
+      const res = await api.put(`${API_URL}/${postId}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       Toast.success("Updated post successfully");
       return res.data;
     } catch (error: any) {
@@ -96,10 +106,10 @@ export const postService = {
       throw error;
     }
   },
+
   async deletePost({ postId }: { postId: number }) {
     try {
       const res = await api.delete(`${API_URL}/${postId}`);
-
       Toast.success("Delete post successfully");
       return res.data.data;
     } catch (error: any) {

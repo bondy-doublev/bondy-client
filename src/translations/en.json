@@ -184,7 +184,10 @@
     "save": "Save",
     "editTags": "Edit tags",
     "saySomething": "What are you thinking about?",
-    "media": "Media"
+    "media": "Media",
+    "addMedia": "Add media",
+    "chooseFiles": "Choose files",
+    "noNewMedia": "No new media selected"
   },
   "friend": {
     "friends": "Friends",

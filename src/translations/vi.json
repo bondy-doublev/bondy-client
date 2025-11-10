@@ -184,7 +184,10 @@
     "save": "Lưu",
     "editTags": "Chỉnh sửa gắn thẻ",
     "saySomething": "Bạn đang nghĩ gì?",
-    "media": "Ảnh và video"
+    "media": "Ảnh và video",
+    "addMedia": "Thêm phương tiện",
+    "chooseFiles": "Chọn tệp",
+    "noNewMedia": "Chưa chọn tệp mới"
   },
   "friend": {
     "friends": "Bạn bè",
