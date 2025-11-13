@@ -41,7 +41,7 @@ export default function PostCard({
   const [isDeleted, setIsDeleted] = useState(false);
   const [deleteCountdown, setDeleteCountdown] = useState(10);
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
-  const [pendingDelete, setPendingDelete] = useState(false); // ✅ mới thêm
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   useEffect(() => {
     // đồng bộ khi prop post thay đổi từ bên ngoài (ví dụ PostDetailModal)
@@ -71,7 +71,7 @@ export default function PostCard({
       setDeleteCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setPendingDelete(true); // ✅ báo hiệu đã đến lúc xóa
+          setPendingDelete(true); // báo hiệu đã đến lúc xóa
         }
         return prev - 1;
       });
@@ -86,7 +86,7 @@ export default function PostCard({
     setPendingDelete(false);
   };
 
-  // ✅ useEffect để gọi onDelete sau khi render xong
+  // Gọi onDelete sau khi render xong
   useEffect(() => {
     if (pendingDelete) {
       onDelete?.(post.id, "POST");
@@ -152,7 +152,7 @@ export default function PostCard({
         onToggleLike={handleToggleLike}
         onShare={handleShare}
       />
-      {/* ✅ Modal sửa bài */}
+      {/* Modal sửa bài */}
       {showEdit && (
         <EditPostModal
           t={t}

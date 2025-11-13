@@ -8,8 +8,14 @@ import {
   DialogOverlay,
   DialogClose,
 } from "@/components/ui/dialog";
-import { X, Trash2, Lock, Globe } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { X, Trash2, Lock, Globe, Plus } from "lucide-react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import { Post } from "@/models/Post";
 import { UserBasic } from "@/models/User";
 import { Button } from "@/components/ui/button";
@@ -44,6 +50,10 @@ export default function EditPostModal({
     new Set()
   );
 
+  // Media mới thêm
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const tagUserIds = useMemo(() => tagged.map((u) => u.id), [tagged]);
 
   useEffect(() => {
@@ -51,6 +61,7 @@ export default function EditPostModal({
     setTagged(post.taggedUsers ?? []);
     setIsPublic(post.visibility ?? true);
     setSelectedForRemove(new Set());
+    setNewFiles([]); // reset file mới khi đổi post
   }, [post]);
 
   const handleSetTagUsers = useCallback((users: UserBasic[]) => {
@@ -66,13 +77,40 @@ export default function EditPostModal({
     });
   };
 
-  // Cho phép lưu nếu: có text sau trim HOẶC vẫn còn media sau khi xoá
+  const handlePickFiles = () => fileInputRef.current?.click();
+
+  const handleFilesChosen = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+
+    // Optional: giới hạn client (nên khớp backend)
+    const mediaLeft =
+      (post.mediaAttachments?.length ?? 0) - selectedForRemove.size;
+    const totalAfter = mediaLeft + newFiles.length + files.length;
+    const MAX = 20; // nên đồng bộ với PropsConfig
+    if (totalAfter > MAX) {
+      // bạn có thể thay bằng Toast
+      alert(`Tối đa ${MAX} media cho một bài viết.`);
+      return;
+    }
+    setNewFiles((prev) => [...prev, ...files]);
+    // clean input để có thể chọn lại cùng file
+    e.currentTarget.value = "";
+  };
+
+  const removeNewFile = (idx: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Cho phép lưu nếu: có text sau trim HOẶC còn media sau khi xoá HOẶC có file mới
   const willHaveAnyContent = useMemo(() => {
     const textOk = content.trim() !== "";
     const mediaLeft =
-      (post.mediaAttachments?.length ?? 0) - selectedForRemove.size;
+      (post.mediaAttachments?.length ?? 0) -
+      selectedForRemove.size +
+      newFiles.length;
     return textOk || mediaLeft > 0;
-  }, [content, post.mediaAttachments, selectedForRemove]);
+  }, [content, post.mediaAttachments, selectedForRemove, newFiles.length]);
 
   const handleSave = async () => {
     try {
@@ -85,19 +123,27 @@ export default function EditPostModal({
         isPublic,
         tagUserIds,
         removeAttachmentIds,
+        newMediaFiles: newFiles,
       });
 
-      // Nếu backend trả post mới thì dùng, không thì tự cập nhật local
-      const removed = new Set(removeAttachmentIds);
-      const newMedia = post.mediaAttachments.filter((m) => !removed.has(m.id));
-      const updated: Post = res?.data ?? {
-        ...post,
-        contentText: content.trim(),
-        taggedUsers: tagged,
-        mediaAttachments: newMedia,
-        mediaCount: newMedia.length,
-        visibility: isPublic,
-      };
+      // Ưu tiên dùng post từ backend
+      const updated: Post =
+        res?.data ??
+        (() => {
+          // Fallback: chỉ cập nhật local phần chắc chắn
+          const removed = new Set(removeAttachmentIds);
+          const keptOld = post.mediaAttachments.filter(
+            (m) => !removed.has(m.id)
+          );
+          return {
+            ...post,
+            contentText: content.trim(),
+            taggedUsers: tagged,
+            mediaAttachments: keptOld, // media mới chưa có url nếu backend không trả
+            mediaCount: keptOld.length,
+            visibility: isPublic,
+          } as Post;
+        })();
 
       onSaved(updated);
       onClose();
@@ -208,22 +254,26 @@ export default function EditPostModal({
                 {post.mediaAttachments.map((m) => {
                   const checked = selectedForRemove.has(m.id);
                   return (
-                    <label
+                    <div
                       key={m.id}
-                      className={`relative group border rounded-lg overflow-hidden cursor-pointer ${
+                      onClick={() => toggleSelectMedia(m.id)}
+                      className={`relative border rounded-lg overflow-hidden cursor-pointer group ${
                         checked ? "ring-2 ring-red-500" : ""
                       }`}
                     >
-                      {/* overlay checkbox */}
-                      <input
-                        type="checkbox"
-                        className="absolute top-2 left-2 z-10 w-4 h-4"
-                        checked={checked}
-                        onChange={() => toggleSelectMedia(m.id)}
-                      />
+                      {/* Overlay icon X */}
                       <div
-                        className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition ${
-                          checked ? "bg-black/20" : ""
+                        className={`absolute top-2 left-2 z-10 text-white rounded-full p-1 shadow-md ${
+                          checked ? "bg-red-600" : "bg-black/40"
+                        }`}
+                      >
+                        <X size={14} />
+                      </div>
+
+                      {/* Hover overlay */}
+                      <div
+                        className={`absolute inset-0 transition bg-black/0 group-hover:bg-black/10 ${
+                          checked ? "bg-black/30" : ""
                         }`}
                       />
                       {m.type === "IMAGE" ? (
@@ -237,11 +287,10 @@ export default function EditPostModal({
                         <video
                           src={m.url}
                           className="w-full h-28 object-cover"
-                          controls={false}
                           muted
                         />
                       )}
-                    </label>
+                    </div>
                   );
                 })}
               </div>
@@ -253,6 +302,71 @@ export default function EditPostModal({
               )}
             </div>
           )}
+
+          {/* Media mới thêm */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium text-gray-800">
+                {t("addMedia")}
+              </div>
+              <button
+                type="button"
+                onClick={handlePickFiles}
+                className="text-sm flex items-center gap-1 text-green-600 hover:underline"
+              >
+                <Plus size={16} /> {t("chooseFiles")}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={handleFilesChosen}
+              />
+            </div>
+
+            {newFiles.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {newFiles.map((f, idx) => {
+                  const isVideo = f.type?.startsWith("video/");
+                  const url = URL.createObjectURL(f);
+                  return (
+                    <div
+                      key={`${f.name}-${idx}`}
+                      className="relative border rounded-lg overflow-hidden group"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => removeNewFile(idx)}
+                        className="absolute top-2 left-2 z-10 bg-red-600 text-white rounded-full p-1 shadow-md"
+                        aria-label="remove-new-file"
+                      >
+                        <X size={14} />
+                      </button>
+                      <div className="absolute inset-0 transition bg-black/0 group-hover:bg-black/10" />
+                      {isVideo ? (
+                        <video
+                          src={url}
+                          className="w-full h-28 object-cover"
+                          muted
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={url}
+                          alt={f.name}
+                          className="w-full h-28 object-cover"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500">{t("noNewMedia")}</p>
+            )}
+          </div>
 
           <div className="flex justify-end gap-2 pt-1">
             <Button
