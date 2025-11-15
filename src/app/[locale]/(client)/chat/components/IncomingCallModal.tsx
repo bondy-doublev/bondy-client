@@ -16,7 +16,10 @@ import {
   FaVideo,
   FaVideoSlash,
   FaPhoneSlash,
+  FaCamera,
+  FaPhoneAlt,
 } from "react-icons/fa";
+import { Rnd } from "react-rnd";
 
 interface Props {
   callId: string;
@@ -144,42 +147,59 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
   }, [callId]);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <Rnd
+      default={{ x: 100, y: 100, width: 700, height: accepted ? 400 : 300 }}
+      bounds="window"
+      minWidth={300}
+      minHeight={200}
+      className="fixed z-50 rounded-lg shadow-lg flex flex-col overflow-hidden"
+    >
       {!accepted ? (
-        <div className="bg-white w-[700px] p-5 rounded-lg shadow-lg z-50">
-          <h3 className="text-xl font-semibold mb-4">📞 Incoming call...</h3>
+        <div className="bg-white w-full h-full p-5 rounded-lg">
+          <h3 className="flex items-center text-xl font-semibold mb-4 text-gray-800 gap-2">
+            <FaPhoneAlt className="text-green-500" />
+            Incoming Call
+          </h3>
 
           {/* Chọn thiết bị */}
-          <div className="mb-4 flex gap-2">
-            <select
-              className="border px-2 py-1 rounded"
-              value={selectedVideo || ""}
-              onChange={(e) => setSelectedVideo(e.target.value)}
-            >
-              <option value="">Select Camera</option>
-              {devices
-                .filter((d) => d.kind === "videoinput")
-                .map((d) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label || d.deviceId}
-                  </option>
-                ))}
-            </select>
+          <div className="mb-4 flex flex-col gap-3">
+            {/* Camera */}
+            <div className="flex items-center gap-2">
+              <FaCamera className="text-gray-600" />
+              <select
+                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedVideo || ""}
+                onChange={(e) => setSelectedVideo(e.target.value)}
+              >
+                <option value="">Select Camera</option>
+                {devices
+                  .filter((d) => d.kind === "videoinput")
+                  .map((d) => (
+                    <option key={d.deviceId} value={d.deviceId}>
+                      {d.label || d.deviceId}
+                    </option>
+                  ))}
+              </select>
+            </div>
 
-            <select
-              className="border px-2 py-1 rounded"
-              value={selectedAudio || ""}
-              onChange={(e) => setSelectedAudio(e.target.value)}
-            >
-              <option value="">Select Microphone</option>
-              {devices
-                .filter((d) => d.kind === "audioinput")
-                .map((d) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label || d.deviceId}
-                  </option>
-                ))}
-            </select>
+            {/* Microphone */}
+            <div className="flex items-center gap-2">
+              <FaMicrophone className="text-gray-600" />
+              <select
+                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedAudio || ""}
+                onChange={(e) => setSelectedAudio(e.target.value)}
+              >
+                <option value="">Select Microphone</option>
+                {devices
+                  .filter((d) => d.kind === "audioinput")
+                  .map((d) => (
+                    <option key={d.deviceId} value={d.deviceId}>
+                      {d.label || d.deviceId}
+                    </option>
+                  ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3">
@@ -198,7 +218,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
           </div>
         </div>
       ) : (
-        <div className="relative bg-black w-[700px] max-w-full aspect-video rounded-lg overflow-hidden flex flex-col">
+        <div className="relative bg-black w-full h-full rounded-lg overflow-hidden flex flex-col">
           <video
             ref={remoteRef}
             autoPlay
@@ -235,6 +255,6 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </Rnd>
   );
 }

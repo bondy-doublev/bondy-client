@@ -17,6 +17,7 @@ import {
   FaVideoSlash,
   FaPhoneSlash,
 } from "react-icons/fa";
+import { Rnd } from "react-rnd";
 
 interface Props {
   callId: string | null;
@@ -131,8 +132,14 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="relative bg-black w-[700px] max-w-full aspect-video rounded-lg overflow-hidden flex flex-col">
+    <div className="flex items-center justify-center z-50">
+      <Rnd
+        default={{ x: 100, y: 100, width: 700, height: 400 }}
+        bounds="window"
+        minWidth={300}
+        minHeight={200}
+        className="bg-black rounded-lg overflow-hidden flex flex-col shadow-lg"
+      >
         {/* Remote video */}
         <video
           ref={remoteRef}
@@ -170,16 +177,6 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
           >
             <FaPhoneSlash />
           </button>
-          <button
-            onClick={() => {
-              if (!callId || !receiverId) return;
-              const url = `/video-call/${callId}?receiverId=${receiverId}`;
-              window.open(url, "_blank");
-            }}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full"
-          >
-            Open in new tab
-          </button>
         </div>
 
         {loading && (
@@ -187,7 +184,7 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
             Connecting...
           </div>
         )}
-      </div>
+      </Rnd>
     </div>
   );
 }
