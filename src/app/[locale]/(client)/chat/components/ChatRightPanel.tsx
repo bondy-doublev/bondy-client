@@ -11,6 +11,7 @@ import { Users, Image, Upload, X, Edit2, Check } from "lucide-react";
 import { chatService } from "@/services/chatService";
 import { userService } from "@/services/userService";
 import { uploadCloudinarySingle } from "@/services/uploadService";
+import { useRouter } from "next/navigation";
 
 interface Member {
   id: number;
@@ -24,7 +25,7 @@ interface ChatRightPanelProps {
   media: File[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentUserId: number;
+  onRoomUpdated: () => void;
 }
 
 export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
@@ -33,13 +34,15 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   media,
   open,
   onOpenChange,
-  currentUserId,
+  onRoomUpdated,
 }) => {
   const [members, setMembers] = React.useState<Member[]>([]);
   const [groupAvatar, setGroupAvatar] = React.useState<string>("");
+  const [loading, setLoading] = React.useState<boolean>(false);
   const [groupName, setGroupName] = React.useState<string>("");
   const [editingName, setEditingName] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // Fetch room info
   React.useEffect(() => {
@@ -77,6 +80,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   // Change avatar handler
   const handleAvatarChange = async (file: File) => {
     try {
+      setLoading(true);
       const url = await uploadCloudinarySingle(file);
       setGroupAvatar(url);
       if (selectedRoom) {
@@ -86,6 +90,9 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
       }
     } catch (err) {
       console.error("Failed to upload avatar:", err);
+    } finally {
+      setLoading(false);
+      onRoomUpdated();
     }
   };
 
@@ -99,6 +106,8 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
       setEditingName(false);
     } catch (err) {
       console.error("Failed to update group name:", err);
+    } finally {
+      onRoomUpdated();
     }
   };
 
@@ -151,10 +160,12 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                   }}
                 />
                 <Button
+                  disabled={loading}
                   onClick={() => fileInputRef.current?.click()}
                   className="mt-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg px-6 py-2"
                 >
-                  <Upload className="w-4 h-4 mr-2" /> Change Avatar
+                  <Upload className="w-4 h-4 mr-2" />{" "}
+                  {loading ? "Uploading avatar..." : "Change Avatar"}
                 </Button>
 
                 {/* Edit group name */}
@@ -194,6 +205,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                 <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
                   {members.map((m) => (
                     <li
+                      onClick={() => router.push(`wall/${m.id}`)}
                       key={m.id}
                       className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-all border border-emerald-200 hover:border-emerald-400 hover:shadow-md"
                     >

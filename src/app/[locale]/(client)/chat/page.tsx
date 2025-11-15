@@ -146,28 +146,28 @@ export default function ChatPage() {
 
   // --- Load room messages + pagination
   const loadRoomMessages = async (room: ChatRoom, reset = true) => {
+    // Nếu phòng được chọn = phòng đang mở → không reset
+    if (selectedRoom?.id === room.id && reset) {
+      return; // 👈 không làm gì nữa
+    }
+
     setSelectedRoom(room);
     const pageToLoad = reset ? 1 : page;
 
     try {
       const msgs = await chatService.getRoomMessages(room.id, pageToLoad, 10);
-      console.log("Loaded messages:", msgs.length);
 
       if (reset) {
-        // Load phòng mới
-        setMessages((prev) => [...msgs.reverse(), ...prev]);
+        setMessages(msgs.reverse());
         setPage(2);
         setHasMore(msgs.length === 10);
 
-        // Scroll to bottom
         setTimeout(() => {
           const container = messageContainerRef.current;
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
+          if (container) container.scrollTop = container.scrollHeight;
         }, 100);
       } else {
-        // Load more - giữ scroll position
+        // pagination load more
         const container = messageContainerRef.current;
         if (!container) return;
 
@@ -178,20 +178,16 @@ export default function ChatPage() {
         setPage((prev) => prev + 1);
         setHasMore(msgs.length === 10);
 
-        // Khôi phục scroll position sau khi DOM update
         setTimeout(() => {
-          if (container) {
-            const scrollHeightAfter = container.scrollHeight;
-            const scrollDiff = scrollHeightAfter - scrollHeightBefore;
-            container.scrollTop = scrollTopBefore + scrollDiff;
-          }
+          const scrollHeightAfter = container.scrollHeight;
+          const diff = scrollHeightAfter - scrollHeightBefore;
+          container.scrollTop = scrollTopBefore + diff;
         }, 50);
       }
 
-      // join socket
       if (socket && user) {
         socket.emit("joinRoom", { roomId: room.id, userId: user.id });
-        socket.emit("openRoom", { userId: user.id, roomId: room.id });
+        socket.emit("openRoom", { roomId: room.id, userId: user.id });
       }
     } catch (err) {
       console.error("Error loading messages:", err);
@@ -334,6 +330,10 @@ export default function ChatPage() {
     setReplyingMessage(msg);
   };
 
+  const reloadConversations = async () => {
+    await fetchConversations(tabRef.current);
+  };
+
   // --- Create room
   const handleCreateRoom = async (
     groupName?: string,
@@ -396,6 +396,7 @@ export default function ChatPage() {
         onDeleteMessage={handleDeleteMessage}
         onReplyMessage={handleReplyMessage}
         replyingMessage={replyingMessage}
+        onRoomUpdated={reloadConversations}
       />
 
       {openDialog && (

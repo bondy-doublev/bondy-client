@@ -36,6 +36,7 @@ interface ChatAreaProps {
   onDeleteMessage: (msg: Message) => void;
   onReplyMessage: (msg: Message) => void;
   replyingMessage: Message | null;
+  onRoomUpdated: () => void;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -54,6 +55,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   onDeleteMessage,
   onReplyMessage,
   replyingMessage,
+  onRoomUpdated,
 }) => {
   const [uploading, setUploading] = useState(false);
   const [callId, setCallId] = useState<string | null>(null);
@@ -191,6 +193,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             media={attachments}
             open={isRightPanelOpen}
             onOpenChange={setIsRightPanelOpen}
+            onRoomUpdated={onRoomUpdated}
           />
         </div>
       </div>
