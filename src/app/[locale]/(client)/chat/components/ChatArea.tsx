@@ -138,12 +138,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
       setCallStatus(data.status); // cập nhật status
 
-      if (
-        data.status === "accepted" ||
-        data.status === "rejected" ||
-        data.status === "ended"
-      ) {
-        setCallId(null); // end call
+      if (data.status === "rejected" || data.status === "ended") {
+        setCallId(null);
       }
     });
     return () => unsub();

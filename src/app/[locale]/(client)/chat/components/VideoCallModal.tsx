@@ -4,12 +4,19 @@ import {
   doc,
   setDoc,
   onSnapshot,
-  updateDoc,
   collection,
   addDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { useAuthStore } from "@/store/authStore";
+import {
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaPhoneSlash,
+} from "react-icons/fa";
 
 interface Props {
   callId: string | null;
@@ -21,16 +28,19 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   const localRef = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
+
+  const [loading, setLoading] = useState(true);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     if (!callId) return;
-
     startCall();
   }, [callId]);
 
-  async function startCall() {
+  const startCall = async () => {
     pc.current = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
@@ -39,23 +49,20 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
       video: true,
       audio: true,
     });
+    localStreamRef.current = stream;
 
+    // Add tracks to peer connection
     stream.getTracks().forEach((t) => pc.current!.addTrack(t, stream));
-
     if (localRef.current) localRef.current.srcObject = stream;
 
     const callDoc = doc(db, "calls", callId);
     const offerCandidates = collection(callDoc, "offerCandidates");
     const answerCandidates = collection(callDoc, "answerCandidates");
 
-    // local ICE → Firestore
     pc.current.onicecandidate = (event) => {
-      if (event.candidate) {
-        addDoc(offerCandidates, event.candidate.toJSON());
-      }
+      if (event.candidate) addDoc(offerCandidates, event.candidate.toJSON());
     };
 
-    // remote stream
     pc.current.ontrack = (event) => {
       remoteRef.current!.srcObject = event.streams[0];
     };
@@ -70,19 +77,22 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
       receiverId,
     });
 
-    // Lắng nghe answer
-    onSnapshot(callDoc, async (snapshot) => {
-      const data = snapshot.data();
-      if (!pc.current) return;
-      if (!pc.current.currentRemoteDescription && data?.answer) {
+    // Listen for answer
+    onSnapshot(callDoc, async (snap) => {
+      const data = snap.data();
+      if (!data || !pc.current) return;
+      if (!pc.current.currentRemoteDescription && data.answer) {
         await pc.current.setRemoteDescription(
           new RTCSessionDescription(data.answer)
         );
         setLoading(false);
       }
+      if (data.status === "ended" || data.status === "rejected") {
+        onClose();
+      }
     });
 
-    // Lắng nghe candidate từ B
+    // Listen for answer candidates
     onSnapshot(answerCandidates, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
@@ -90,39 +100,93 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
         }
       });
     });
-  }
+  };
 
-  useEffect(() => {
-    if (!callId) return;
-    const unsub = onSnapshot(doc(db, "calls", callId), (snap) => {
-      const data = snap.data();
-      if (!data) return;
+  const toggleMic = () => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current
+      .getAudioTracks()
+      .forEach((track) => (track.enabled = !micOn));
+    setMicOn(!micOn);
+  };
 
-      if (data.status === "rejected" || data.status === "ended") {
-        onClose(); // A tắt modal
-      }
-    });
-    return () => unsub();
-  }, [callId]);
+  const toggleCam = () => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current
+      .getVideoTracks()
+      .forEach((track) => (track.enabled = !camOn));
+    setCamOn(!camOn);
+  };
+
+  const endCall = async () => {
+    if (pc.current) {
+      pc.current.getSenders().forEach((sender) => sender.track?.stop());
+      pc.current.close();
+    }
+    if (callId) {
+      const callDoc = doc(db, "calls", callId);
+      await updateDoc(callDoc, { status: "ended" });
+    }
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 w-[700px]">
-        <h2 className="text-lg font-bold mb-2">Video Call</h2>
+      <div className="relative bg-black w-[700px] max-w-full aspect-video rounded-lg overflow-hidden flex flex-col">
+        {/* Remote video */}
+        <video
+          ref={remoteRef}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover bg-black"
+        />
 
-        <div className="flex gap-2">
-          <video ref={localRef} autoPlay muted className="w-1/2 rounded" />
-          <video ref={remoteRef} autoPlay className="w-1/2 rounded" />
+        {/* Local video small preview */}
+        <video
+          ref={localRef}
+          autoPlay
+          muted
+          playsInline
+          className="absolute bottom-4 right-4 w-32 h-24 object-cover rounded border border-white"
+        />
+
+        {/* Controls */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 px-4 py-2 rounded-full items-center">
+          <button
+            onClick={toggleMic}
+            className="bg-white/30 hover:bg-white/50 text-white p-2 rounded-full"
+          >
+            {micOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
+          </button>
+          <button
+            onClick={toggleCam}
+            className="bg-white/30 hover:bg-white/50 text-white p-2 rounded-full"
+          >
+            {camOn ? <FaVideo /> : <FaVideoSlash />}
+          </button>
+          <button
+            onClick={endCall}
+            className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+          >
+            <FaPhoneSlash />
+          </button>
+          <button
+            onClick={() => {
+              if (!callId || !receiverId) return;
+              const url = `/video-call/${callId}?receiverId=${receiverId}`;
+              window.open(url, "_blank");
+            }}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full"
+          >
+            Open in new tab
+          </button>
         </div>
 
-        {loading && <p className="mt-2 text-sm text-gray-500">Waiting...</p>}
-
-        <button
-          className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-          onClick={onClose}
-        >
-          End Call
-        </button>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-lg font-semibold">
+            Connecting...
+          </div>
+        )}
       </div>
     </div>
   );

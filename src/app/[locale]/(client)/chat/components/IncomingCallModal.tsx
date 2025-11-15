@@ -6,9 +6,17 @@ import {
   onSnapshot,
   collection,
   addDoc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { useRingtone } from "@/app/hooks/useRingTone";
+import {
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaPhoneSlash,
+} from "react-icons/fa";
 
 interface Props {
   callId: string;
@@ -19,28 +27,46 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
   const localRef = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   const [accepted, setAccepted] = useState(false);
-  const [callStatus, setCallStatus] = useState("ringing"); // trạng thái realtime
-  useRingtone(!accepted && callStatus === "ringing"); // bật chuông khi ringing
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [callStatus, setCallStatus] = useState("ringing");
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedAudio, setSelectedAudio] = useState<string | null>(null);
 
-  async function acceptCall() {
+  useRingtone(!accepted && callStatus === "ringing");
+
+  // Lấy danh sách thiết bị khi mở modal
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices().then((devs) => {
+      setDevices(
+        devs.filter((d) => d.kind === "videoinput" || d.kind === "audioinput")
+      );
+    });
+  }, []);
+
+  const acceptCall = async () => {
+    if (!selectedVideo || !selectedAudio)
+      return alert("Chọn camera và micro trước!");
+
     setAccepted(true);
 
     pc.current = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
-
     const callDoc = doc(db, "calls", callId);
     const offerCandidates = collection(callDoc, "offerCandidates");
     const answerCandidates = collection(callDoc, "answerCandidates");
 
-    // Local stream
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
+      video: { deviceId: { exact: selectedVideo } },
+      audio: { deviceId: { exact: selectedAudio } },
     });
 
+    localStreamRef.current = stream;
     stream.getTracks().forEach((t) => pc.current!.addTrack(t, stream));
     if (localRef.current) localRef.current.srcObject = stream;
 
@@ -48,31 +74,22 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
       remoteRef.current!.srcObject = event.streams[0];
     };
 
-    // ICE → Firestore
     pc.current.onicecandidate = async (event) => {
-      if (event.candidate) {
+      if (event.candidate)
         await addDoc(answerCandidates, event.candidate.toJSON());
-      }
     };
 
-    // 1. Lấy offer từ Firestore
-    const snap = await import("firebase/firestore").then(({ getDoc }) =>
-      getDoc(callDoc)
-    );
+    const snap = await getDoc(callDoc);
     const data = snap.data();
     if (!data?.offer) return;
 
     await pc.current.setRemoteDescription(
       new RTCSessionDescription(data.offer)
     );
-
-    // 2. Tạo answer
     const answer = await pc.current.createAnswer();
     await pc.current.setLocalDescription(answer);
+    await updateDoc(callDoc, { answer, status: "accepted" });
 
-    await updateDoc(callDoc, { answer });
-
-    // 3. Nghe ICE từ A
     onSnapshot(offerCandidates, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
@@ -80,11 +97,35 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
         }
       });
     });
+  };
 
-    await updateDoc(callDoc, {
-      status: "accepted",
-    });
-  }
+  const endCall = async () => {
+    if (pc.current) {
+      pc.current.getSenders().forEach((s) => s.track?.stop());
+      pc.current.close();
+    }
+    if (localStreamRef.current)
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+    const callDoc = doc(db, "calls", callId);
+    await updateDoc(callDoc, { status: "ended" });
+    onClose();
+  };
+
+  const toggleMic = () => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current
+      .getAudioTracks()
+      .forEach((t) => (t.enabled = !micOn));
+    setMicOn(!micOn);
+  };
+
+  const toggleCam = () => {
+    if (!localStreamRef.current) return;
+    localStreamRef.current
+      .getVideoTracks()
+      .forEach((t) => (t.enabled = !camOn));
+    setCamOn(!camOn);
+  };
 
   const handleReject = async () => {
     const callDoc = doc(db, "calls", callId);
@@ -97,51 +138,103 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
       const data = snap.data();
       if (!data) return;
       setCallStatus(data.status);
-
-      if (data.status === "rejected" || data.status === "ended") {
-        onClose(); // đóng modal nếu bị reject hoặc kết thúc
-      }
+      if (data.status === "ended" || data.status === "rejected") endCall();
     });
     return () => unsub();
   }, [callId]);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white w-[700px] p-5 rounded-lg shadow-lg z-50">
-        {!accepted ? (
-          <>
-            <h3 className="text-xl font-semibold mb-4">📞 Incoming call...</h3>
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded"
-                onClick={handleReject}
-              >
-                Decline
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded"
-                onClick={acceptCall}
-              >
-                Accept
-              </button>
-            </div>
-          </>
-        ) : (
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Video Call</h3>
-            <div className="flex gap-2">
-              <video ref={localRef} autoPlay muted className="w-1/2 rounded" />
-              <video ref={remoteRef} autoPlay className="w-1/2 rounded" />
-            </div>
-            <button
-              className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-              onClick={onClose}
+      {!accepted ? (
+        <div className="bg-white w-[700px] p-5 rounded-lg shadow-lg z-50">
+          <h3 className="text-xl font-semibold mb-4">📞 Incoming call...</h3>
+
+          {/* Chọn thiết bị */}
+          <div className="mb-4 flex gap-2">
+            <select
+              className="border px-2 py-1 rounded"
+              value={selectedVideo || ""}
+              onChange={(e) => setSelectedVideo(e.target.value)}
             >
-              End Call
+              <option value="">Select Camera</option>
+              {devices
+                .filter((d) => d.kind === "videoinput")
+                .map((d) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.label || d.deviceId}
+                  </option>
+                ))}
+            </select>
+
+            <select
+              className="border px-2 py-1 rounded"
+              value={selectedAudio || ""}
+              onChange={(e) => setSelectedAudio(e.target.value)}
+            >
+              <option value="">Select Microphone</option>
+              {devices
+                .filter((d) => d.kind === "audioinput")
+                .map((d) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.label || d.deviceId}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              className="px-4 py-2 bg-gray-300 rounded"
+              onClick={handleReject}
+            >
+              Decline
+            </button>
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={acceptCall}
+            >
+              Accept
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="relative bg-black w-[700px] max-w-full aspect-video rounded-lg overflow-hidden flex flex-col">
+          <video
+            ref={remoteRef}
+            autoPlay
+            playsInline
+            className="w-full h-full object-cover bg-black"
+          />
+          <video
+            ref={localRef}
+            autoPlay
+            muted
+            playsInline
+            className="absolute bottom-4 right-4 w-32 h-24 object-cover rounded border border-white"
+          />
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 px-4 py-2 rounded-full items-center">
+            <button
+              onClick={toggleMic}
+              className="bg-white/30 hover:bg-white/50 text-white p-2 rounded-full"
+            >
+              {micOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
+            </button>
+            <button
+              onClick={toggleCam}
+              className="bg-white/30 hover:bg-white/50 text-white p-2 rounded-full"
+            >
+              {camOn ? <FaVideo /> : <FaVideoSlash />}
+            </button>
+            <button
+              onClick={endCall}
+              className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+            >
+              <FaPhoneSlash />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
