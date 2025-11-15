@@ -376,6 +376,12 @@ export default function ChatPage() {
     }
   };
 
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
+
   return (
     <div className="flex h-[90vh] flex-col md:flex-row">
       {isSidebarOpen && (
