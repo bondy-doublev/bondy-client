@@ -1,224 +1,425 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { chatService, type ChatMessage } from "@/services/chatService";
-import { userService } from "@/services/userService";
+import { useState, useEffect, useRef } from "react";
+import { chatService, ChatRoom, Message } from "@/services/chatService";
+import io, { Socket } from "socket.io-client";
 import { useAuthStore } from "@/store/authStore";
-import ClientChat from "./components/ClientChat";
 import { friendService } from "@/services/friendService";
-import { useRouter } from "next/navigation";
-import { ConversationItem } from "@/models/ConversationItem";
-import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import { userService } from "@/services/userService";
+
+import { Sidebar } from "./components/Sidebar";
+import { ChatArea } from "./components/ChatArea";
+import { CreateRoomDialog } from "./components/CreateRoomDialog";
+import {
+  uploadCloudinaryMultiple,
+  uploadCloudinarySingle,
+} from "@/services/uploadService";
 
 export default function ChatPage() {
   const { user } = useAuthStore();
-  const [conversations, setConversations] = useState<
-    (ConversationItem & { otherUser?: any })[]
-  >([]);
-  const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showFriends, setShowFriends] = useState(false);
+
+  const [tab, setTab] = useState<"personal" | "group">("personal");
+  const [conversations, setConversations] = useState<ChatRoom[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const [newMsg, setNewMsg] = useState("");
+  const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [friends, setFriends] = useState<any[]>([]);
-  const router = useRouter();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const tabRef = useRef(tab);
+  const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
 
-  // Load danh sách hội thoại
   useEffect(() => {
-    const loadConvs = async () => {
-      setLoading(true);
-      try {
-        const data = await chatService.listConversations(0, 20);
+    selectedRoomRef.current = selectedRoom;
+  }, [selectedRoom]);
 
-        // Với mỗi cuộc trò chuyện, lấy thông tin người còn lại
-        const withProfiles = await Promise.all(
-          data.map(async (conv: ConversationItem) => {
-            const otherUserId =
-              conv.receiverId === user?.id
-                ? conv.lastMessage?.senderId // mình là người nhận → người kia là sender
-                : conv.receiverId; // mình là người gửi → người kia là receiver
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
 
-            if (!otherUserId) return conv;
+  // --- Load friends
+  const handleGetFriends = async () => {
+    if (!user?.id) return;
+    try {
+      const res = await friendService.getFriends(user.id);
+      const friendList = res.map((f: any) =>
+        f.senderId === user.id ? f.receiverInfo : f.senderInfo
+      );
+      setFriends(friendList);
+    } catch (err) {
+      console.error("Error loading friends:", err);
+    }
+  };
 
-            try {
-              const res = await userService.getBasicProfile(otherUserId);
-              return { ...conv, otherUser: res.data || res }; // tuỳ backend có bọc data
-            } catch {
-              return conv;
-            }
-          })
-        );
-
-        setConversations(withProfiles);
-        if (withProfiles.length > 0) setSelectedConvId(withProfiles[0].id);
-      } catch (err) {
-        console.error("Failed to load conversations", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadConvs();
+  useEffect(() => {
+    handleGetFriends();
   }, [user?.id]);
 
-  useEffect(() => {
-    if (!showFriends || !user?.id) return;
-
-    const loadFriends = async () => {
-      try {
-        const res = await friendService.getFriends(user.id);
-        setFriends(res);
-      } catch (err) {
-        console.error("Failed to load friends", err);
+  // --- Load conversations
+  const fetchConversations = async (currentTab: "personal" | "group") => {
+    if (!user?.id) return;
+    try {
+      if (currentTab === "personal") {
+        const rooms = await chatService.getPrivateRooms(user.id);
+        const roomsWithNames = await Promise.all(
+          rooms.map(async (room) => {
+            const member = room.members.find((m: any) => m.id !== user.id);
+            let displayName = "Unknown";
+            if (member) {
+              try {
+                const profile = await userService.getBasicProfile(member.id);
+                displayName =
+                  profile.data.fullName || profile.username || "Unknown";
+              } catch {}
+            }
+            return { ...room, displayName };
+          })
+        );
+        setConversations(roomsWithNames);
+      } else {
+        const rooms = await chatService.getPublicRooms(user.id);
+        setConversations(rooms);
       }
-    };
-    loadFriends();
-  }, [showFriends, user?.id]);
+    } catch (err) {
+      console.error("Error loading conversations:", err);
+    }
+  };
 
-  // Load tin nhắn của hội thoại đang chọn
   useEffect(() => {
-    if (!selectedConvId) return;
-    const loadMsgs = async () => {
-      try {
-        const data = await chatService.getHistory(selectedConvId, 0, 30);
-        setMessages(data);
-      } catch (err) {
-        console.error("Failed to load messages", err);
-      }
-    };
-    loadMsgs();
-  }, [selectedConvId]);
+    fetchConversations(tabRef.current);
+  }, [tab, user?.id]);
 
-  const formatTime = (time?: string) => {
-    if (!time) return "";
-    return new Date(time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
+  // --- Socket
+  useEffect(() => {
+    if (!user) return;
+    const s = io(`${process.env.NEXT_PUBLIC_CHAT_URL}`);
+    setSocket(s);
+
+    s.on("newMessage", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => [...prev, msg]);
+
+        // Auto scroll to bottom khi nhận tin nhắn mới
+        setTimeout(() => {
+          const container = messageContainerRef.current;
+          if (container) {
+            const isNearBottom =
+              container.scrollHeight -
+                container.scrollTop -
+                container.clientHeight <
+              150;
+            if (isNearBottom) {
+              container.scrollTop = container.scrollHeight;
+            }
+          }
+        }, 100);
+      }
+      fetchConversations(tabRef.current);
     });
+
+    s.on("messageEdited", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    });
+
+    s.on("messageDeleted", (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    });
+
+    return () => s.disconnect();
+  }, [user]);
+
+  useEffect(() => {
+    setMessages([]); // reset messages khi đổi tab
+    setSelectedRoom(null); // reset room
+    fetchConversations(tabRef.current);
+  }, [tab]);
+
+  // --- Load room messages + pagination
+  const loadRoomMessages = async (room: ChatRoom, reset = true) => {
+    setSelectedRoom(room);
+    const pageToLoad = reset ? 1 : page;
+
+    try {
+      const msgs = await chatService.getRoomMessages(room.id, pageToLoad, 10);
+      console.log("Loaded messages:", msgs.length);
+
+      if (reset) {
+        // Load phòng mới
+        setMessages((prev) => [...msgs.reverse(), ...prev]);
+        setPage(2);
+        setHasMore(msgs.length === 10);
+
+        // Scroll to bottom
+        setTimeout(() => {
+          const container = messageContainerRef.current;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        }, 100);
+      } else {
+        // Load more - giữ scroll position
+        const container = messageContainerRef.current;
+        if (!container) return;
+
+        const scrollHeightBefore = container.scrollHeight;
+        const scrollTopBefore = container.scrollTop;
+
+        setMessages((prev) => [...msgs, ...prev]);
+        setPage((prev) => prev + 1);
+        setHasMore(msgs.length === 10);
+
+        // Khôi phục scroll position sau khi DOM update
+        setTimeout(() => {
+          if (container) {
+            const scrollHeightAfter = container.scrollHeight;
+            const scrollDiff = scrollHeightAfter - scrollHeightBefore;
+            container.scrollTop = scrollTopBefore + scrollDiff;
+          }
+        }, 50);
+      }
+
+      // join socket
+      if (socket && user) {
+        socket.emit("joinRoom", { roomId: room.id, userId: user.id });
+        socket.emit("openRoom", { userId: user.id, roomId: room.id });
+      }
+    } catch (err) {
+      console.error("Error loading messages:", err);
+    }
+  };
+
+  // --- Infinity scroll - FIXED
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    if (!container) {
+      console.log("No container ref");
+      return;
+    }
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+
+      console.log({
+        scrollTop,
+        hasMore,
+        isLoadingMore,
+        selectedRoom: selectedRoom?.id,
+        page,
+      });
+
+      // Kiểm tra scroll gần đầu (trong vòng 50px từ top)
+      if (scrollTop < 50 && hasMore && !isLoadingMore && selectedRoom) {
+        console.log("Triggering load more...");
+        setIsLoadingMore(true);
+
+        loadRoomMessages(selectedRoom, false).finally(() => {
+          setTimeout(() => {
+            console.log("Load more completed");
+            setIsLoadingMore(false);
+          }, 500);
+        });
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    console.log("Scroll listener attached");
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      console.log("Scroll listener removed");
+    };
+  }, [selectedRoom, hasMore, isLoadingMore, page]);
+
+  // --- Send
+  const handleSend = async () => {
+    if (!selectedRoom || !socket || !user) return;
+    if (!newMsg.trim() && attachments.length === 0) return;
+
+    let fileUrl: string = "";
+    let uploadedAttachments: {
+      url: string;
+      type: "image" | "file";
+      fileName?: string;
+    }[] = [];
+
+    try {
+      if (attachments.length === 1) {
+        const uploaded = await uploadCloudinarySingle(attachments[0]);
+        fileUrl = uploaded;
+      }
+
+      if (attachments.length > 1) {
+        const uploadedUrls = await uploadCloudinaryMultiple(attachments);
+        uploadedAttachments = uploadedUrls.map((url, i) => ({
+          url,
+          fileName: attachments[i].name,
+          type: attachments[i].type.startsWith("image") ? "image" : "file",
+        }));
+      }
+
+      socket.emit("sendMessage", {
+        senderId: user.id,
+        roomId: selectedRoom.id,
+        content: newMsg,
+        replyToMessageId: replyingMessage?.id,
+        fileUrl: fileUrl.length > 0 ? fileUrl : undefined,
+        imageUrl: fileUrl.length > 0 ? fileUrl : undefined,
+        attachments: uploadedAttachments.length
+          ? uploadedAttachments
+          : undefined,
+      });
+
+      setNewMsg("");
+      setAttachments([]);
+      setReplyingMessage(null);
+      fetchConversations(tabRef.current);
+
+      // Auto scroll to bottom khi gửi
+      setTimeout(() => {
+        const container = messageContainerRef.current;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 100);
+    } catch (err) {
+      console.error(err);
+      alert("Upload file thất bại");
+    }
+  };
+
+  // --- Edit/Delete/Reply
+  const handleEditMessage = async (msg: Message, newContent: string) => {
+    if (!socket || !user) return;
+    try {
+      const updated = await chatService.editMessage(
+        msg.id,
+        newContent,
+        user.id
+      );
+      socket.emit("editMessage", updated);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === updated.id ? updated : m))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Không thể chỉnh sửa tin nhắn");
+    }
+  };
+
+  const handleDeleteMessage = async (msg: Message) => {
+    if (!socket || !user) return;
+    try {
+      const deleted = await chatService.deleteMessage(msg.id, user.id);
+      socket.emit("deleteMessage", deleted);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === deleted.id ? deleted : m))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Không thể xóa tin nhắn");
+    }
+  };
+
+  const handleReplyMessage = (msg: Message) => {
+    setReplyingMessage(msg);
+  };
+
+  // --- Create room
+  const handleCreateRoom = async (
+    groupName?: string,
+    personalFriendId?: string
+  ) => {
+    if (!user) return;
+
+    try {
+      if (tab === "personal") {
+        if (!personalFriendId) return;
+        const room = await chatService.createRoom("Chat cá nhân", false, [
+          user.id,
+          personalFriendId,
+        ]);
+        setConversations((prev) => [...prev, room]);
+        setOpenDialog(false);
+        loadRoomMessages(room);
+      } else {
+        if (!groupName || selectedFriends.length < 2) {
+          alert("Chọn ít nhất 2 bạn và nhập tên nhóm");
+          return;
+        }
+        const memberIds = [user.id, ...selectedFriends];
+        const room = await chatService.createRoom(groupName, true, memberIds);
+        setConversations((prev) => [...prev, room]);
+        setOpenDialog(false);
+        setSelectedFriends([]);
+        loadRoomMessages(room);
+      }
+    } catch (err) {
+      console.error("Error creating room:", err);
+      alert("Không thể tạo phòng chat");
+    }
   };
 
   return (
-    <div className="flex h-[88vh] border border-gray-200 rounded-lg overflow-hidden bg-white shadow">
-      {/* LEFT: List conversations */}
-      <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-        <div className="flex items-center justify-between p-3 border-b">
-          <div className="font-semibold text-gray-700">Chats</div>
-          <button
-            onClick={() => setShowFriends((prev) => !prev)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            + New
-          </button>
-        </div>
+    <div className="flex h-[90vh]">
+      <Sidebar
+        tab={tab}
+        setTab={setTab}
+        currentUserId={user?.id}
+        conversations={conversations}
+        selectedRoomId={selectedRoom?.id || null}
+        onSelectRoom={loadRoomMessages}
+        onOpenDialog={() => setOpenDialog(true)}
+      />
+      <ChatArea
+        messages={messages}
+        newMsg={newMsg}
+        setNewMsg={setNewMsg}
+        onSend={handleSend}
+        messageEndRef={useRef<HTMLDivElement>(null)}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        onEditMessage={handleEditMessage}
+        onDeleteMessage={handleDeleteMessage}
+        onReplyMessage={handleReplyMessage}
+        replyingMessage={replyingMessage}
+        messageContainerRef={messageContainerRef}
+      />
 
-        {loading && <div className="p-3 text-sm text-gray-500">Loading...</div>}
+      {openDialog && (
+        <CreateRoomDialog
+          friends={friends}
+          selectedFriends={selectedFriends}
+          onClose={() => setOpenDialog(false)}
+          onSelectFriend={(id, checked) => {
+            if (checked) setSelectedFriends((prev) => [...prev, id]);
+            else setSelectedFriends((prev) => prev.filter((x) => x !== id));
+          }}
+          onCreate={(arg?: string | string[]) => {
+            if (tab === "personal") {
+              handleCreateRoom(undefined, arg as string);
+            } else {
+              handleCreateRoom(arg as string);
+            }
+          }}
+          tab={tab}
+        />
+      )}
 
-        {conversations.map((c) => {
-          const lastMsg = c.lastMessage;
-          const mine = lastMsg?.senderId === user?.id;
-          const lastText =
-            lastMsg?.type === "TEXT"
-              ? lastMsg.content
-              : lastMsg?.type === "IMAGE"
-              ? "📷 Ảnh"
-              : lastMsg?.type === "FILE"
-              ? "📎 Tệp"
-              : "";
-
-          return (
-            <div
-              key={c.id}
-              onClick={() => setSelectedConvId(c.id)}
-              className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 ${
-                selectedConvId === c.id ? "bg-gray-100" : ""
-              }`}
-            >
-              {/* Avatar */}
-              {c.otherUser?.avatarUrl ? (
-                <img
-                  src={c.otherUser.avatarUrl}
-                  alt="avatar"
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <DefaultAvatar
-                  firstName={c.otherUser?.fullName?.split(" ")[0] ?? "?"}
-                />
-              )}
-
-              {/* Info */}
-              <div className="flex-1">
-                <div className="font-medium text-gray-800">
-                  {c.otherUser?.fullName || `User ${c.id}`}
-                </div>
-                <div className="text-sm text-gray-500 truncate">
-                  {lastMsg
-                    ? mine
-                      ? `Tôi: ${lastText}`
-                      : `${
-                          c.otherUser?.fullName?.split(" ")[0] || "Người kia"
-                        }: ${lastText || ""}`
-                    : "Chưa có tin nhắn"}
-                </div>
-              </div>
-
-              {/* Time */}
-              <div className="text-xs text-gray-400">
-                {formatTime(lastMsg?.createdAt)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* RIGHT: Chat box */}
-      <div className="flex-1 p-3">
-        {selectedConvId ? (
-          <ClientChat
-            conversationId={selectedConvId}
-            initialMessages={messages}
-            selfUserId={user?.id ?? 0}
-            user={{ id: user?.id ?? 0, role: user?.role, email: user?.email }}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-gray-500">
-            Chọn một cuộc trò chuyện để bắt đầu
-          </div>
-        )}
-      </div>
-      {showFriends && (
-        <div className="absolute left-1/3 top-16 z-10 bg-white border border-gray-200 rounded-lg shadow-lg w-64 max-h-80 overflow-y-auto">
-          <div className="p-3 font-medium text-gray-700 border-b">
-            Chọn bạn để bắt đầu
-          </div>
-
-          {friends.length === 0 && (
-            <div className="p-3 text-sm text-gray-500">Không có bạn nào</div>
-          )}
-
-          {friends.map((f) => {
-            const friend =
-              f.senderId === user?.id ? f.receiverInfo : f.senderInfo;
-            return (
-              <div
-                key={friend.id}
-                onClick={() => {
-                  setShowFriends(false);
-                  router.push(`/chat/${friend.id}`);
-                }}
-                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
-              >
-                {friend.avatarUrl ? (
-                  <img
-                    src={friend.avatarUrl}
-                    alt={friend.fullName}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <DefaultAvatar firstName={friend.fullName.split(" ")[0]} />
-                )}
-                <div className="text-gray-800">{friend.fullName}</div>
-              </div>
-            );
-          })}
+      {/* Loading indicator */}
+      {isLoadingMore && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2">
+          <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+          Đang tải tin nhắn cũ...
         </div>
       )}
     </div>

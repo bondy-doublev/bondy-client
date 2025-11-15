@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import DefaultAvatar from "./user/DefaultAvatar";
 
 export default function CreateChatButton() {
   const [friends, setFriends] = useState<any[]>([]);

@@ -14,13 +14,7 @@ export const SIDEBAR_ITEMS = [
   { id: "search", href: "/search", label: "Tìm kiếm", icon: <Search /> },
   { id: "explore", href: "/explore", label: "Khám phá", icon: <Compass /> },
   { id: "reels", href: "/reels", label: "Reels", icon: <Video /> },
-  {
-    id: "messages",
-    href: "/chat",
-    label: "Tin nhắn",
-    icon: <Send />,
-    badge: 2,
-  },
+
   {
     id: "notifications",
     href: "/notifications",

@@ -1,103 +1,114 @@
 import { api } from "../lib/axios";
 import { AxiosResponse } from "axios";
 
-const COMM_BASE = `${process.env.NEXT_PUBLIC_API_URL}${
-  process.env.NEXT_PUBLIC_COMM_PATH || ""
-}`;
-const API_URL = `${COMM_BASE}/chat`;
-
-export type Attachment = {
-  id?: number;
-  url: string;
-  fileName?: string;
-  mimeType?: string;
-  size?: number;
-  width?: number;
-  height?: number;
-};
-
-export type ChatMessage = {
-  id: number;
-  conversationId: number;
-  senderId: number;
-  type: "TEXT" | "IMAGE" | "FILE";
-  content: string | null;
-  attachments: Attachment[];
+export type ChatRoom = {
+  id: string;
+  name: string;
+  isGroup: boolean;
   createdAt: string;
-  edited: boolean;
-  editedAt?: string;
-  deleted: boolean;
-  deletedAt?: string;
 };
 
-export type ConversationResponse = {
-  id: number;
-  type: "PRIVATE";
-  participantIds: number[];
+export type Message = {
+  id: string;
+  roomId: string;
+  senderId: string;
+  content?: string;
+  fileUrl?: string;
+  imageUrl?: string;
+  attachments?: { url: string; type: "image" | "file"; fileName?: string }[];
+  replyToMessageId?: string;
+  isEdited: boolean;
+  isDeleted: boolean;
+  readBy: string[];
+  createdAt: string;
+  updatedAt: string;
 };
 
-export type SendMessagePayload = {
-  conversationId: number;
-  type: "TEXT" | "IMAGE" | "FILE";
-  content?: string | null;
-  attachments?: Attachment[];
-};
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/chat`;
 
 export const chatService = {
-  // Tạo hoặc lấy lại conversation 1-1 với user khác
-  async getOrCreatePrivate(otherUserId: number) {
-    const res: AxiosResponse = await api.post(
-      `${API_URL}/private/${otherUserId}`
-    );
-    return res.data.data as ConversationResponse;
+  // Tạo phòng (1-1 hoặc nhóm)
+  async createRoom(
+    name: string,
+    isGroup: boolean,
+    memberIds: string[]
+  ): Promise<ChatRoom> {
+    const res: AxiosResponse = await api.post(`${API_URL}/create-room`, {
+      name,
+      isGroup,
+      memberIds,
+    });
+    return res.data;
   },
 
-  // Lấy history theo conversationId (desc ở backend)
-  async getHistory(conversationId: number, page = 0, size = 20) {
-    const res: AxiosResponse = await api.get(
-      `${API_URL}/history/${conversationId}`,
-      { params: { page, size } }
-    );
-    return res.data.data as ChatMessage[];
+  async getRoomMessages(
+    roomId: string,
+    page = 1,
+    limit = 10
+  ): Promise<Message[]> {
+    const res = await api.get(`${API_URL}/${roomId}/messages`, {
+      params: { page, limit },
+    });
+    return res.data;
   },
 
-  // REST gửi tin (fallback khi WS chưa sẵn sàng)
-  async sendMessage(payload: SendMessagePayload) {
+  // REST gửi tin nhắn (fallback)
+  async sendMessage(payload: {
+    senderId: string;
+    roomId: string;
+    content?: string;
+    fileUrl?: string;
+    imageUrl?: string;
+    replyToMessageId?: string;
+  }): Promise<Message> {
     const res: AxiosResponse = await api.post(`${API_URL}/messages`, payload);
-    return res.data.data as ChatMessage;
+    return res.data;
   },
 
-  // REST sửa tin (TEXT only)
-  async editMessage(messageId: number, content: string) {
+  // REST sửa tin nhắn
+  async editMessage(messageId: string, content: string, userId: number) {
     const res: AxiosResponse = await api.put(
       `${API_URL}/messages/${messageId}`,
-      { messageId, content }
+      {
+        messageId,
+        userId,
+        content,
+      }
     );
-    return res.data.data as ChatMessage;
+    return res.data;
   },
 
-  // REST xoá (soft-delete)
-  async deleteMessage(messageId: number) {
+  // REST xoá tin nhắn (soft delete)
+  async deleteMessage(messageId: string, userId: number) {
     const res: AxiosResponse = await api.delete(
-      `${API_URL}/messages/${messageId}`
+      `${API_URL}/messages/${messageId}`,
+      {
+        data: { userId }, // axios delete gửi body phải để trong data
+      }
     );
-    return res.data.data as ChatMessage;
+    return res.data;
   },
 
-  async listConversations(page = 0, size = 10) {
-    const res: AxiosResponse = await api.get(`${API_URL}/conversations`, {
-      params: { page, size },
-    });
-    return res.data.data as {
-      id: number;
-      type: "PRIVATE";
-      lastMessage?: {
-        id: number;
-        senderId: number;
-        type: "TEXT" | "IMAGE" | "FILE";
-        content: string;
-        createdAt: string;
-      };
-    }[];
+  // Lấy các phòng chat cá nhân của user
+  async getPrivateRooms(userId: number): Promise<ChatRoom[]> {
+    const res: AxiosResponse = await api.get(`/chat/private-rooms/${userId}`);
+    return res.data;
+  },
+
+  // Lấy các phòng chat nhóm/public của user
+  async getPublicRooms(userId: number): Promise<ChatRoom[]> {
+    const res: AxiosResponse = await api.get(`/chat/public-rooms/${userId}`);
+    return res.data;
+  },
+
+  async getUnreadCount(userId: number): Promise<number> {
+    try {
+      const res: AxiosResponse<{ total: number }> = await api.get(
+        `${API_URL}/unread-count/${userId}`
+      );
+      return res.data.total || 0;
+    } catch (error) {
+      return 0; // fallback nếu lỗi
+    }
   },
 };
