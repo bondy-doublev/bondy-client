@@ -384,23 +384,25 @@ export default function ChatPage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-      {isSidebarOpen ? (
-        <Sidebar
-          className="fixed inset-y-0 left-0 z-50 w-3/4 bg-white shadow-lg md:hidden"
-          tab={tab}
-          setTab={setTab}
-          currentUserId={user?.id}
-          conversations={conversations}
-          selectedRoomId={selectedRoom?.id || null}
-          onSelectRoom={(room) => {
-            loadRoomMessages(room);
-            setIsSidebarOpen(false); // auto close khi chọn room
-          }}
-          onOpenDialog={() => setOpenDialog(true)}
-        />
+      {isSidebarOpen && window.innerWidth < 768 ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Sidebar
+            className="bg-white w-11/12 max-w-sm h-5/6 shadow-lg rounded-lg p-4"
+            tab={tab}
+            setTab={setTab}
+            currentUserId={user?.id}
+            conversations={conversations}
+            selectedRoomId={selectedRoom?.id || null}
+            onSelectRoom={(room) => {
+              loadRoomMessages(room);
+              setIsSidebarOpen(false);
+            }}
+            onOpenDialog={() => setOpenDialog(true)}
+          />
+        </div>
       ) : (
         <Sidebar
-          className="hidden md:block w-full md:w-[300px]"
+          className="hidden md:block w-[300px]"
           tab={tab}
           setTab={setTab}
           currentUserId={user?.id}
