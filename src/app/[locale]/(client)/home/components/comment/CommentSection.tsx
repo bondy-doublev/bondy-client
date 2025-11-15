@@ -72,7 +72,7 @@ export default function CommentSection({
       </div>
 
       {/* Composer gốc */}
-      <div className="fixed bottom-0 left-0 p-4 w-full border-t bg-white">
+      <div className="fixed bottom-0 left-0 p-4 w-full border-t bg-white z-100000">
         <CommentComposer t={t} onSubmit={handleCreateComment} />
       </div>
     </div>

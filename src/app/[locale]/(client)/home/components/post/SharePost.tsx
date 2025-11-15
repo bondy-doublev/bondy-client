@@ -106,53 +106,57 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
   }
 
   return (
-    <div className="p-4 rounded-xl shadow bg-white">
-      <div className="flex justify-between items-center">
-        <Link href={"/wall/" + feed.user.id}>
-          <p className="text-sm text-gray-600 mb-2">
-            <span className="font-bold hover:underline cursor-pointer">
-              {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
-            </span>{" "}
-            {t("sharedPost")}
-          </p>
-        </Link>
+    <>
+      {user && (
+        <div className="p-4 rounded-xl shadow bg-white">
+          <div className="flex justify-between items-center">
+            <Link href={"/wall/" + feed.user.id}>
+              <p className="text-sm text-gray-600 mb-2">
+                <span className="font-bold hover:underline cursor-pointer">
+                  {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
+                </span>{" "}
+                {t("sharedPost")}
+              </p>
+            </Link>
 
-        {/* ⚙️ Menu */}
-        {feed.user.id === user?.id && (
-          <div className="relative mb-2" ref={menuRef}>
-            <button
-              className="w-8 h-8 rounded-full hover:bg-gray-100"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-            >
-              ⋯
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md text-sm z-10">
+            {/* ⚙️ Menu */}
+            {feed.user.id === user?.id && (
+              <div className="relative mb-2" ref={menuRef}>
                 <button
-                  className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500"
-                  onClick={handleDeleteShare}
+                  className="w-8 h-8 rounded-full hover:bg-gray-100"
+                  onClick={() => setIsMenuOpen((prev) => !prev)}
                 >
-                  {t("delete")}
+                  ⋯
                 </button>
+
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md text-sm z-10">
+                    <button
+                      className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500"
+                      onClick={handleDeleteShare}
+                    >
+                      {t("delete")}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* 📄 Bài gốc */}
-      {feed.post ? (
-        <PostCard
-          post={feed.post}
-          onComment={() => onComment(feed.post)}
-          isSharePost
-        />
-      ) : (
-        <div className="text-sm text-gray-500 italic">
-          {t("originalPostDeleted")}
+          {/* 📄 Bài gốc */}
+          {feed.post ? (
+            <PostCard
+              post={feed.post}
+              onComment={() => onComment(feed.post)}
+              isSharePost
+            />
+          ) : (
+            <div className="text-sm text-gray-500 italic">
+              {t("originalPostDeleted")}
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }
