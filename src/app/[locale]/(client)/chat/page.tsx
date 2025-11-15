@@ -381,18 +381,20 @@ export default function ChatPage() {
         onOpenDialog={() => setOpenDialog(true)}
       />
       <ChatArea
+        selectedRoom={selectedRoom?.id || null}
+        currentUserId={user?.id}
         messages={messages}
         newMsg={newMsg}
         setNewMsg={setNewMsg}
         onSend={handleSend}
         messageEndRef={useRef<HTMLDivElement>(null)}
+        messageContainerRef={messageContainerRef}
         attachments={attachments}
         setAttachments={setAttachments}
         onEditMessage={handleEditMessage}
         onDeleteMessage={handleDeleteMessage}
         onReplyMessage={handleReplyMessage}
         replyingMessage={replyingMessage}
-        messageContainerRef={messageContainerRef}
       />
 
       {openDialog && (

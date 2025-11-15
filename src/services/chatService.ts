@@ -101,6 +101,11 @@ export const chatService = {
     return res.data;
   },
 
+  async getRoomMembers(roomId: string) {
+    const res = await api.get(`${API_URL}/rooms/${roomId}/members`);
+    return res.data;
+  },
+
   async getUnreadCount(userId: number): Promise<number> {
     try {
       const res: AxiosResponse<{ total: number }> = await api.get(

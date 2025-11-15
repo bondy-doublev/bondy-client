@@ -1,12 +1,27 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "./ChatMessage";
-import { Message } from "@/services/chatService";
-import { FaPaperclip } from "react-icons/fa";
+import { chatService, Message } from "@/services/chatService";
+import { FaEllipsisV, FaPaperclip, FaVideo } from "react-icons/fa";
+import VideoCallModal from "./VideoCallModal";
+import { v4 as uuid } from "uuid";
+import {
+  onSnapshot,
+  collection,
+  query,
+  where,
+  addDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "@/configs/firebase";
+import IncomingCallModal from "./IncomingCallModal";
+import { useRingtone } from "@/app/hooks/useRingTone";
 
 interface ChatAreaProps {
+  selectedRoom: string | null;
+  currentUserId: number;
   messages: Message[];
   newMsg: string;
   setNewMsg: (msg: string) => void;
@@ -22,6 +37,8 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
+  selectedRoom,
+  currentUserId,
   messages,
   newMsg,
   setNewMsg,
@@ -36,6 +53,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   replyingMessage,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [callId, setCallId] = useState<string | null>(null);
+  const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
+  const [roomMembers, setRoomMembers] = useState<number[]>([]);
+  const [callStatus, setCallStatus] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -44,6 +65,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   const removeAttachment = (index: number) => {
     setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
+  const isRinging = !!callId && callStatus === "ringing";
+  useRingtone(isRinging);
+
+  const handleCallClick = async () => {
+    if (!selectedRoom || roomMembers.length === 0) return;
+
+    const callDoc = await addDoc(collection(db, "calls"), {
+      senderId: currentUserId,
+      receiverIds: roomMembers, // mảng các id trừ người gọi
+      status: "ringing",
+      createdAt: new Date(),
+      offer: null,
+    });
+
+    setCallId(callDoc.id);
   };
 
   const handleSendClick = async () => {
@@ -66,9 +104,83 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (!selectedRoom) return;
+
+    // --- 1. Lấy tất cả member của room
+    const fetchMembers = async () => {
+      try {
+        const members = await chatService.getRoomMembers(selectedRoom);
+        // Loại bỏ chính user
+        const otherMembers = members
+          .map((m) => m.id)
+          .filter((id) => id !== currentUserId);
+        setRoomMembers(otherMembers);
+      } catch (err) {
+        console.error("Failed to fetch room members:", err);
+      }
+    };
+
+    fetchMembers();
+  }, [selectedRoom, currentUserId]);
+
+  useEffect(() => {
+    if (!callId) return;
+    const unsub = onSnapshot(doc(db, "calls", callId), (snap) => {
+      const data = snap.data();
+      if (!data) return;
+
+      setCallStatus(data.status); // cập nhật status
+
+      if (
+        data.status === "accepted" ||
+        data.status === "rejected" ||
+        data.status === "ended"
+      ) {
+        setCallId(null); // end call
+      }
+    });
+    return () => unsub();
+  }, [callId]);
+
   return (
     <div className="flex-1 flex flex-col relative">
-      {/* Dùng div thông thường thay vì ScrollArea */}
+      <div className="w-full p-3 border-b bg-white flex items-center justify-between">
+        <div className="font-semibold text-gray-700">Chat</div>
+
+        {incomingCallId && (
+          <IncomingCallModal
+            callId={incomingCallId}
+            onClose={() => setIncomingCallId(null)}
+          />
+        )}
+
+        <div className="flex items-center gap-4">
+          {/* Video Call */}
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+            onClick={handleCallClick}
+          >
+            <FaVideo size={20} />
+          </button>
+
+          {callId && (
+            <VideoCallModal
+              callId={callId}
+              receiverId={selectedRoom}
+              onClose={() => setCallId(null)}
+            />
+          )}
+
+          {/* Menu */}
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+            onClick={() => console.log("Open menu")}
+          >
+            <FaEllipsisV size={20} />
+          </button>
+        </div>
+      </div>
       <div
         ref={messageContainerRef}
         className="flex-1 p-4 space-y-2 bg-gray-50 overflow-y-auto"
@@ -81,9 +193,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             Chưa có tin nhắn nào
           </div>
         ) : (
-          messages.map((msg) => (
+          messages.map((msg, index) => (
             <ChatMessage
-              key={msg.id}
+              key={index}
               msg={msg}
               replyMessage={messages.find((x) => x.id === msg.replyToMessageId)}
               onEdit={onEditMessage}
