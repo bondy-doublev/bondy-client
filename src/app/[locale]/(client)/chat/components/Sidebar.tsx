@@ -86,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const isUnread = latest?.isUnread && !isMine;
 
             const avatarUrl =
-              tab === "personal" ? r.avatarUrl : r.avatarUrl || null;
+              tab === "personal" ? r.avatarUrl : r.avatar || null;
             const fallbackLetter =
               (tab === "personal"
                 ? r.displayName

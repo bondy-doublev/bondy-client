@@ -381,6 +381,7 @@ export default function ChatPage() {
         onOpenDialog={() => setOpenDialog(true)}
       />
       <ChatArea
+        isGroup={tab === "group"}
         selectedRoom={selectedRoom?.id || null}
         currentUserId={user?.id}
         messages={messages}

@@ -101,7 +101,7 @@ export const chatService = {
     return res.data;
   },
 
-  async getRoomMembers(roomId: string) {
+  async getRoomInformation(roomId: string) {
     const res = await api.get(`${API_URL}/rooms/${roomId}/members`);
     return res.data;
   },
@@ -115,5 +115,16 @@ export const chatService = {
     } catch (error) {
       return 0; // fallback nếu lỗi
     }
+  },
+
+  async updateRoomInformation(
+    roomId: string,
+    payload: { name?: string; avatarUrl?: string }
+  ): Promise<ChatRoom> {
+    const res: AxiosResponse = await api.put(
+      `${API_URL}/rooms/${roomId}`,
+      payload
+    );
+    return res.data;
   },
 };

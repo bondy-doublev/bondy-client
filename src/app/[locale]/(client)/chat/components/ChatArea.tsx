@@ -18,8 +18,10 @@ import {
 import { db } from "@/configs/firebase";
 import IncomingCallModal from "./IncomingCallModal";
 import { useRingtone } from "@/app/hooks/useRingTone";
+import { ChatRightPanel } from "./ChatRightPanel";
 
 interface ChatAreaProps {
+  isGroup: boolean;
   selectedRoom: string | null;
   currentUserId: number;
   messages: Message[];
@@ -37,6 +39,7 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
+  isGroup,
   selectedRoom,
   currentUserId,
   messages,
@@ -57,6 +60,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
   const [roomMembers, setRoomMembers] = useState<number[]>([]);
   const [callStatus, setCallStatus] = useState<string | null>(null);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [groupAvatar, setGroupAvatar] = useState("/default-group.png");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -107,14 +112,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   useEffect(() => {
     if (!selectedRoom) return;
 
-    // --- 1. Lấy tất cả member của room
     const fetchMembers = async () => {
       try {
-        const members = await chatService.getRoomMembers(selectedRoom);
+        const room = await chatService.getRoomInformation(selectedRoom);
+
         // Loại bỏ chính user
-        const otherMembers = members
-          .map((m) => m.id)
+        const otherMembers = room.members
+          .map((m) => m.userId) // dùng userId
           .filter((id) => id !== currentUserId);
+
         setRoomMembers(otherMembers);
       } catch (err) {
         console.error("Failed to fetch room members:", err);
@@ -173,12 +179,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           )}
 
           {/* Menu */}
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
-            onClick={() => console.log("Open menu")}
-          >
-            <FaEllipsisV size={20} />
-          </button>
+          <FaEllipsisV
+            size={20}
+            className="cursor-pointer"
+            onClick={() => setIsRightPanelOpen(true)}
+          />
+
+          <ChatRightPanel
+            isGroup={isGroup}
+            selectedRoom={selectedRoom}
+            media={attachments}
+            open={isRightPanelOpen}
+            onOpenChange={setIsRightPanelOpen}
+          />
         </div>
       </div>
       <div

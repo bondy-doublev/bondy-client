@@ -6,7 +6,7 @@ export const useRingtone = (play: boolean) => {
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio("/audios/ringtone.mp3");
-      audioRef.current.loop = true; // lặp liên tục
+      audioRef.current.loop = true;
     }
 
     if (play) {
