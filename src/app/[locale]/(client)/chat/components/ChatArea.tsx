@@ -153,7 +153,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       <ChatRightPanel
         isGroup={isGroup}
         selectedRoom={selectedRoom}
-        media={attachments}
         open={isRightPanelOpen}
         onOpenChange={setIsRightPanelOpen}
         onRoomUpdated={onRoomUpdated}

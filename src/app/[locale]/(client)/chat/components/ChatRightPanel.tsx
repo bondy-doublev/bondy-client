@@ -22,7 +22,6 @@ interface Member {
 interface ChatRightPanelProps {
   isGroup: boolean;
   selectedRoom: string | null;
-  media: File[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRoomUpdated: () => void;
@@ -31,7 +30,6 @@ interface ChatRightPanelProps {
 export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   isGroup,
   selectedRoom,
-  media,
   open,
   onOpenChange,
   onRoomUpdated,
@@ -42,18 +40,27 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   const [groupName, setGroupName] = React.useState<string>("");
   const [editingName, setEditingName] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [media, setMedia] = React.useState<any[]>([]);
   const router = useRouter();
 
   // Fetch room info
   React.useEffect(() => {
-    if (!selectedRoom || !isGroup) return;
+    if (!selectedRoom) return;
 
     const fetchRoomInfo = async () => {
       try {
+        // Lấy media/file
+        const roomMedia = await chatService.getRoomFiles(selectedRoom);
+        setMedia(roomMedia); // set vào state media
+
+        if (!isGroup) return;
+
+        // Lấy thông tin phòng
         const roomInfo = await chatService.getRoomInformation(selectedRoom);
         setGroupName(roomInfo.name);
         setGroupAvatar(roomInfo.avatar || "");
-        // Fetch members
+
+        // Lấy members kèm profile
         const membersWithProfile = await Promise.all(
           roomInfo.members.map(async (m: any) => {
             try {
@@ -242,19 +249,26 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
             </div>
             {media.length > 0 ? (
               <div className="grid grid-cols-3 gap-3">
-                {media.map((f, i) => (
-                  <div
-                    key={i}
-                    className="relative group overflow-hidden rounded-lg border-2 border-emerald-300 hover:border-emerald-500 transition-all shadow-md hover:shadow-xl cursor-pointer"
-                  >
-                    <img
-                      src={f instanceof File ? URL.createObjectURL(f) : f.url}
-                      alt={`Media ${i + 1}`}
-                      className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                ))}
+                {media.map((f, i) => {
+                  const url =
+                    f instanceof File ? URL.createObjectURL(f) : f.url;
+                  return (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative group overflow-hidden rounded-lg border-2 border-emerald-300 hover:border-emerald-500 transition-all shadow-md hover:shadow-xl"
+                    >
+                      <img
+                        src={url}
+                        alt={`Media ${i + 1}`}
+                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12 text-gray-400 bg-emerald-50 rounded-lg">

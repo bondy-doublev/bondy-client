@@ -127,4 +127,13 @@ export const chatService = {
     );
     return res.data;
   },
+
+  async getRoomFiles(
+    roomId: string
+  ): Promise<{ url: string; type: "image" | "file"; fileName?: string }[]> {
+    const res: AxiosResponse = await api.get(
+      `${API_URL}/rooms/${roomId}/files`
+    );
+    return res.data.files;
+  },
 };
