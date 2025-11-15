@@ -172,16 +172,20 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 ? replyMessage.attachments
                     .map((a) => (a.type === "image" ? "Image" : "File"))
                     .join(", ")
+                : replyMessage.imageUrl
+                ? "<Ảnh>"
+                : replyMessage.fileUrl
+                ? "<Tệp tin>"
                 : "<Không có nội dung>"}
             </div>
           )}
 
           <div className="flex flex-wrap gap-2 mt-1">
             {hasAttachments &&
-              attachments.slice(0, 4).map((a) =>
+              attachments.slice(0, 4).map((a, index) =>
                 a.type === "image" ? (
                   <img
-                    key={a.url}
+                    key={index}
                     src={a.url}
                     alt={a.fileName}
                     className="w-20 h-20 object-cover rounded cursor-pointer"
@@ -189,7 +193,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                   />
                 ) : (
                   <a
-                    key={a.url}
+                    key={index}
                     href={a.url}
                     target="_blank"
                     className="text-blue-500 text-xs max-w-[80px] truncate"
@@ -203,7 +207,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               <img
                 src={msg.imageUrl}
                 alt="img"
-                className="max-w-xs rounded mt-1"
+                className="max-w-full md:max-w-xs h-auto rounded mt-1"
               />
             )}
             {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
