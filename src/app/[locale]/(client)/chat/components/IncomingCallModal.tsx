@@ -106,8 +106,8 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
   }, [callId]);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-      <div className="bg-white w-[700px] p-5 rounded-lg shadow-lg">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-white w-[700px] p-5 rounded-lg shadow-lg z-50">
         {!accepted ? (
           <>
             <h3 className="text-xl font-semibold mb-4">📞 Incoming call...</h3>

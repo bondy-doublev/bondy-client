@@ -106,7 +106,7 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   }, [callId]);
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-4 w-[700px]">
         <h2 className="text-lg font-bold mb-2">Video Call</h2>
 

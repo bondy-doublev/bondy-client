@@ -17,7 +17,8 @@ interface SidebarProps {
   currentUserId?: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
+  className,
   tab,
   setTab,
   conversations,
@@ -58,17 +59,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [conversations, currentUserId]);
 
   return (
-    <div className="w-80 border-r border-gray-200 p-4 flex flex-col">
-      <Tabs value={tab} onValueChange={setTab} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="personal">Cá nhân</TabsTrigger>
-          <TabsTrigger value="group">Nhóm</TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <div
+      className={`w-80 md:w-[400px] border-r border-gray-200 p-4 flex flex-col md:flex-row ${
+        className || ""
+      }`}
+    >
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="personal">Cá nhân</TabsTrigger>
+            <TabsTrigger value="group">Nhóm</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-      <Button className="mb-2" onClick={onOpenDialog}>
-        {tab === "personal" ? "New Chat" : "New Group"}
-      </Button>
+        <Button
+          className="
+            mt-2 md:mt-0 
+            text-sm
+            md:bg-transparent md:text-blue-600 
+            md:hover:bg-transparent md:hover:underline
+            md:mx-0
+            md:px-0
+          "
+          onClick={onOpenDialog}
+        >
+          {tab === "personal" ? "New Chat" : "New Group"}
+        </Button>
+      </div>
 
       <ScrollArea className="flex-1">
         <ul className="space-y-2">

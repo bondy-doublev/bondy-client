@@ -16,7 +16,6 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
-import IncomingCallModal from "./IncomingCallModal";
 import { useRingtone } from "@/app/hooks/useRingTone";
 import { ChatRightPanel } from "./ChatRightPanel";
 
@@ -63,7 +62,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const [roomMembers, setRoomMembers] = useState<number[]>([]);
   const [callStatus, setCallStatus] = useState<string | null>(null);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
-  const [groupAvatar, setGroupAvatar] = useState("/default-group.png");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -152,16 +150,37 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   }, [callId]);
 
   return (
-    <div className="flex-1 flex flex-col relative">
-      <div className="w-full p-3 border-b bg-white flex items-center justify-between">
-        <div className="font-semibold text-gray-700">Chat</div>
+    <div className="flex-1 flex flex-col h-full relative">
+      {callId && (
+        <VideoCallModal
+          callId={callId}
+          receiverId={selectedRoom}
+          onClose={() => setCallId(null)}
+        />
+      )}
 
-        {incomingCallId && (
-          <IncomingCallModal
-            callId={incomingCallId}
-            onClose={() => setIncomingCallId(null)}
-          />
-        )}
+      <ChatRightPanel
+        isGroup={isGroup}
+        selectedRoom={selectedRoom}
+        media={attachments}
+        open={isRightPanelOpen}
+        onOpenChange={setIsRightPanelOpen}
+        onRoomUpdated={onRoomUpdated}
+      />
+
+      <div className="w-full p-2 md:p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden p-2 mr-2 rounded hover:bg-gray-100"
+          onClick={() => {
+            const event = new CustomEvent("openSidebar");
+            window.dispatchEvent(event);
+          }}
+        >
+          ☰
+        </button>
+
+        <div className="font-semibold text-gray-700">Chat</div>
 
         <div className="flex items-center gap-4">
           {/* Video Call */}
@@ -172,34 +191,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             <FaVideo size={20} />
           </button>
 
-          {callId && (
-            <VideoCallModal
-              callId={callId}
-              receiverId={selectedRoom}
-              onClose={() => setCallId(null)}
-            />
-          )}
-
           {/* Menu */}
           <FaEllipsisV
             size={20}
             className="cursor-pointer"
             onClick={() => setIsRightPanelOpen(true)}
           />
-
-          <ChatRightPanel
-            isGroup={isGroup}
-            selectedRoom={selectedRoom}
-            media={attachments}
-            open={isRightPanelOpen}
-            onOpenChange={setIsRightPanelOpen}
-            onRoomUpdated={onRoomUpdated}
-          />
         </div>
       </div>
+
       <div
         ref={messageContainerRef}
-        className="flex-1 p-4 space-y-2 bg-gray-50 overflow-y-auto"
+        className="flex-1 p-2 md:p-4 space-y-2 bg-gray-50 overflow-y-auto"
         style={{
           scrollBehavior: "auto",
         }}
@@ -223,68 +226,72 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         <div ref={messageEndRef} />
       </div>
 
-      {attachments.length > 0 && (
-        <div className="p-2 border-t border-gray-200 flex flex-wrap gap-2 bg-gray-100 max-h-32 overflow-y-auto">
-          {attachments.map((file, i) => (
-            <div
-              key={i}
-              className="relative border rounded p-1 flex items-center gap-1 bg-white"
-            >
-              {file.type.startsWith("image") ? (
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={file.name}
-                  className="w-16 h-16 object-cover rounded"
-                />
-              ) : (
-                <span className="text-xs max-w-[80px] truncate">
-                  {file.name}
-                </span>
-              )}
-              <button
-                type="button"
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600"
-                onClick={() => removeAttachment(i)}
+      <div className="sticky bottom-0 z-10 bg-white border-t border-gray-200">
+        {attachments.length > 0 && (
+          <div className="p-2 border-t border-gray-200 flex flex-wrap gap-2 bg-gray-100 max-h-32 overflow-y-auto">
+            {attachments.map((file, i) => (
+              <div
+                key={i}
+                className="relative border rounded p-1 flex items-center gap-1 bg-white"
               >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+                {file.type.startsWith("image") ? (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                ) : (
+                  <span className="text-xs max-w-[80px] truncate">
+                    {file.name}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600"
+                  onClick={() => removeAttachment(i)}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {replyingMessage && (
-        <div className="px-4 py-2 border-t border-gray-200 bg-gray-100 text-sm text-gray-600 italic">
-          Replying to: {replyingMessage.content || "[Attachment]"}
-        </div>
-      )}
+        {replyingMessage && (
+          <div className="px-4 py-2 border-t border-gray-200 bg-gray-100 text-sm text-gray-600 italic">
+            Replying to: {replyingMessage.content || "[Attachment]"}
+          </div>
+        )}
 
-      <div className="p-4 border-t border-gray-200 flex items-center space-x-2 bg-white">
-        <label className="cursor-pointer text-gray-600 hover:text-gray-800">
-          <FaPaperclip size={20} />
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="hidden"
+        {/* Input area */}
+        <div className="p-2 md:p-4 border-t border-gray-200 flex items-center space-x-2 bg-white sticky bottom-0 z-20">
+          <label className="cursor-pointer text-gray-600 hover:text-gray-800">
+            <FaPaperclip size={20} />
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
+
+          <Input
+            placeholder="Type a message..."
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={uploading}
+            className="flex-1"
           />
-        </label>
 
-        <Input
-          placeholder="Type a message..."
-          value={newMsg}
-          onChange={(e) => setNewMsg(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={uploading}
-        />
-
-        <Button onClick={handleSendClick} disabled={uploading}>
-          {uploading && (
-            <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-          )}
-          Send
-        </Button>
+          <Button onClick={handleSendClick} disabled={uploading}>
+            {uploading && (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+            )}
+            Send
+          </Button>
+        </div>
       </div>
     </div>
   );

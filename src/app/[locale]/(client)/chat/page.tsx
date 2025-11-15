@@ -34,6 +34,7 @@ export default function ChatPage() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const tabRef = useRef(tab);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     selectedRoomRef.current = selectedRoom;
@@ -42,6 +43,12 @@ export default function ChatPage() {
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+
+  useEffect(() => {
+    const openHandler = () => setIsSidebarOpen(true);
+    window.addEventListener("openSidebar", openHandler);
+    return () => window.removeEventListener("openSidebar", openHandler);
+  }, []);
 
   // --- Load friends
   const handleGetFriends = async () => {
@@ -370,16 +377,40 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[90vh]">
-      <Sidebar
-        tab={tab}
-        setTab={setTab}
-        currentUserId={user?.id}
-        conversations={conversations}
-        selectedRoomId={selectedRoom?.id || null}
-        onSelectRoom={loadRoomMessages}
-        onOpenDialog={() => setOpenDialog(true)}
-      />
+    <div className="flex h-[90vh] flex-col md:flex-row">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      {isSidebarOpen ? (
+        <Sidebar
+          className="fixed inset-y-0 left-0 z-50 w-3/4 bg-white shadow-lg md:hidden"
+          tab={tab}
+          setTab={setTab}
+          currentUserId={user?.id}
+          conversations={conversations}
+          selectedRoomId={selectedRoom?.id || null}
+          onSelectRoom={(room) => {
+            loadRoomMessages(room);
+            setIsSidebarOpen(false); // auto close khi chọn room
+          }}
+          onOpenDialog={() => setOpenDialog(true)}
+        />
+      ) : (
+        <Sidebar
+          className="hidden md:block w-full md:w-[300px]"
+          tab={tab}
+          setTab={setTab}
+          currentUserId={user?.id}
+          conversations={conversations}
+          selectedRoomId={selectedRoom?.id || null}
+          onSelectRoom={loadRoomMessages}
+          onOpenDialog={() => setOpenDialog(true)}
+        />
+      )}
+
       <ChatArea
         isGroup={tab === "group"}
         selectedRoom={selectedRoom?.id || null}

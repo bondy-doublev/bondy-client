@@ -207,7 +207,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               <img
                 src={msg.imageUrl}
                 alt="img"
-                className="max-w-xs rounded mt-1"
+                className="max-w-full md:max-w-xs h-auto rounded mt-1"
               />
             )}
             {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
