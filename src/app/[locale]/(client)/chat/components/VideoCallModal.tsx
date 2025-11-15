@@ -37,8 +37,10 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   const localStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (!callId) return;
-    startCall();
+    if (callId) {
+      console.log("VideoCallModal is opening for callId:", callId);
+      startCall();
+    }
   }, [callId]);
 
   const startCall = async () => {
@@ -132,13 +134,13 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   };
 
   return (
-    <div className="flex items-center justify-center z-50">
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
       <Rnd
         default={{ x: 100, y: 100, width: 700, height: 400 }}
         bounds="window"
         minWidth={300}
         minHeight={200}
-        className="bg-black rounded-lg overflow-hidden flex flex-col shadow-lg"
+        className="bg-black rounded-lg overflow-hidden flex flex-col shadow-lg pointer-events-auto"
       >
         {/* Remote video */}
         <video

@@ -18,6 +18,7 @@ import {
 import { db } from "@/configs/firebase";
 import { useRingtone } from "@/app/hooks/useRingTone";
 import { ChatRightPanel } from "./ChatRightPanel";
+import { useCall } from "@/context/CallContext";
 
 interface ChatAreaProps {
   isGroup: boolean;
@@ -57,8 +58,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   onRoomUpdated,
 }) => {
   const [uploading, setUploading] = useState(false);
-  const [callId, setCallId] = useState<string | null>(null);
-  const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
+  const { setOutgoingCallId, outgoingCallId, setOutgoingCallReceiver } =
+    useCall();
   const [roomMembers, setRoomMembers] = useState<number[]>([]);
   const [callStatus, setCallStatus] = useState<string | null>(null);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
@@ -72,7 +73,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const isRinging = !!callId && callStatus === "ringing";
+  const isRinging = !!outgoingCallId && callStatus === "ringing";
+
   useRingtone(isRinging);
 
   const handleCallClick = async () => {
@@ -80,13 +82,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
     const callDoc = await addDoc(collection(db, "calls"), {
       senderId: currentUserId,
-      receiverIds: roomMembers, // mảng các id trừ người gọi
+      receiverIds: roomMembers,
       status: "ringing",
       createdAt: new Date(),
       offer: null,
     });
 
-    setCallId(callDoc.id);
+    setOutgoingCallReceiver(selectedRoom);
+    setOutgoingCallId(callDoc.id);
   };
 
   const handleSendClick = async () => {
@@ -131,30 +134,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   }, [selectedRoom, currentUserId]);
 
   useEffect(() => {
-    if (!callId) return;
-    const unsub = onSnapshot(doc(db, "calls", callId), (snap) => {
+    if (!outgoingCallId) return;
+    const unsub = onSnapshot(doc(db, "calls", outgoingCallId), (snap) => {
       const data = snap.data();
       if (!data) return;
 
       setCallStatus(data.status); // cập nhật status
 
       if (data.status === "rejected" || data.status === "ended") {
-        setCallId(null);
+        setOutgoingCallId(null);
       }
     });
     return () => unsub();
-  }, [callId]);
+  }, [outgoingCallId]);
 
   return (
     <div className="flex-1 flex flex-col h-full relative">
-      {callId && (
-        <VideoCallModal
-          callId={callId}
-          receiverId={selectedRoom}
-          onClose={() => setCallId(null)}
-        />
-      )}
-
       <ChatRightPanel
         isGroup={isGroup}
         selectedRoom={selectedRoom}

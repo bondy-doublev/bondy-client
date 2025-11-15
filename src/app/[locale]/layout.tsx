@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { CallProvider } from "@/context/CallContext";
 import { useAuthStore } from "@/store/authStore";
