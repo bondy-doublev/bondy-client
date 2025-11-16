@@ -159,7 +159,12 @@ export default function Navbar() {
           <div className="xl:hidden flex items-center space-x-4">
             <LanguageSwitcher />
             <NotificationDropdown />
-            <MessageCircle className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
+            <MessageCircle
+              onClick={() => {
+                router.push("/chat");
+              }}
+              className="w-6 h-6 cursor-pointer hover:text-cyan transition"
+            />
             <UserDropdown />
             <MenuDrawer />
           </div>

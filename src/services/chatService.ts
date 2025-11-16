@@ -101,6 +101,11 @@ export const chatService = {
     return res.data;
   },
 
+  async getRoomInformation(roomId: string) {
+    const res = await api.get(`${API_URL}/rooms/${roomId}/members`);
+    return res.data;
+  },
+
   async getUnreadCount(userId: number): Promise<number> {
     try {
       const res: AxiosResponse<{ total: number }> = await api.get(
@@ -110,5 +115,25 @@ export const chatService = {
     } catch (error) {
       return 0; // fallback nếu lỗi
     }
+  },
+
+  async updateRoomInformation(
+    roomId: string,
+    payload: { name?: string; avatarUrl?: string }
+  ): Promise<ChatRoom> {
+    const res: AxiosResponse = await api.put(
+      `${API_URL}/rooms/${roomId}`,
+      payload
+    );
+    return res.data;
+  },
+
+  async getRoomFiles(
+    roomId: string
+  ): Promise<{ url: string; type: "image" | "file"; fileName?: string }[]> {
+    const res: AxiosResponse = await api.get(
+      `${API_URL}/rooms/${roomId}/files`
+    );
+    return res.data.files;
   },
 };

@@ -1,6 +1,9 @@
+"use client";
+
 import AppSidebar from "@/app/layout/default/Sidebar";
 import AppNavbar from "@/app/layout/default/Navbar";
-export default async function RootLayout({
+import GlobalVideoCall from "./chat/components/GlobalVideoCall";
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -13,6 +16,7 @@ export default async function RootLayout({
           <AppSidebar />
           <main className="flex-1 overflow-y-auto md:ml-[20%] p-4 bg-gray-50">
             {children}
+            <GlobalVideoCall />
           </main>
         </div>
       </div>

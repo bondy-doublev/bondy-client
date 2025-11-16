@@ -34,6 +34,7 @@ export default function ChatPage() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const tabRef = useRef(tab);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     selectedRoomRef.current = selectedRoom;
@@ -42,6 +43,12 @@ export default function ChatPage() {
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+
+  useEffect(() => {
+    const openHandler = () => setIsSidebarOpen(true);
+    window.addEventListener("openSidebar", openHandler);
+    return () => window.removeEventListener("openSidebar", openHandler);
+  }, []);
 
   // --- Load friends
   const handleGetFriends = async () => {
@@ -146,28 +153,28 @@ export default function ChatPage() {
 
   // --- Load room messages + pagination
   const loadRoomMessages = async (room: ChatRoom, reset = true) => {
+    // Nếu phòng được chọn = phòng đang mở → không reset
+    if (selectedRoom?.id === room.id && reset) {
+      return; // 👈 không làm gì nữa
+    }
+
     setSelectedRoom(room);
     const pageToLoad = reset ? 1 : page;
 
     try {
       const msgs = await chatService.getRoomMessages(room.id, pageToLoad, 10);
-      console.log("Loaded messages:", msgs.length);
 
       if (reset) {
-        // Load phòng mới
-        setMessages((prev) => [...msgs.reverse(), ...prev]);
+        setMessages(msgs.reverse());
         setPage(2);
         setHasMore(msgs.length === 10);
 
-        // Scroll to bottom
         setTimeout(() => {
           const container = messageContainerRef.current;
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
+          if (container) container.scrollTop = container.scrollHeight;
         }, 100);
       } else {
-        // Load more - giữ scroll position
+        // pagination load more
         const container = messageContainerRef.current;
         if (!container) return;
 
@@ -178,20 +185,16 @@ export default function ChatPage() {
         setPage((prev) => prev + 1);
         setHasMore(msgs.length === 10);
 
-        // Khôi phục scroll position sau khi DOM update
         setTimeout(() => {
-          if (container) {
-            const scrollHeightAfter = container.scrollHeight;
-            const scrollDiff = scrollHeightAfter - scrollHeightBefore;
-            container.scrollTop = scrollTopBefore + scrollDiff;
-          }
+          const scrollHeightAfter = container.scrollHeight;
+          const diff = scrollHeightAfter - scrollHeightBefore;
+          container.scrollTop = scrollTopBefore + diff;
         }, 50);
       }
 
-      // join socket
       if (socket && user) {
         socket.emit("joinRoom", { roomId: room.id, userId: user.id });
-        socket.emit("openRoom", { userId: user.id, roomId: room.id });
+        socket.emit("openRoom", { roomId: room.id, userId: user.id });
       }
     } catch (err) {
       console.error("Error loading messages:", err);
@@ -334,6 +337,10 @@ export default function ChatPage() {
     setReplyingMessage(msg);
   };
 
+  const reloadConversations = async () => {
+    await fetchConversations(tabRef.current);
+  };
+
   // --- Create room
   const handleCreateRoom = async (
     groupName?: string,
@@ -369,30 +376,66 @@ export default function ChatPage() {
     }
   };
 
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
+
   return (
-    <div className="flex h-[90vh]">
-      <Sidebar
-        tab={tab}
-        setTab={setTab}
-        currentUserId={user?.id}
-        conversations={conversations}
-        selectedRoomId={selectedRoom?.id || null}
-        onSelectRoom={loadRoomMessages}
-        onOpenDialog={() => setOpenDialog(true)}
-      />
+    <div className="flex h-[90vh] flex-col md:flex-row">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      {isSidebarOpen && window.innerWidth < 768 ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Sidebar
+            className="bg-white w-11/12 max-w-sm h-5/6 shadow-lg rounded-lg p-4"
+            tab={tab}
+            setTab={setTab}
+            currentUserId={user?.id}
+            conversations={conversations}
+            selectedRoomId={selectedRoom?.id || null}
+            onSelectRoom={(room) => {
+              loadRoomMessages(room);
+              setIsSidebarOpen(false);
+            }}
+            onOpenDialog={() => setOpenDialog(true)}
+          />
+        </div>
+      ) : (
+        <Sidebar
+          className="hidden md:block w-[300px]"
+          tab={tab}
+          setTab={setTab}
+          currentUserId={user?.id}
+          conversations={conversations}
+          selectedRoomId={selectedRoom?.id || null}
+          onSelectRoom={loadRoomMessages}
+          onOpenDialog={() => setOpenDialog(true)}
+        />
+      )}
+
       <ChatArea
+        isGroup={tab === "group"}
+        selectedRoom={selectedRoom?.id || null}
+        currentUserId={user?.id}
         messages={messages}
         newMsg={newMsg}
         setNewMsg={setNewMsg}
         onSend={handleSend}
         messageEndRef={useRef<HTMLDivElement>(null)}
+        messageContainerRef={messageContainerRef}
         attachments={attachments}
         setAttachments={setAttachments}
         onEditMessage={handleEditMessage}
         onDeleteMessage={handleDeleteMessage}
         onReplyMessage={handleReplyMessage}
         replyingMessage={replyingMessage}
-        messageContainerRef={messageContainerRef}
+        onRoomUpdated={reloadConversations}
       />
 
       {openDialog && (
