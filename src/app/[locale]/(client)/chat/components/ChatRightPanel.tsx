@@ -12,6 +12,7 @@ import { chatService } from "@/services/chatService";
 import { userService } from "@/services/userService";
 import { uploadCloudinarySingle } from "@/services/uploadService";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 interface Member {
   id: number;
@@ -42,6 +43,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [media, setMedia] = React.useState<any[]>([]);
   const router = useRouter();
+  const t = useTranslations("chat");
 
   // Fetch room info
   React.useEffect(() => {
@@ -71,13 +73,13 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                 avatar: profile.data.avatarUrl,
               };
             } catch {
-              return { id: m.userId, name: `User ${m.userId}` };
+              return { id: m.userId, name: `${t("user")} ${m.userId}` };
             }
           })
         );
         setMembers(membersWithProfile);
       } catch (err) {
-        console.error("Failed to fetch room info:", err);
+        console.error(t("failedToFetchRoomMembers"), err);
       }
     };
 
@@ -96,7 +98,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
         });
       }
     } catch (err) {
-      console.error("Failed to upload avatar:", err);
+      console.error(t("failedToUploadAvatar"), err);
     } finally {
       setLoading(false);
       onRoomUpdated();
@@ -112,7 +114,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
       });
       setEditingName(false);
     } catch (err) {
-      console.error("Failed to update group name:", err);
+      console.error(t("failedToUpdateGroupName"), err);
     } finally {
       onRoomUpdated();
     }
@@ -127,7 +129,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
         <SheetHeader className="bg-gradient-to-r bg-green text-white px-6 py-5 shrink-0 shadow-md">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-white text-xl font-bold">
-              Chat Info
+              {t("chatInfo")}
             </SheetTitle>
             <button
               onClick={() => onOpenChange(false)}
@@ -172,7 +174,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                   className="mt-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg px-6 py-2"
                 >
                   <Upload className="w-4 h-4 mr-2" />{" "}
-                  {loading ? "Uploading avatar..." : "Change Avatar"}
+                  {loading ? t("uploadingAvatar") : t("changeAvatar")}
                 </Button>
 
                 {/* Edit group name */}
@@ -206,7 +208,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                     <Users className="w-5 h-5 text-emerald-600" />
                   </div>
                   <h4 className="font-bold text-lg text-gray-800">
-                    Members ({members.length})
+                    {t("members")} ({members.length})
                   </h4>
                 </div>
                 <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
@@ -244,7 +246,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                 <Image className="w-5 h-5 text-emerald-600" />
               </div>
               <h4 className="font-bold text-lg text-gray-800">
-                Media ({media.length})
+                {t("media")} ({media.length})
               </h4>
             </div>
             {media.length > 0 ? (
@@ -262,7 +264,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                     >
                       <img
                         src={url}
-                        alt={`Media ${i + 1}`}
+                        alt={`${t("media")} ${i + 1}`}
                         className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -273,7 +275,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
             ) : (
               <div className="text-center py-12 text-gray-400 bg-emerald-50 rounded-lg">
                 <Image className="w-16 h-16 mx-auto mb-3 opacity-30 text-emerald-300" />
-                <p className="text-sm text-gray-500">No media shared yet</p>
+                <p className="text-sm text-gray-500">{t("noMediaSharedYet")}</p>
               </div>
             )}
           </div>

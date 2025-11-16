@@ -238,6 +238,15 @@
     "edited": "đã chỉnh sửa",
     "edit": "Chỉnh sửa",
     "delete": "Xóa",
-    "reply": "Trả lời"
+    "reply": "Trả lời",
+    "chatInfo": "Thông tin cuộc trò chuyện",
+    "user": "Người dùng",
+    "failedToUploadAvatar": "Tải ảnh đại diện thất bại",
+    "failedToUpdateGroupName": "Cập nhật tên nhóm thất bại",
+    "uploadingAvatar": "Đang tải ảnh...",
+    "changeAvatar": "Đổi ảnh đại diện nhóm",
+    "members": "Thành viên",
+    "media": "Ảnh & File",
+    "noMediaSharedYet": "Chưa có hình ảnh nào được chia sẻ"
   }
 }

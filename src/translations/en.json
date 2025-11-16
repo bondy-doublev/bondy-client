@@ -238,6 +238,15 @@
     "edited": "edited",
     "edit": "Edit",
     "delete": "Delete",
-    "reply": "Reply"
+    "reply": "Reply",
+    "chatInfo": "Chat Information",
+    "user": "User",
+    "failedToUploadAvatar": "Failed to upload avatar",
+    "failedToUpdateGroupName": "Failed to update group name",
+    "uploadingAvatar": "Uploading avatar...",
+    "changeAvatar": "Change Avatar",
+    "members": "Members",
+    "media": "Media",
+    "noMediaSharedYet": "No media has been shared yet"
   }
 }
