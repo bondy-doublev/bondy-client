@@ -219,5 +219,14 @@
     "newNotification": "thông báo mới",
     "recently": "vừa xong",
     "loadMore": "Xem thêm"
+  },
+  "chat": {
+    "chat": "Trò chuyện",
+    "noMessagesYet": "Chưa có tin nhắn nào",
+    "typeAMessage": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "replyingTo": "Đang trả lời",
+    "attachment": "Tệp đính kèm",
+    "failedToFetchRoomMembers": "Lỗi khi lấy thông tin thành viên phòng"
   }
 }

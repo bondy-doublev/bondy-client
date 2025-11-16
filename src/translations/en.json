@@ -219,5 +219,14 @@
     "newNotification": "new notification",
     "recently": "recently",
     "loadMore": "Load more"
+  },
+  "chat": {
+    "chat": "Chat",
+    "noMessagesYet": "No messages yet",
+    "typeAMessage": "Type a message",
+    "send": "Send",
+    "replyingTo": "Replying to",
+    "attachment": "Attachment",
+    "failedToFetchRoomMembers": "Failed to fetch room members"
   }
 }

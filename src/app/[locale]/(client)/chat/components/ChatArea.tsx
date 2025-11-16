@@ -19,6 +19,7 @@ import { db } from "@/configs/firebase";
 import { useRingtone } from "@/app/hooks/useRingTone";
 import { ChatRightPanel } from "./ChatRightPanel";
 import { useCall } from "@/context/CallContext";
+import { useTranslations } from "use-intl";
 
 interface ChatAreaProps {
   isGroup: boolean;
@@ -63,6 +64,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const [roomMembers, setRoomMembers] = useState<number[]>([]);
   const [callStatus, setCallStatus] = useState<string | null>(null);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const t = useTranslations("chat");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -126,7 +128,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         setRoomMembers(otherMembers);
       } catch (err) {
-        console.error("Failed to fetch room members:", err);
+        console.error(t("failedToFetchRoomMembers"), err);
       }
     };
 
@@ -170,7 +172,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           ☰
         </button>
 
-        <div className="font-semibold text-gray-700">Chat</div>
+        <div className="font-semibold text-gray-700">{t("chat")}</div>
 
         <div className="flex items-center gap-4">
           {/* Video Call */}
@@ -199,7 +201,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       >
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-80">
-            Chưa có tin nhắn nào
+            {t("noMessagesYet")}
           </div>
         ) : (
           messages.map((msg, index) => (
@@ -249,7 +251,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         {replyingMessage && (
           <div className="px-4 py-2 border-t border-gray-200 bg-gray-100 text-sm text-gray-600 italic">
-            Replying to: {replyingMessage.content || "[Attachment]"}
+            {t("replyingTo")}: {replyingMessage.content || t("attachment")}
           </div>
         )}
 
@@ -267,7 +269,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           </label>
 
           <Input
-            placeholder="Type a message..."
+            placeholder={t("typeAMessage")}
             value={newMsg}
             onChange={(e) => setNewMsg(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -279,7 +281,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             {uploading && (
               <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
             )}
-            Send
+            {t("send")}
           </Button>
         </div>
       </div>
