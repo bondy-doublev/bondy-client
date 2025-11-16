@@ -20,6 +20,7 @@ import {
   FaPhoneAlt,
 } from "react-icons/fa";
 import { Rnd } from "react-rnd";
+import { useTranslations } from "use-intl";
 
 interface Props {
   callId: string;
@@ -39,6 +40,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [selectedAudio, setSelectedAudio] = useState<string | null>(null);
+  const t = useTranslations("chat");
 
   useRingtone(!accepted && callStatus === "ringing");
 
@@ -53,7 +55,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
 
   const acceptCall = async () => {
     if (!selectedVideo || !selectedAudio)
-      return alert("Chọn camera và micro trước!");
+      return alert(t("selectCameraAndMicFirst"));
 
     setAccepted(true);
 
@@ -158,7 +160,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
         <div className="bg-white w-full h-full p-5 rounded-lg">
           <h3 className="flex items-center text-xl font-semibold mb-4 text-gray-800 gap-2">
             <FaPhoneAlt className="text-green-500" />
-            Incoming Call
+            {t("incomingCall")}
           </h3>
 
           {/* Chọn thiết bị */}
@@ -171,7 +173,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
                 value={selectedVideo || ""}
                 onChange={(e) => setSelectedVideo(e.target.value)}
               >
-                <option value="">Select Camera</option>
+                <option value="">{t("selectCamera")}</option>
                 {devices
                   .filter((d) => d.kind === "videoinput")
                   .map((d) => (
@@ -190,7 +192,7 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
                 value={selectedAudio || ""}
                 onChange={(e) => setSelectedAudio(e.target.value)}
               >
-                <option value="">Select Microphone</option>
+                <option value="">{t("selectMicrophone")}</option>
                 {devices
                   .filter((d) => d.kind === "audioinput")
                   .map((d) => (
@@ -207,13 +209,13 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
               className="px-4 py-2 bg-gray-300 rounded"
               onClick={handleReject}
             >
-              Decline
+              {t("decline")}
             </button>
             <button
               className="px-4 py-2 bg-green-600 text-white rounded"
               onClick={acceptCall}
             >
-              Accept
+              {t("accept")}
             </button>
           </div>
         </div>

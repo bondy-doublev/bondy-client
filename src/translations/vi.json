@@ -253,6 +253,12 @@
     "groupName": "Tên nhóm",
     "noFriendsToChat": "Không còn bạn nào để tạo cuộc trò chuyện",
     "cancel": "Hủy",
-    "createRoom": "Tạo phòng"
+    "createRoom": "Tạo phòng",
+    "incomingCall": "Cuộc gọi đến",
+    "selectCamera": "Chọn camera",
+    "selectMicrophone": "Chọn micro",
+    "selectCameraAndMicFirst": "Vui lòng chọn camera và micro trước",
+    "decline": "Từ chối",
+    "accept": "Chấp nhận"
   }
 }

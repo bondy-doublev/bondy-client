@@ -253,6 +253,12 @@
     "groupName": "Group name",
     "noFriendsToChat": "No friends available to chat",
     "cancel": "Cancel",
-    "createRoom": "Create room"
+    "createRoom": "Create room",
+    "incomingCall": "Incoming call",
+    "selectCamera": "Select camera",
+    "selectMicrophone": "Select microphone",
+    "selectCameraAndMicFirst": "Please select both camera and microphone first",
+    "decline": "Decline",
+    "accept": "Accept"
   }
 }
