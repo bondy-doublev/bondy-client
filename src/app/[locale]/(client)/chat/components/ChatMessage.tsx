@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/authStore";
 import { userService } from "@/services/userService";
 import { FaFileAlt } from "react-icons/fa";
 import Modal from "react-modal";
+import { useTranslations } from "use-intl";
 
 interface ChatMessageProps {
   msg: Message;
@@ -35,6 +36,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     const [modalOpen, setModalOpen] = useState(false);
     const [modalImg, setModalImg] = useState("");
     const menuRef = useRef<HTMLDivElement>(null);
+    const t = useTranslations("chat");
 
     const isMine = String(msg.senderId) === String(user?.id);
 
@@ -56,7 +58,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
         })();
       } else {
         setSender({
-          name: user?.fullName || user?.username || "Bạn",
+          name: user?.fullName || user?.username || t("you"),
           avatarUrl: user?.avatarUrl,
         });
       }
@@ -81,13 +83,13 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     };
 
     const handleEdit = () => {
-      const newContent = prompt("Chỉnh sửa tin nhắn:", msg.content);
+      const newContent = prompt(t("editMessage"), msg.content);
       if (newContent !== null) onEdit(msg, newContent);
       setMenuVisible(false);
     };
 
     const handleDelete = () => {
-      if (confirm("Xác nhận xóa tin nhắn?")) onDelete(msg);
+      if (confirm(t("deleteConfirm"))) onDelete(msg);
       setMenuVisible(false);
     };
 
@@ -165,18 +167,18 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
           {replyMessage && (
             <div className="bg-gray-100 text-gray-500 p-1 rounded mb-1 text-xs italic max-w-full cursor-pointer hover:bg-gray-200">
               {replyMessage.isDeleted
-                ? "<Đã xóa>"
+                ? t("deleted")
                 : replyMessage.content
                 ? replyMessage.content
                 : replyMessage.attachments?.length
                 ? replyMessage.attachments
-                    .map((a) => (a.type === "image" ? "Image" : "File"))
+                    .map((a) => (a.type === "image" ? t("image") : t("file")))
                     .join(", ")
                 : replyMessage.imageUrl
-                ? "<Ảnh>"
+                ? t("image")
                 : replyMessage.fileUrl
-                ? "<Tệp tin>"
-                : "<Không có nội dung>"}
+                ? t("file")
+                : t("noContent")}
             </div>
           )}
 
@@ -222,8 +224,8 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
           </div>
 
           <div className="text-sm mt-1">
-            {msg.isDeleted ? <i>Đã xóa</i> : msg.content}{" "}
-            {msg.isEdited && !msg.isDeleted && <span>(edited)</span>}
+            {msg.isDeleted ? <i>{t("deleted")}</i> : msg.content}{" "}
+            {msg.isEdited && !msg.isDeleted && <span>({t("edited")})</span>}
           </div>
 
           <div
@@ -259,7 +261,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 }`}
                 onClick={isMine ? handleEdit : undefined}
               >
-                Edit
+                {t("edit")}
               </button>
               <button
                 className={`px-2 py-1 w-full text-md text-left hover:bg-gray-200 ${
@@ -267,13 +269,13 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 }`}
                 onClick={isMine ? handleDelete : undefined}
               >
-                Delete
+                {t("delete")}
               </button>
               <button
                 className="px-2 py-1 w-full text-left text-black text-md hover:bg-gray-200"
                 onClick={handleReply}
               >
-                Reply
+                {t("reply")}
               </button>
             </div>
           )}

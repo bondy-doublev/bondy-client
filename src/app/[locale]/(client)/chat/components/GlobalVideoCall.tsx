@@ -23,7 +23,7 @@ export default function GlobalVideoCall() {
       {outgoingCallId && (
         <VideoCallModal
           callId={outgoingCallId}
-          receiverId={outgoingCallReceiver} // hoặc truyền receiverId khi gọi đi
+          receiverId={outgoingCallReceiver}
           onClose={() => setOutgoingCallId(null)}
         />
       )}

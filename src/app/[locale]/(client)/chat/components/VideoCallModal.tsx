@@ -18,6 +18,7 @@ import {
   FaPhoneSlash,
 } from "react-icons/fa";
 import { Rnd } from "react-rnd";
+import { useTranslations } from "use-intl";
 
 interface Props {
   callId: string | null;
@@ -35,10 +36,11 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const t = useTranslations("chat");
 
   useEffect(() => {
     if (callId) {
-      console.log("VideoCallModal is opening for callId:", callId);
+      console.log(t("VideoCallModal is opening for callId:"), callId);
       startCall();
     }
   }, [callId]);
@@ -183,7 +185,7 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
 
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-lg font-semibold">
-            Connecting...
+            {t("connecting")}
           </div>
         )}
       </Rnd>
