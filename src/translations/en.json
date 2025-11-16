@@ -259,6 +259,10 @@
     "selectMicrophone": "Select microphone",
     "selectCameraAndMicFirst": "Please select both camera and microphone first",
     "decline": "Decline",
-    "accept": "Accept"
+    "accept": "Accept",
+    "personal": "Personal",
+    "group": "Group",
+    "someoneElse": "Someone",
+    "noMessages": "No messages yet"
   }
 }

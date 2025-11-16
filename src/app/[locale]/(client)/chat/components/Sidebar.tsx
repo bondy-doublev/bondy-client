@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { userService } from "@/services/userService";
+import { useTranslations } from "use-intl";
 
 interface SidebarProps {
   tab: "personal" | "group";
@@ -29,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
 }) => {
   // cache tên senderId → senderName
   const [senderNames, setSenderNames] = useState<Record<string, string>>({});
+  const t = useTranslations("chat");
 
   useEffect(() => {
     // lấy tất cả senderId cần fetch
@@ -45,14 +47,14 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
               ...prev,
               [id]:
                 profile.data.id == currentUserId
-                  ? "Bạn"
+                  ? t("you")
                   : profile.data.fullName ||
                     profile.data.username ||
-                    "Người khác",
+                    t("someoneElse"),
             }));
           })
           .catch(() => {
-            setSenderNames((prev) => ({ ...prev, [id]: "Người khác" }));
+            setSenderNames((prev) => ({ ...prev, [id]: t("someoneElse") }));
           });
       }
     });
@@ -67,8 +69,8 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
-            <TabsTrigger value="personal">Cá nhân</TabsTrigger>
-            <TabsTrigger value="group">Nhóm</TabsTrigger>
+            <TabsTrigger value="personal">{t("personal")}</TabsTrigger>
+            <TabsTrigger value="group">{t("group")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -83,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
           "
           onClick={onOpenDialog}
         >
-          {tab === "personal" ? "New Chat" : "New Group"}
+          {tab === "personal" ? t("newChat") : t("newGroup")}
         </Button>
       </div>
 
@@ -94,9 +96,9 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
             const isMine = latest?.senderId === String(currentUserId);
 
             const senderLabel = isMine
-              ? "Tôi"
+              ? t("you")
               : latest
-              ? senderNames[latest.senderId] || "Người khác"
+              ? senderNames[latest.senderId] || t("someoneElse")
               : "";
 
             const content = latest?.content || "";
@@ -151,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                     )}
                     {!latest && (
                       <div className="text-sm text-gray-400 italic">
-                        Chưa có tin nhắn
+                        {t("noMessages")}
                       </div>
                     )}
                   </div>

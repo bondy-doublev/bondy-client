@@ -259,6 +259,10 @@
     "selectMicrophone": "Chọn micro",
     "selectCameraAndMicFirst": "Vui lòng chọn camera và micro trước",
     "decline": "Từ chối",
-    "accept": "Chấp nhận"
+    "accept": "Chấp nhận",
+    "personal": "Cá nhân",
+    "group": "Nhóm",
+    "someoneElse": "Người khác",
+    "noMessages": "Chưa có tin nhắn"
   }
 }
