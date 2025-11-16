@@ -227,6 +227,17 @@
     "send": "Gửi",
     "replyingTo": "Đang trả lời",
     "attachment": "Tệp đính kèm",
-    "failedToFetchRoomMembers": "Lỗi khi lấy thông tin thành viên phòng"
+    "failedToFetchRoomMembers": "Lỗi khi lấy thông tin thành viên phòng",
+    "you": "Bạn",
+    "editMessage": "Chỉnh sửa tin nhắn",
+    "deleteConfirm": "Bạn có chắc muốn xóa tin nhắn này không?",
+    "deleted": "Tin nhắn đã bị xóa",
+    "image": "Hình ảnh",
+    "file": "Tệp",
+    "noContent": "Không có nội dung",
+    "edited": "đã chỉnh sửa",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "reply": "Trả lời"
   }
 }
