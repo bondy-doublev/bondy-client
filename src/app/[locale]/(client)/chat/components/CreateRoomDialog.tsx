@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/store/authStore";
+import { useTranslations } from "use-intl";
 
 interface CreateRoomDialogProps {
   friends: any[];
@@ -29,8 +30,8 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
   );
   const { user } = useAuthStore();
   const modalRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("chat");
 
-  // --- Load private rooms để lọc friend đã có hội thoại
   const handleGetConversations = async () => {
     if (!user) return;
     const res = await chatService.getPrivateRooms(user.id);
@@ -42,7 +43,6 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
     handleGetConversations();
   }, [user]);
 
-  // --- Click outside modal để tắt
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -73,12 +73,12 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
         className="bg-white p-6 rounded shadow-lg w-80 max-h-[70vh] flex flex-col"
       >
         <h2 className="text-lg font-bold mb-4">
-          {tab === "personal" ? "New Chat" : "New Group"}
+          {tab === "personal" ? t("newChat") : t("newGroup")}
         </h2>
 
         {tab === "group" && (
           <Input
-            placeholder="Tên nhóm"
+            placeholder={t("groupName")}
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
             className="mb-4"
@@ -106,22 +106,20 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
             </label>
           ))}
           {filteredFriends.length === 0 && tab === "personal" && (
-            <p className="text-gray-500 text-sm">
-              Không còn bạn bè nào để chat.
-            </p>
+            <p className="text-gray-500 text-sm">{t("noFriendsToChat")}</p>
           )}
         </div>
 
         {tab === "group" && (
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={onClose}>
-              Hủy
+              {t("cancel")}
             </Button>
             <Button
               onClick={() => onCreate(groupName)}
               disabled={!groupName || selectedFriends.length < 2}
             >
-              Tạo phòng
+              {t("createRoom")}
             </Button>
           </div>
         )}

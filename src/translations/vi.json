@@ -247,6 +247,12 @@
     "changeAvatar": "Đổi ảnh đại diện nhóm",
     "members": "Thành viên",
     "media": "Ảnh & File",
-    "noMediaSharedYet": "Chưa có hình ảnh nào được chia sẻ"
+    "noMediaSharedYet": "Chưa có hình ảnh nào được chia sẻ",
+    "newChat": "Cuộc trò chuyện mới",
+    "newGroup": "Tạo nhóm mới",
+    "groupName": "Tên nhóm",
+    "noFriendsToChat": "Không còn bạn nào để tạo cuộc trò chuyện",
+    "cancel": "Hủy",
+    "createRoom": "Tạo phòng"
   }
 }

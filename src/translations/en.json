@@ -247,6 +247,12 @@
     "changeAvatar": "Change Avatar",
     "members": "Members",
     "media": "Media",
-    "noMediaSharedYet": "No media has been shared yet"
+    "noMediaSharedYet": "No media has been shared yet",
+    "newChat": "New chat",
+    "newGroup": "New group",
+    "groupName": "Group name",
+    "noFriendsToChat": "No friends available to chat",
+    "cancel": "Cancel",
+    "createRoom": "Create room"
   }
 }
