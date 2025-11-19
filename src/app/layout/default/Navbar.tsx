@@ -72,7 +72,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) return;
-    requestBrowserNotificationPermission
+    requestBrowserNotificationPermission();
   }, [user?.id]);
 
   const navItems = [
