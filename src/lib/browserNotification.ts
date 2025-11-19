@@ -7,7 +7,9 @@ export function requestBrowserNotificationPermission() {
   if (!("Notification" in window)) return;
 
   if (Notification.permission === "default") {
-    Notification.requestPermission();
+    Notification.requestPermission().then((permission) => {
+      console.log("Notification permission:", permission);
+    });
   }
 }
 
