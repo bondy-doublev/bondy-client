@@ -22,6 +22,7 @@ import NotificationDropdown from "@/app/components/header/NotificationDropdown";
 import UserDropdown from "@/app/components/header/UserDropdown";
 import MenuDrawer from "@/app/components/header/MenuDrawer";
 import { chatService } from "@/services/chatService";
+import { requestBrowserNotificationPermission } from "@/lib/browserNotification";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -71,14 +72,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) return;
-    if (typeof window === "undefined") return;
-    if (!("Notification" in window)) return;
-
-    if (Notification.permission === "default") {
-      Notification.requestPermission().then((permission) => {
-        console.log("Notification permission:", permission);
-      });
-    }
+    requestBrowserNotificationPermission
   }, [user?.id]);
 
   const navItems = [
