@@ -69,6 +69,18 @@ export default function Navbar() {
     };
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window)) return;
+
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then((permission) => {
+        console.log("Notification permission:", permission);
+      });
+    }
+  }, [user?.id]);
+
   const navItems = [
     { path: "/", icon: Home },
     { path: "/friends", icon: Users },

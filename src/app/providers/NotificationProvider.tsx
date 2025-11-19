@@ -8,8 +8,9 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "react-toastify";
 import NotificationToast from "@/components/common/NotificationToast";
-import { Notification, NotificationType, RefType } from "@/models/Notfication";
+import { Notification } from "@/models/Notfication";
 import { useTranslations } from "next-intl";
+import { showBrowserNotification } from "@/lib/browserNotification";
 
 export const NotificationContext = createContext<{
   notifications: Notification[];
@@ -25,12 +26,9 @@ export default function NotificationProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuthStore();
-
   const t = useTranslations("notification");
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  const [notificationMsg, setNotificationMsg] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -50,7 +48,7 @@ export default function NotificationProvider({
             ...prev.filter((n) => n.id !== msg.id),
           ]);
 
-          // ✅ Hiển thị toast kiểu Facebook
+          // ✅ Toast trong UI
           toast(
             <NotificationToast notification={msg} createdAt={msg.createdAt} />,
             {
@@ -67,6 +65,9 @@ export default function NotificationProvider({
               },
             }
           );
+
+          // ✅ Native browser notification
+          showBrowserNotification(msg, t);
         });
       } catch (err) {
         console.error("❌ WS connection failed:", err);
@@ -74,22 +75,10 @@ export default function NotificationProvider({
     })();
 
     return () => {
-      // ❌ Không disconnect ở đây để giữ kết nối xuyên suốt app
       sub?.unsubscribe?.();
+      // không deactivate client để giữ kết nối toàn app – anh đã comment đúng
     };
-  }, [user]);
-
-  const handleNotificationMsg = (n: Notification) => {
-    const map: Record<string, string> = {
-      [`${NotificationType.LIKE}_${RefType.POST}`]: "likedYourPost",
-      [`${NotificationType.COMMENT}_${RefType.POST}`]: "commentedYourPost",
-      [`${NotificationType.REPLY_COMMENT}_${RefType.COMMENT}`]:
-        "repliedYourComment",
-    };
-
-    const key = `${n.type}_${n.refType}`;
-    return t(map[key] || "newNotification");
-  };
+  }, [user, t]);
 
   return (
     <NotificationContext.Provider value={{ notifications, setNotifications }}>
