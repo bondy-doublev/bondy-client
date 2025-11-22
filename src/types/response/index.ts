@@ -4,6 +4,7 @@ export interface UserBasicResponse {
   id: number;
   name: string;
   avatarUrl?: string;
+  fullName: string;
 }
 
 export interface ReelResponse {

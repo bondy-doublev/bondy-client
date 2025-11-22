@@ -6,6 +6,22 @@ import { useAuthStore } from "@/store/authStore";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
 import { reelService } from "@/services/reelService";
 import ReelCreateModal from "./ReelCreateModal";
+import ReelViewModal from "./ReelViewModal"; // Import Modal mới
+import { ReelVisibility } from "@/enums"; // Import enum
+import ReelEditModal from "./ReelEditModal";
+
+// Tạo type mới cho Reel để phù hợp với ReelEditModal
+interface ReelDataForEdit {
+  id: number;
+  videoUrl: string;
+  visibilityType: ReelVisibility;
+  customAllowedUserIds?: number[];
+  owner: {
+    id: number;
+    fullName: string;
+    avatarUrl?: string;
+  };
+}
 
 export default function VisibleReels() {
   const { user } = useAuthStore();
@@ -16,8 +32,13 @@ export default function VisibleReels() {
   const [loading, setLoading] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
 
-  // state để hiện modal xem reel của 1 người
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  // State để quản lý Modal Xem
+  const [selectedUserIdForView, setSelectedUserIdForView] = useState<
+    number | null
+  >(null);
+
+  // State để quản lý Modal Chỉnh sửa
+  const [reelToEdit, setReelToEdit] = useState<ReelDataForEdit | null>(null);
 
   // map: userId => hasNewReel
   const [userHasReel, setUserHasReel] = useState<Record<number, boolean>>({});
@@ -33,6 +54,7 @@ export default function VisibleReels() {
       const hasReelMap: Record<number, boolean> = {};
 
       for (const u of users) {
+        // Giả định reelService.getVisible trả về MyReelResponse[]
         const list = await reelService.getVisible(userId, u.id);
         if (Array.isArray(list) && list.length > 0) {
           all = [...all, ...list];
@@ -63,6 +85,25 @@ export default function VisibleReels() {
   // get reels của 1 user
   const reelsOfUser = (uid: number) => reels.filter((r) => r.owner.id === uid);
 
+  // Xử lý mở Modal Chỉnh sửa từ Modal Xem
+  const handleOpenEdit = (reel: ReelResponse) => {
+    // Đóng Modal Xem
+    setSelectedUserIdForView(null);
+    // Chuẩn bị dữ liệu và mở Modal Chỉnh sửa
+    setReelToEdit({
+      id: reel.id,
+      videoUrl: reel.videoUrl,
+      visibilityType: reel.visibilityType,
+      customAllowedUserIds: reel.customAllowedUserIds,
+      owner: reel.owner,
+    });
+  };
+
+  // Xử lý đóng Modal Chỉnh sửa
+  const handleCloseEdit = () => {
+    setReelToEdit(null);
+  };
+
   return (
     <div className="p-4 bg-white rounded-xl shadow space-y-3">
       <div className="flex justify-between items-center">
@@ -81,7 +122,7 @@ export default function VisibleReels() {
           <div
             key={u.id}
             className={`flex flex-col items-center cursor-pointer`}
-            onClick={() => setSelectedUserId(u.id)}
+            onClick={() => setSelectedUserIdForView(u.id)}
           >
             <img
               src={u.avatarUrl || "/images/fallback/user.png"}
@@ -106,7 +147,7 @@ export default function VisibleReels() {
         <div className="text-gray-500 text-sm">No reels available</div>
       )}
 
-      {/* Modal tạo reel */}
+      {/* Modal Tạo reel (đã tách) */}
       {openCreate && (
         <ReelCreateModal
           userId={userId || 0}
@@ -117,16 +158,30 @@ export default function VisibleReels() {
         />
       )}
 
-      {/* Modal xem reel của 1 user */}
-      {selectedUserId !== null && (
-        <ReelCreateModal
-          userId={selectedUserId}
-          open={selectedUserId !== null}
-          onClose={() => setSelectedUserId(null)}
-          onCreated={fetchReels}
+      {/* Modal Xem reel (đã tách) */}
+      {selectedUserIdForView !== null && (
+        <ReelViewModal
+          currentUserId={userId || 0}
+          open={selectedUserIdForView !== null}
+          onClose={() => setSelectedUserIdForView(null)}
+          onOpenEdit={handleOpenEdit}
+          initialReels={reelsOfUser(selectedUserIdForView)}
+        />
+      )}
+
+      {/* Modal Chỉnh sửa reel (ReelEditModal đã có sẵn) */}
+      {reelToEdit && (
+        <ReelEditModal
+          reel={reelToEdit}
+          currentUserId={userId || 0}
+          open={reelToEdit !== null}
+          onClose={handleCloseEdit}
+          onUpdated={() => {
+            fetchReels();
+            handleCloseEdit();
+          }}
+          onDeleted={fetchReels}
           friends={friendUsers}
-          isViewOnly
-          initialReels={reelsOfUser(selectedUserId)}
         />
       )}
     </div>
