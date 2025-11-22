@@ -51,16 +51,19 @@ export default function VisibleReels() {
       let all: ReelResponse[] = [];
       const users = [user, ...friendUsers];
 
-      const hasReelMap: Record<number, boolean> = {};
+      const hasUnseenMap: Record<number, boolean> = {};
 
       for (const u of users) {
-        // Giả định reelService.getVisible trả về MyReelResponse[]
         const list = await reelService.getVisible(userId, u.id);
         if (Array.isArray(list) && list.length > 0) {
           all = [...all, ...list];
-          hasReelMap[u.id] = true;
+          // Chỉ đánh dấu có vòng xanh nếu còn reel chưa đọc
+          const hasUnseen = list.some(
+            (r) => !r.readUsers.some((ru) => ru.id === userId)
+          );
+          hasUnseenMap[u.id] = hasUnseen;
         } else {
-          hasReelMap[u.id] = false;
+          hasUnseenMap[u.id] = false;
         }
       }
 
@@ -70,7 +73,7 @@ export default function VisibleReels() {
       );
 
       setReels(all);
-      setUserHasReel(hasReelMap);
+      setUserHasReel(hasUnseenMap); // đổi tên thành hợp lý
     } catch (err) {
       console.error(err);
     } finally {
@@ -129,9 +132,7 @@ export default function VisibleReels() {
               alt={u.fullName}
               className={`w-16 h-16 rounded-full p-1
                 ${
-                  userHasReel[u.id]
-                    ? "border-2 border-green-500"
-                    : "border border-gray-200"
+                  userHasReel[u.id] ? "border-2 border-green-500" : "border border-gray-200"
                 }
               `}
             />
