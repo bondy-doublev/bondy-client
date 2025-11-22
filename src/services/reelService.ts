@@ -94,6 +94,19 @@ export const reelService = {
     }
   },
 
+  async markRead(reelId: number, viewerId: number): Promise<boolean> {
+    try {
+      await api.post(`${BASE}/${reelId}/read`, null, {
+        params: { viewerId },
+      });
+      return true;
+    } catch (error: any) {
+      console.error("Mark Viewed Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to mark viewed");
+      return false;
+    }
+  },
+
   // ---------------- RUN EXPIRE JOB (DEBUG) ----------------
   async expireNow(): Promise<string | null> {
     try {
@@ -102,6 +115,37 @@ export const reelService = {
     } catch (error: any) {
       console.error("Expire Job Error:", error);
       Toast.error(error?.response?.data?.message || "Failed to run job");
+      return null;
+    }
+  },
+
+  // ---------------- MARK READ ----------------
+  async markRead(reelId: number, viewerId: number): Promise<boolean> {
+    try {
+      await api.post(`${BASE}/${reelId}/read`, null, {
+        params: { viewerId },
+      });
+      return true;
+    } catch (error: any) {
+      console.error("Mark Read Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to mark read");
+      return false;
+    }
+  },
+
+  // ---------------- GET ALL REELS (IGNORE EXPIRATION) ----------------
+  async getAllReels(
+    requesterId: number,
+    ownerId?: number
+  ): Promise<ReelResponse[] | null> {
+    try {
+      const res = await api.get<AppApiResponse<ReelResponse[]>>(`${BASE}/all`, {
+        params: { requesterId, ownerId },
+      });
+      return res.data.data || res.data;
+    } catch (error: any) {
+      console.error("Get All Reels Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to load reels");
       return null;
     }
   },

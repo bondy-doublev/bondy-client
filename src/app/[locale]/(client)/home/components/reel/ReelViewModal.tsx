@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { X, Settings, Eye, Globe, Users, Lock, LockIcon } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { reelService } from "@/services/reelService";
 
 interface ReelResponse {
   id: number;
@@ -110,9 +111,19 @@ export default function ReelViewModal({
     clickX < mid ? handlePrev() : handleNext();
   };
 
-  if (!open || initialReels.length === 0) return null;
   const currentReel = initialReels[currentIndex];
-  const isOwner = currentReel.owner.id === currentUserId;
+  const isOwner = currentReel?.owner?.id === currentUserId;
+
+  useEffect(() => {
+    if (!open || !currentReel) return;
+
+    reelService.markViewed(currentReel.id, currentUserId).catch((err) => {
+      console.error("Failed to mark reel viewed", err);
+    });
+    reelService.markRead(currentReel.id, currentUserId).catch((err) => {
+      console.error("Failed to mark reel read", err);
+    });
+  }, [currentIndex, currentReel, currentUserId, open]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -254,11 +265,39 @@ export default function ReelViewModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 flex justify-between items-center bg-black/10 z-20">
-          <div className="flex items-center gap-1 text-sm text-white drop-shadow-lg">
+        <div className="p-4 flex justify-between items-center bg-black/10 z-20 relative">
+          <div className="flex items-center gap-2 text-sm text-white drop-shadow-lg relative">
             <Eye size={16} />
             <span>{currentReel.viewCount} lượt xem</span>
+
+            {/* Popover hiện người xem */}
+            <div className="group relative">
+              <button className="ml-2 p-1 bg-white/10 rounded-full hover:bg-white/20 transition">
+                <Users size={16} />
+              </button>
+
+              <div className="absolute bottom-full mb-2 left-0 w-48 bg-black/90 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-30">
+                <div className="max-h-48 overflow-y-auto p-2">
+                  {currentReel?.readUsers?.map((user: any) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center gap-2 mb-2 last:mb-0"
+                    >
+                      <img
+                        src={user.avatarUrl || "/images/fallback/user.png"}
+                        alt={user.fullName}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <span className="text-xs text-white">
+                        {user.fullName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+
           <span className="text-xs font-medium text-white/80">
             {currentIndex + 1} / {initialReels.length}
           </span>

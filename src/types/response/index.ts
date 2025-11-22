@@ -18,4 +18,6 @@ export interface ReelResponse {
   customAllowedUserIds: number[];
   createdAt: string;
   updatedAt: string;
+  isRead: boolean;
+  readUsers: UserBasicResponse[];
 }
