@@ -1,5 +1,10 @@
 "use client";
 
+import { ReelVisibility } from "@/enums";
+import { reelService } from "@/services/reelService";
+import { uploadCloudinaryVideoSingle } from "@/services/uploadService";
+import { CreateReelRequest } from "@/types/request";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,111 +13,90 @@ import {
   DialogOverlay,
   DialogClose,
 } from "@/components/ui/dialog";
-import { X, Trash2, Lock, Globe } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { Post } from "@/models/Post";
-import { UserBasic } from "@/models/User";
-import { Button } from "@/components/ui/button";
-import { postService } from "@/services/postService";
-import TagModal from "@/app/[locale]/(client)/home/components/composer/TagModal";
+import { X, Globe, Users, Lock } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
-type Props = {
-  t: (key: string) => string;
+interface Friend {
+  id: number;
+  fullName: string;
+  avatarUrl?: string;
+}
+
+interface ReelCreateModalProps {
+  userId: number;
   open: boolean;
   onClose: () => void;
-  post: Post;
-  onSaved: (updated: Post) => void;
-};
+  onCreated?: () => void; // callback sau khi tạo xong
+  friends?: Friend[];
+}
 
-export default function EditPostModal({
-  t,
+export default function ReelCreateModal({
+  userId,
   open,
   onClose,
-  post,
-  onSaved,
-}: Props) {
-  const [content, setContent] = useState(post.contentText ?? "");
-  const [showTagModal, setShowTagModal] = useState(false);
-  const [tagged, setTagged] = useState<UserBasic[]>(post.taggedUsers ?? []);
-  const [saving, setSaving] = useState(false);
-
-  // Visibility
-  const [isPublic, setIsPublic] = useState<boolean>(post.visibility ?? true);
-
-  // Chọn media để xoá
-  const [selectedForRemove, setSelectedForRemove] = useState<Set<number>>(
-    new Set()
+  onCreated,
+  friends = [],
+}: ReelCreateModalProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<ReelVisibility>(
+    ReelVisibility.PUBLIC
   );
+  const [customAllowedUsers, setCustomAllowedUsers] = useState<number[]>([]);
+  const [ttlHours, setTtlHours] = useState<number>(24);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const tagUserIds = useMemo(() => tagged.map((u) => u.id), [tagged]);
+  if (!open) return null;
 
-  useEffect(() => {
-    setContent(post.contentText ?? "");
-    setTagged(post.taggedUsers ?? []);
-    setIsPublic(post.visibility ?? true);
-    setSelectedForRemove(new Set());
-  }, [post]);
-
-  const handleSetTagUsers = useCallback((users: UserBasic[]) => {
-    setTagged(users);
-  }, []);
-
-  const toggleSelectMedia = (id: number) => {
-    setSelectedForRemove((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
+      setVideoPreview(URL.createObjectURL(f));
+    }
   };
 
-  // Cho phép lưu nếu: có text sau trim HOẶC vẫn còn media sau khi xoá
-  const willHaveAnyContent = useMemo(() => {
-    const textOk = content.trim() !== "";
-    const mediaLeft =
-      (post.mediaAttachments?.length ?? 0) - selectedForRemove.size;
-    return textOk || mediaLeft > 0;
-  }, [content, post.mediaAttachments, selectedForRemove]);
+  const handleCreateReel = async () => {
+    if (!file) return alert("Chọn video trước nha");
 
-  const handleSave = async () => {
     try {
-      setSaving(true);
-      const removeAttachmentIds = Array.from(selectedForRemove);
+      setIsUploading(true);
+      const videoUrl = await uploadCloudinaryVideoSingle(file);
 
-      const res = await postService.update({
-        postId: post.id,
-        content: content.trim(), // "" để xoá text nếu cần
-        isPublic,
-        tagUserIds,
-        removeAttachmentIds,
-      });
-
-      // Nếu backend trả post mới thì dùng, không thì tự cập nhật local
-      const removed = new Set(removeAttachmentIds);
-      const newMedia = post.mediaAttachments.filter((m) => !removed.has(m.id));
-      const updated: Post = res?.data ?? {
-        ...post,
-        contentText: content.trim(),
-        taggedUsers: tagged,
-        mediaAttachments: newMedia,
-        mediaCount: newMedia.length,
-        visibility: isPublic,
+      const payload: CreateReelRequest = {
+        userId,
+        videoUrl,
+        visibilityType: visibility,
+        customAllowedUserIds: visibility === "CUSTOM" ? customAllowedUsers : [],
+        ttlHours,
       };
 
-      onSaved(updated);
+      await reelService.create(payload);
+      alert("Tạo reel thành công!");
       onClose();
+      onCreated?.();
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi tạo reel");
     } finally {
-      setSaving(false);
+      setIsUploading(false);
     }
+  };
+
+  const toggleUser = (id: number) => {
+    setCustomAllowedUsers((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      return [...prev, id];
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogOverlay className="fixed inset-0 bg-black/30 z-[60]" />
-      <DialogContent className="w-[95%] md:max-w-xl bg-white rounded-2xl shadow-xl p-0 overflow-hidden z-[70]">
-        <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10 relative">
+      <DialogContent className="w-[95%] md:max-w-md bg-white rounded-2xl shadow-xl p-0 overflow-hidden z-[70]">
+        <DialogHeader className="flex items-center justify-center h-14 border-b bg-white relative">
           <DialogTitle className="text-base pt-2 font-semibold text-gray-800 leading-none">
-            {t("editPost")}
+            Tạo Reel mới
           </DialogTitle>
           <DialogClose asChild>
             <button
@@ -125,168 +109,121 @@ export default function EditPostModal({
         </DialogHeader>
 
         <div className="p-4 space-y-4">
-          {/* Visibility toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t("addToYourPost")}:</span>
-            <button
-              type="button"
-              onClick={() => setIsPublic(true)}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                isPublic
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              <Globe size={14} /> {t("public")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsPublic(false)}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                !isPublic
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              <Lock size={14} /> {t("private")}
-            </button>
-          </div>
-
-          {/* Tagged friends */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-800">
-                {t("taggedUsers")}
-              </div>
-              <button
-                onClick={() => setShowTagModal(true)}
-                className="text-sm text-green-600 hover:underline"
-              >
-                {t("editTags")}
-              </button>
-            </div>
-            {tagged.length === 0 ? (
-              <p className="text-xs text-gray-500">{t("noTaggedUsers")}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {tagged.map((u) => (
-                  <span
-                    key={u.id}
-                    className="text-xs px-2 py-1 bg-gray-100 rounded-full"
-                  >
-                    {u.fullName}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full min-h-32 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder={t("saySomething")}
+          {/* Video Upload */}
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleFileChange}
+            className="w-full text-sm"
           />
 
-          {/* Media hiện có + chọn để xoá */}
-          {post.mediaAttachments?.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium text-gray-800">
-                  {t("media")}
-                </div>
-                {selectedForRemove.size > 0 && (
-                  <div className="ml-auto text-xs text-red-600 flex items-center gap-1">
-                    <Trash2 size={14} /> {selectedForRemove.size}{" "}
-                    {t("selected")}
-                  </div>
-                )}
-              </div>
+          {videoPreview && (
+            <video
+              src={videoPreview}
+              controls
+              className="w-full rounded border mt-2"
+            />
+          )}
 
-              <div className="grid grid-cols-3 gap-2">
-                {post.mediaAttachments.map((m) => {
-                  const checked = selectedForRemove.has(m.id);
-                  return (
-                    <label
-                      key={m.id}
-                      className={`relative group border rounded-lg overflow-hidden cursor-pointer ${
-                        checked ? "ring-2 ring-red-500" : ""
-                      }`}
-                    >
-                      {/* overlay checkbox */}
-                      <input
-                        type="checkbox"
-                        className="absolute top-2 left-2 z-10 w-4 h-4"
-                        checked={checked}
-                        onChange={() => toggleSelectMedia(m.id)}
-                      />
-                      <div
-                        className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition ${
-                          checked ? "bg-black/20" : ""
-                        }`}
-                      />
-                      {m.type === "IMAGE" ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={m.url}
-                          alt="media"
-                          className="w-full h-28 object-cover"
-                        />
-                      ) : (
-                        <video
-                          src={m.url}
-                          className="w-full h-28 object-cover"
-                          controls={false}
-                          muted
-                        />
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
+          {/* Visibility */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">Chọn người xem:</label>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setVisibility(ReelVisibility.PUBLIC)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                  visibility === ReelVisibility.PUBLIC
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                <Globe size={14} /> Công khai
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility(ReelVisibility.FRIENDS)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                  visibility === ReelVisibility.FRIENDS
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                <Users size={14} /> Bạn bè
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility(ReelVisibility.CUSTOM)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                  visibility === ReelVisibility.CUSTOM
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                <Lock size={14} /> Tùy chọn
+              </button>
+            </div>
+          </div>
 
-              {selectedForRemove.size > 0 && (
-                <div className="text-xs text-gray-500">
-                  {t("delete")}: {selectedForRemove.size} {t("selected")}
-                </div>
+          {/* Custom user list */}
+          {visibility === ReelVisibility.CUSTOM && (
+            <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-1">
+              {friends.map((f) => (
+                <label
+                  key={f.id}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={customAllowedUsers.includes(f.id)}
+                    onChange={() => toggleUser(f.id)}
+                  />
+                  {f.avatarUrl && (
+                    <img
+                      src={f.avatarUrl}
+                      alt={f.fullName}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  )}
+                  <span className="text-sm">{f.fullName}</span>
+                </label>
+              ))}
+              {friends.length === 0 && (
+                <p className="text-xs text-gray-500">Bạn chưa có bạn bè</p>
               )}
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              variant="outline"
+          {/* TTL */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Thời gian tồn tại (giờ)</label>
+            <input
+              type="number"
+              min={1}
+              value={ttlHours}
+              onChange={(e) => setTtlHours(Number(e.target.value))}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              className="px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300"
               onClick={onClose}
-              disabled={saving}
-              className="px-3"
             >
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving || !willHaveAnyContent}
-              className={
-                selectedForRemove.size > 0
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-green-600 hover:bg-green-700"
-              }
+              Hủy
+            </button>
+            <button
+              onClick={handleCreateReel}
+              disabled={isUploading}
+              className="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? t("loading") : t("save")}
-            </Button>
+              {isUploading ? "Đang tạo..." : "Tạo reel"}
+            </button>
           </div>
         </div>
       </DialogContent>
-
-      {showTagModal && (
-        <TagModal
-          t={t}
-          showModal={showTagModal}
-          onClose={() => setShowTagModal(false)}
-          onSetTagUsers={handleSetTagUsers}
-          initialTagged={tagged}
-        />
-      )}
     </Dialog>
   );
 }

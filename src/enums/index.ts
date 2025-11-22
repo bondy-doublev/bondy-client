@@ -3,3 +3,10 @@ export enum FriendshipStatus {
   ACCEPTED = "ACCEPTED",
   REJECTED = "REJECTED",
 }
+
+export enum ReelVisibility {
+  PUBLIC = "PUBLIC",
+  FRIENDS = "FRIENDS",
+  CUSTOM = "CUSTOM",
+  PRIVATE = "PRIVATE",
+}
