@@ -77,7 +77,6 @@ export default function ReelCreateModal({
       };
 
       await reelService.create(payload);
-      alert("Tạo reel thành công!");
       handleClose();
       onCreated?.();
     } catch (err) {
