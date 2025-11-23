@@ -2,7 +2,7 @@
 
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 
 type ModalItem = {
@@ -15,6 +15,7 @@ type MediaModalProps = {
   onClose: () => void;
   items: ModalItem[];
   initialIndex?: number;
+  onReachEnd?: () => void;
 };
 
 export default function MediaModal({
@@ -22,14 +23,35 @@ export default function MediaModal({
   onClose,
   items,
   initialIndex = 0,
+  onReachEnd,
 }: MediaModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
+  // nhớ lần click Next ở cuối để đợi load xong thì nhảy tiếp
+  const pendingAdvanceRef = useRef(false);
+  const prevLengthRef = useRef(items.length);
+
+  // ✅ chỉ reset index khi modal mở lại hoặc initialIndex đổi
   useEffect(() => {
     if (open) {
       setCurrentIndex(initialIndex);
+      pendingAdvanceRef.current = false;
+      prevLengthRef.current = items.length;
     }
-  }, [open, initialIndex]);
+  }, [open, initialIndex]); // ❌ bỏ items.length ở đây
+
+  // Khi items.length thay đổi (parent load thêm), nếu đang pendingAdvance → tự advance
+  useEffect(() => {
+    const prevLen = prevLengthRef.current;
+    const currLen = items.length;
+
+    if (currLen > prevLen && pendingAdvanceRef.current) {
+      setCurrentIndex((prev) => Math.min(prev + 1, currLen - 1));
+      pendingAdvanceRef.current = false;
+    }
+
+    prevLengthRef.current = currLen;
+  }, [items.length]);
 
   if (!open || items.length === 0) return null;
 
@@ -46,11 +68,23 @@ export default function MediaModal({
   const goPrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+    pendingAdvanceRef.current = false;
   };
 
   const goNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+
+    const isLast = currentIndex === items.length - 1;
+
+    if (isLast) {
+      // đang ở cuối: báo cha load thêm và chờ
+      pendingAdvanceRef.current = true;
+      onReachEnd?.();
+      return;
+    }
+
+    setCurrentIndex((prev) => Math.min(prev + 1, items.length - 1));
+    pendingAdvanceRef.current = false;
   };
 
   const modal = (
@@ -64,7 +98,7 @@ export default function MediaModal({
       style={{ pointerEvents: "auto" }}
       onClick={handleOverlayClick}
     >
-      {/* nút đóng - trên cùng bên phải */}
+      {/* nút đóng */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -75,7 +109,7 @@ export default function MediaModal({
         <X className="text-white w-5 h-5" />
       </button>
 
-      {/* nút điều hướng ngoài media, giống kiểu X */}
+      {/* nút điều hướng */}
       {items.length > 1 && (
         <>
           <button
@@ -93,7 +127,7 @@ export default function MediaModal({
         </>
       )}
 
-      {/* content wrapper - chặn propagation */}
+      {/* content wrapper */}
       <div className="relative" onClick={handleContentClick}>
         {current.type === "video" ? (
           <video
@@ -109,26 +143,25 @@ export default function MediaModal({
             alt="media"
             width={1200}
             height={900}
-            // width/height chỉ để Next biết tỷ lệ, không ép kích thước thực
             className="rounded-lg shadow-lg object-contain w-auto h-auto max-w-[95vw] max-h-[90vh]"
             sizes="(max-width: 768px) 100vw, 95vw"
           />
         )}
-
-        {/* dot indicator vẫn nằm dưới media */}
-        {items.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
-            {items.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 w-2 rounded-full transition-all ${
-                  i === currentIndex ? "bg-white scale-110" : "bg-white/40"
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* dot indicator */}
+      {items.length > 1 && (
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+          {items.map((_, i) => (
+            <span
+              key={i}
+              className={`h-2 w-2 rounded-full transition-all ${
+                i === currentIndex ? "bg-white scale-110" : "bg-white/40"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 
