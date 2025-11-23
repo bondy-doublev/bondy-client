@@ -29,4 +29,5 @@ export type Notification = {
   refId: number;
   isRead: boolean;
   createdAt: string;
+  redirectId: number;
 };

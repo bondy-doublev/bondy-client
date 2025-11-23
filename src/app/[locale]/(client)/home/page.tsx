@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="flex justify-center overflow-x-hidden min-w-full">
       {/* Feed chính */}
-      <div className="w-full xl:mr-[20%] flex justify-center">
+      <div className="w-full xl:mr-[20%] flex justify-center p-4">
         <MainFeed className="w-full" />
       </div>
 

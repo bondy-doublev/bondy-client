@@ -17,10 +17,12 @@ import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function NotificationDropdown() {
   const t = useTranslations("notification");
   const { notifications, setNotifications } = useContext(NotificationContext);
+  const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
   const [page, setPage] = useState(0);
@@ -80,6 +82,29 @@ export default function NotificationDropdown() {
     }
   };
 
+  // 👉 Helper format thời gian: nếu hôm nay thì chỉ HH:mm, còn lại dd/MM/yyyy HH:mm
+  const formatNotificationTime = (value: any) => {
+    const createdAt = new Date(value);
+    const now = new Date();
+
+    const isToday = createdAt.toDateString() === now.toDateString();
+
+    if (isToday) {
+      return createdAt.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    return createdAt.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <DropdownMenu onOpenChange={handleDropdownOpen}>
       {/* 🔔 Icon chuông */}
@@ -131,6 +156,11 @@ export default function NotificationDropdown() {
                       ? "bg-green-100 hover:bg-green-100"
                       : "bg-white hover:bg-green-100"
                   }`}
+                  onClick={
+                    n.redirectId !== null
+                      ? () => router.push(`/post/${n.redirectId}/detail`)
+                      : () => {}
+                  }
                 >
                   {n.actorAvatarUrl ? (
                     <UserAvatar
@@ -155,10 +185,7 @@ export default function NotificationDropdown() {
                       {n.actorName} {handleNotificationMsg(n, t)}
                     </span>
                     <span className="text-[11px] text-gray-500 mt-1">
-                      {new Date(n.createdAt).toLocaleTimeString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatNotificationTime(n.createdAt)}
                     </span>
                   </div>
                 </div>

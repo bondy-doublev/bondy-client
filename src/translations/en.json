@@ -187,7 +187,10 @@
     "media": "Media",
     "addMedia": "Add media",
     "chooseFiles": "Choose files",
-    "noNewMedia": "No new media selected"
+    "noNewMedia": "No new media selected",
+    "back": "Back",
+    "postDetailTitle": "Post detail",
+    "notFoundTitle": "Post not found"
   },
   "friend": {
     "friends": "Friends",
