@@ -14,7 +14,7 @@ export default function RootLayout({
         <AppNavbar />
         <div className="flex flex-1 overflow-hidden">
           <AppSidebar />
-          <main className="flex-1 overflow-y-auto md:ml-[20%] p-4 bg-gray-50">
+          <main className="flex-1 overflow-y-auto md:ml-[20%] bg-gray-50">
             {children}
             <GlobalVideoCall />
           </main>

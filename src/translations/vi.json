@@ -187,7 +187,10 @@
     "media": "Ảnh và video",
     "addMedia": "Thêm phương tiện",
     "chooseFiles": "Chọn tệp",
-    "noNewMedia": "Chưa chọn tệp mới"
+    "noNewMedia": "Chưa chọn tệp mới",
+    "back": "Quay về",
+    "postDetailTitle": "Chi tiết bài viết",
+    "notFoundTitle": "Không tìm thấy bài viết"
   },
   "friend": {
     "friends": "Bạn bè",
