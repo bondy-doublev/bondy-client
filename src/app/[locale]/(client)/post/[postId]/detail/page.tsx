@@ -150,15 +150,13 @@ export default function PostDetail() {
               onDelete={() => handleDeletePost()}
             />
 
-            {/* Comment ngay dưới */}
-            <div className="border-t px-4 pb-4 pt-3">
-              <CommentSection
-                t={t}
-                postId={post.id}
-                mode="page"
-                onCommentCountChange={handleCommentCountChange}
-              />
-            </div>
+            {/* Comment: max-height + scroll + composer dính đáy */}
+            <CommentSection
+              t={t}
+              postId={post.id}
+              mode="page"
+              onCommentCountChange={handleCommentCountChange}
+            />
           </section>
         )}
       </main>
