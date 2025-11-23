@@ -89,6 +89,15 @@ export default function MediaSidebar({
     return () => observer.disconnect();
   }, [loading, hasMore, isDetail]);
 
+  const handleModalReachEnd = () => {
+    // tuỳ bạn, nếu chỉ muốn load thêm ở trang detail:
+    if (!isDetail) return;
+
+    if (!loading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   // map medias -> items cho modal
   const modalItems: ModalItem[] = medias.map((media) => {
     const isVideo = media.type === "VIDEO" || media.url.endsWith(".mp4");
@@ -177,6 +186,7 @@ export default function MediaSidebar({
           onClose={() => setSelectedIndex(null)}
           items={modalItems}
           initialIndex={selectedIndex}
+          onReachEnd={handleModalReachEnd}
         />
       )}
     </>
