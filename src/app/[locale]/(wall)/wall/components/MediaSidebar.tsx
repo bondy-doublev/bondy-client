@@ -9,6 +9,11 @@ import { Play } from "lucide-react";
 import MediaModal from "./MediaModal";
 import Link from "next/link";
 
+type ModalItem = {
+  url: string;
+  type: "image" | "video";
+};
+
 export default function MediaSidebar({
   className,
   userId,
@@ -20,15 +25,14 @@ export default function MediaSidebar({
 }) {
   const t = useTranslations("wall");
   const [medias, setMedias] = useState<MediaAttachment[]>([]);
-  const [selectedMedia, setSelectedMedia] = useState<MediaAttachment | null>(
-    null
-  );
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ Fix layout shift bằng cách giữ tham chiếu container
+  // index của media đang mở trong modal (null = không mở)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  const loaderRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch media
@@ -54,11 +58,12 @@ export default function MediaSidebar({
     }
   };
 
-  // Load page đầu tiên
+  // Load page đầu tiên khi đổi user
   useEffect(() => {
     setPage(0);
     setHasMore(true);
     fetchMedias(0, true);
+    setSelectedIndex(null); // đóng modal nếu đang mở
   }, [userId]);
 
   // Fetch khi page thay đổi (chỉ nếu isDetail)
@@ -84,6 +89,15 @@ export default function MediaSidebar({
     return () => observer.disconnect();
   }, [loading, hasMore, isDetail]);
 
+  // map medias -> items cho modal
+  const modalItems: ModalItem[] = medias.map((media) => {
+    const isVideo = media.type === "VIDEO" || media.url.endsWith(".mp4");
+    return {
+      url: media.url,
+      type: isVideo ? "video" : "image",
+    };
+  });
+
   return (
     <>
       <aside
@@ -99,7 +113,7 @@ export default function MediaSidebar({
           {medias.length > 0 && !isDetail && (
             <div className="text-center">
               <Link
-                href={"/wall/" + userId + "/media"}
+                href={`/wall/${userId}/media`}
                 className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
               >
                 {t("seeAllMedias")}
@@ -110,14 +124,14 @@ export default function MediaSidebar({
 
         {/* Media grid */}
         <ul className="grid grid-cols-3 gap-2">
-          {medias.map((media) => {
+          {medias.map((media, index) => {
             const isVideo =
               media.type === "VIDEO" || media.url.endsWith(".mp4");
 
             return (
               <li
                 key={media.id}
-                onClick={() => setSelectedMedia(media)}
+                onClick={() => setSelectedIndex(index)}
                 className="relative aspect-square overflow-hidden rounded-md group cursor-pointer bg-black"
               >
                 {isVideo ? (
@@ -156,17 +170,13 @@ export default function MediaSidebar({
         )}
       </aside>
 
-      {/* 🧩 Modal hiển thị media */}
-      {selectedMedia && (
+      {/* Modal hiển thị media (có thể next/prev) */}
+      {selectedIndex !== null && modalItems.length > 0 && (
         <MediaModal
-          open={!!selectedMedia}
-          onClose={() => setSelectedMedia(null)}
-          url={selectedMedia.url}
-          type={
-            selectedMedia.type === "VIDEO" || selectedMedia.url.endsWith(".mp4")
-              ? "video"
-              : "image"
-          }
+          open={selectedIndex !== null}
+          onClose={() => setSelectedIndex(null)}
+          items={modalItems}
+          initialIndex={selectedIndex}
         />
       )}
     </>
