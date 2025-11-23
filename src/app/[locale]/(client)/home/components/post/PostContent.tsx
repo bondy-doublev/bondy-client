@@ -7,6 +7,11 @@ import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { MediaAttachment } from "@/models/Post";
 import MediaModal from "@/app/[locale]/(wall)/wall/components/MediaModal";
 
+type ModalItem = {
+  url: string;
+  type: "image" | "video";
+};
+
 export default function PostContent({
   content,
   mediaAttachments,
@@ -16,9 +21,10 @@ export default function PostContent({
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [modalData, setModalData] = useState<{
-    url: string;
-    type: "image" | "video";
+
+  const [modalState, setModalState] = useState<{
+    index: number;
+    items: ModalItem[];
   } | null>(null);
 
   const onSelect = useCallback(() => {
@@ -34,6 +40,21 @@ export default function PostContent({
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  const openModalAt = (startIndex: number) => {
+    const items: ModalItem[] = mediaAttachments.map((media) => {
+      const isVideo = media.type === "VIDEO" || media.url.endsWith(".mp4");
+      return {
+        url: media.url,
+        type: isVideo ? "video" : "image",
+      };
+    });
+
+    setModalState({
+      index: startIndex,
+      items,
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -67,9 +88,7 @@ export default function PostContent({
                           className="max-h-[80vh] w-auto object-contain bg-black"
                         />
                         <button
-                          onClick={() =>
-                            setModalData({ url: media.url, type: "video" })
-                          }
+                          onClick={() => openModalAt(i)}
                           className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition z-10"
                           title="Xem chi tiết"
                         >
@@ -88,9 +107,7 @@ export default function PostContent({
                           loading={i === 0 ? undefined : "lazy"}
                           className="max-h-[80vh] w-auto object-contain select-none cursor-pointer"
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          onClick={() =>
-                            setModalData({ url: media.url, type: "image" })
-                          }
+                          onClick={() => openModalAt(i)}
                         />
                       </div>
                     )}
@@ -133,12 +150,12 @@ export default function PostContent({
       )}
 
       {/* Modal chi tiết */}
-      {modalData && (
+      {modalState && (
         <MediaModal
-          open={!!modalData}
-          onClose={() => setModalData(null)}
-          url={modalData.url}
-          type={modalData.type}
+          open={!!modalState}
+          onClose={() => setModalState(null)}
+          items={modalState.items}
+          initialIndex={modalState.index}
         />
       )}
     </div>
