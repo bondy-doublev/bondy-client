@@ -57,11 +57,7 @@ export async function uploadLocalMultiple(files: File[]): Promise<string[]> {
   return res.data.data;
 }
 
-import type { Attachment } from "@/services/chatService";
-
-export async function uploadFilesAsAttachments(
-  files: File[]
-): Promise<Attachment[]> {
+export async function uploadFilesAsAttachments(files: File[]): Promise<any[]> {
   const urls = await uploadCloudinaryMultiple(files);
   return urls.map((url, i) => {
     const f = files[i];
@@ -70,6 +66,34 @@ export async function uploadFilesAsAttachments(
       fileName: f?.name,
       mimeType: f?.type,
       size: f?.size,
-    } as Attachment;
+    } as any;
   });
+}
+
+export async function uploadCloudinaryVideoSingle(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("video", file);
+
+  const res = await api.post<AppApiResponse<string>>(
+    `${BASE}/upload/cloudinary/video`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+
+  return res.data.data;
+}
+
+export async function uploadCloudinaryVideoMultiple(
+  files: File[]
+): Promise<string[]> {
+  const formData = new FormData();
+  files.forEach((f) => formData.append("videos", f));
+
+  const res = await api.post<AppApiResponse<string[]>>(
+    `${BASE}/upload/cloudinary/video/multiple`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+
+  return res.data.data;
 }

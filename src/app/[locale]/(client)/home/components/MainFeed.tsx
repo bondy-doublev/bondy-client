@@ -12,6 +12,7 @@ import { shareService } from "@/services/shareService";
 import { wallService } from "@/services/wallService";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
+import VisibleReels from "./reel/VisibleReels";
 
 export default function MainFeed({
   className,
@@ -128,6 +129,9 @@ export default function MainFeed({
 
   return (
     <div className={`max-w-[500px] space-y-6 mb-4 ${className}`}>
+      {/* Reels của tôi + bạn bè */}
+      <VisibleReels />
+
       {/* Composer đăng bài */}
       <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
 
