@@ -117,17 +117,17 @@ export default function ReelViewModal({
   useEffect(() => {
     if (!open || !currentReel) return;
 
-    reelService.markViewed(currentReel.id, currentUserId).catch((err) => {
+    reelService.markViewed(currentReel?.id, currentUserId).catch((err) => {
       console.error("Failed to mark reel viewed", err);
     });
-    reelService.markRead(currentReel.id, currentUserId).catch((err) => {
+    reelService.markRead(currentReel?.id, currentUserId).catch((err) => {
       console.error("Failed to mark reel read", err);
     });
   }, [currentIndex, currentReel, currentUserId, open]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogOverlay className="fixed inset-0 bg-black/95 z-[60]" />
+      <DialogOverlay className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60]" />
 
       <DialogHeader className="sr-only">
         <DialogTitle>Reel Viewer</DialogTitle>
@@ -168,27 +168,27 @@ export default function ReelViewModal({
         <div className="absolute top-8 left-4 right-4 flex items-start justify-between z-20 pointer-events-none">
           <div className="flex items-center gap-3">
             <img
-              src={currentReel.owner.avatarUrl || "/images/fallback/user.png"}
-              alt={currentReel.owner.fullName}
+              src={currentReel?.owner?.avatarUrl || "/images/fallback/user.png"}
+              alt={currentReel?.owner?.fullName}
               className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
             />
             <div>
               <span className="font-semibold text-white text-sm drop-shadow-lg">
-                {currentReel.owner.fullName}
+                {currentReel?.owner?.fullName}
               </span>
               <div className="flex items-center justify-start">
                 {/* Icon visibility */}
-                {currentReel.visibilityType === "PUBLIC" && (
+                {currentReel?.visibilityType === "PUBLIC" && (
                   <Globe size={16} className="text-white" />
                 )}
-                {currentReel.visibilityType === "PRIVATE" && (
+                {currentReel?.visibilityType === "PRIVATE" && (
                   <LockIcon size={16} className="text-white" />
                 )}
-                {currentReel.visibilityType === "CUSTOM" && (
+                {currentReel?.visibilityType === "CUSTOM" && (
                   <Users size={16} className="text-white" />
                 )}
                 <p className="text-white/80 text-xs drop-shadow-lg ml-2">
-                  {new Date(currentReel.createdAt).toLocaleDateString("vi-VN")}
+                  {new Date(currentReel?.createdAt).toLocaleDateString("vi-VN")}
                 </p>
               </div>
             </div>
@@ -216,8 +216,8 @@ export default function ReelViewModal({
         <div className="flex-1 relative flex items-center justify-center min-h-0">
           <video
             ref={videoRef}
-            key={currentReel.id}
-            src={currentReel.videoUrl}
+            key={currentReel?.id}
+            src={currentReel?.videoUrl}
             onEnded={handleEnded}
             onClick={() => {
               const v = videoRef.current;
@@ -268,7 +268,7 @@ export default function ReelViewModal({
         <div className="p-4 flex justify-between items-center bg-black/10 z-20 relative">
           <div className="flex items-center gap-2 text-sm text-white drop-shadow-lg relative">
             <Eye size={16} />
-            <span>{currentReel.viewCount} lượt xem</span>
+            <span>{currentReel?.viewCount} lượt xem</span>
 
             {/* Popover hiện người xem */}
             <div className="group relative">

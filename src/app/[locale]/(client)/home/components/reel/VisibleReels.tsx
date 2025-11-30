@@ -43,6 +43,8 @@ export default function VisibleReels() {
   // map: userId => hasNewReel
   const [userHasReel, setUserHasReel] = useState<Record<number, boolean>>({});
 
+  const countReels = (uid: number) => reelsOfUser(uid).length;
+
   const fetchReels = async () => {
     if (!userId) return;
 
@@ -121,26 +123,57 @@ export default function VisibleReels() {
 
       {/* Avatars horizontal scroll */}
       <div className="flex gap-3 overflow-x-auto py-2">
-        {[user, ...friendUsers].map((u) => (
-          <div
-            key={u.id}
-            className={`flex flex-col items-center cursor-pointer`}
-            onClick={() => setSelectedUserIdForView(u.id)}
-          >
-            <img
-              src={u.avatarUrl || "/images/fallback/user.png"}
-              alt={u.fullName}
-              className={`w-16 h-16 rounded-full p-1
-                ${
-                  userHasReel[u.id] ? "border-2 border-green-500" : "border border-gray-200"
-                }
-              `}
-            />
-            <span className="text-xs mt-1">
-              {u.id === userId ? "Bạn" : u?.fullName?.split(" ")[0] || "U"}
-            </span>
-          </div>
-        ))}
+        {[user, ...friendUsers]
+          .sort((a, b) => {
+            const aCount = countReels(a?.id || 0);
+            const bCount = countReels(b?.id || 0);
+
+            // User có reel đứng trước
+            if (aCount > 0 && bCount === 0) return -1;
+            if (aCount === 0 && bCount > 0) return 1;
+
+            // Nếu cả hai đều có reel → sort theo reel mới nhất
+            if (aCount > 0 && bCount > 0) {
+              const aLatest = new Date(
+                reelsOfUser(a?.id || 0)[0].createdAt
+              ).getTime();
+              const bLatest = new Date(
+                reelsOfUser(b?.id || 0)[0].createdAt
+              ).getTime();
+              return bLatest - aLatest;
+            }
+
+            // Cả hai đều không có reel → giữ nguyên
+            return 0;
+          })
+          .map((u) => {
+            const hasReel = reelsOfUser(u?.id || 0).length > 0;
+
+            return (
+              <div
+                key={u.id}
+                className={`flex flex-col items-center shrink-0 
+            ${hasReel ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
+          `}
+                onClick={() => hasReel && setSelectedUserIdForView(u?.id || 0)}
+              >
+                <img
+                  src={u?.avatarUrl || "/images/fallback/user.png"}
+                  alt={u?.fullName}
+                  className={`w-16 h-16 rounded-full p-1
+              ${
+                userHasReel[u?.id || 0]
+                  ? "border-2 border-green-500"
+                  : "border border-gray-200"
+              }
+            `}
+                />
+                <span className="text-xs mt-1">
+                  {u?.id === userId ? "Bạn" : u?.fullName?.split(" ")[0] || "U"}
+                </span>
+              </div>
+            );
+          })}
       </div>
 
       {loading && <div className="text-gray-500">Loading reels...</div>}
