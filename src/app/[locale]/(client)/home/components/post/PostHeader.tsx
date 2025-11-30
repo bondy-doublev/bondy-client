@@ -7,7 +7,8 @@ import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar"
 import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 import { UserBasic } from "@/models/User";
 import TaggedModal from "@/app/[locale]/(client)/home/components/post/TaggedModal";
-import { Globe, Lock } from "lucide-react"; // ✅ THÊM
+import { Globe, Lock, Pencil, Trash2, Flag } from "lucide-react";
+import ReportModal from "@/app/components/report/ReportModal";
 
 export default function PostHeader({
   t,
@@ -19,6 +20,7 @@ export default function PostHeader({
   onDelete,
   isSharePost,
   isPublic, // đã có
+  onReport,
 }: {
   t: (key: string) => string;
   owner: UserBasic;
@@ -29,10 +31,13 @@ export default function PostHeader({
   onDelete?: () => void;
   isSharePost?: boolean;
   isPublic: boolean;
+  onReport: (reason: string) => Promise<void>;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -135,24 +140,52 @@ export default function PostHeader({
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md text-sm z-10">
+            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md text-sm z-10">
               <button
-                className="w-full px-4 py-2 hover:bg-gray-100 text-left"
+                className="w-full px-4 py-2 hover:bg-gray-100 text-left flex items-center gap-2"
                 onClick={() => {
                   setIsMenuOpen(false);
                   onEdit?.();
                 }}
               >
-                {t("edit")}
+                <Pencil size={14} />
+                <span>{t("edit")}</span>
               </button>
               <button
-                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500"
+                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500 flex items-center gap-2"
                 onClick={() => {
                   setIsMenuOpen(false);
                   onDelete?.();
                 }}
               >
-                {t("delete")}
+                <Trash2 size={14} />
+                <span>{t("delete")}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isOwner && !isSharePost && (
+        <div className="relative mb-2" ref={menuRef}>
+          <button
+            className="w-8 h-8 rounded-full hover:bg-gray-100"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+          >
+            ⋯
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md text-sm z-10">
+              <button
+                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500 flex items-center gap-2"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setShowReportModal(true);
+                }}
+              >
+                <Flag size={14} />
+                <span>{t("report")}</span>
               </button>
             </div>
           )}
@@ -164,6 +197,13 @@ export default function PostHeader({
         showModal={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         users={taggedUsers}
+      />
+
+      <ReportModal
+        open={showReportModal}
+        target="content"
+        onClose={() => setShowReportModal(false)}
+        onSubmit={onReport}
       />
     </div>
   );

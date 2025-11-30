@@ -1,8 +1,7 @@
 /* src/services/friendService.ts */
 import { api } from "@/lib/axios";
 import { Friendship } from "@/models/Friendship";
-import User from "@/models/User";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/friendships`;
 
@@ -70,19 +69,19 @@ export const friendService = {
   },
 
   // 6️⃣ Từ chối yêu cầu kết bạn (receiver reject sender)
-  async rejectFriendRequest(
-    receiverId: number,
-    senderId: number
-  ): Promise<void> {
-    try {
-      await api.post(`${API_URL}/reject`, null, {
-        params: { receiverId, senderId },
-      });
-    } catch (error) {
-      console.error(error);
-      throw new Error("Failed to reject friend request");
-    }
-  },
+  // async rejectFriendRequest(
+  //   receiverId: number,
+  //   senderId: number
+  // ): Promise<void> {
+  //   try {
+  //     await api.post(`${API_URL}/reject`, null, {
+  //       params: { receiverId, senderId },
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new Error("Failed to reject friend request");
+  //   }
+  // },
 
   async suggestFriends(userId: number) {
     const response: AxiosResponse = await api.get(
@@ -101,6 +100,27 @@ export const friendService = {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get pending sent requests");
+    }
+  },
+  async getFriendshipStatus(userId: number): Promise<Friendship | null> {
+    try {
+      const response: AxiosResponse = await api.get(
+        `${API_URL}/status/${userId}`
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get friendship status");
+    }
+  },
+  // src/services/friendService.ts
+  async unFriend(userId: number): Promise<void> {
+    try {
+      // Backend @RequestBody UnfriendRequest { userId }
+      await api.post(`${API_URL}/unfriend`, { userId });
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to unfriend");
     }
   },
 };
