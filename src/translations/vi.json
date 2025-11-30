@@ -190,7 +190,8 @@
     "noNewMedia": "Chưa chọn tệp mới",
     "back": "Quay về",
     "postDetailTitle": "Chi tiết bài viết",
-    "notFoundTitle": "Không tìm thấy bài viết"
+    "notFoundTitle": "Không tìm thấy bài viết",
+    "report": "Báo cáo bài viết"
   },
   "friend": {
     "friends": "Bạn bè",
@@ -201,14 +202,25 @@
   },
   "wall": {
     "friends": "Bạn bè",
-    "editProfile": "Chỉnh sửa thông tin",
-    "addStory": "Thêm vào tin",
-    "media": "Ảnh và video",
+    "editProfile": "Chỉnh sửa trang cá nhân",
+    "addStory": "Tạo tin mới",
+    "media": "Ảnh & video",
     "seeAllMedias": "Xem tất cả",
     "post": "Bài viết",
-    "friend": "Bạn bè",
-    "scrollToLoadMore": "Cuộn xuống để tải thêm",
-    "loading": "Đang tải..."
+    "friend": "Bạn",
+    "scrollToLoadMore": "Cuộn xuống để xem thêm",
+    "loading": "Đang tải...",
+
+    "addFriend": "Thêm bạn bè",
+    "requestSent": "Đã gửi lời mời",
+    "respondRequest": "Phản hồi lời mời",
+    "message": "Nhắn tin",
+    "report": "Báo cáo",
+
+    "cancelRequest": "Hủy lời mời",
+    "acceptRequest": "Chấp nhận lời mời",
+    "rejectRequest": "Từ chối lời mời",
+    "unfriend": "Hủy kết bạn"
   },
   "notification": {
     "notification": "Thông báo",
@@ -271,5 +283,35 @@
     "someoneElse": "Người khác",
     "noMessages": "Chưa có tin nhắn",
     "connecting": "Đang kết nối..."
+  },
+  "report": {
+    "report": "Báo cáo",
+    "reportTitle": "Báo cáo nội dung",
+    "thisPost": "bài viết này",
+
+    "reportDescription": "Hãy cho chúng tôi biết nội dung này có vấn đề gì. Đội ngũ kiểm duyệt sẽ xem xét báo cáo của bạn.",
+
+    "reportQuickReasons": "Lý do nhanh",
+    "spam": "Spam / Quảng cáo",
+    "hate": "Ngôn từ kích động thù địch",
+    "nudity": "Ảnh nhạy cảm / Nội dung người lớn",
+    "violence": "Bạo lực / Nội dung nguy hiểm",
+
+    "reportDetailLabel": "Mô tả vấn đề",
+    "reportDetailPlaceholder": "Hãy mô tả chi tiết hơn để chúng tôi hiểu rõ vấn đề...",
+
+    "submitReport": "Gửi báo cáo",
+    "reporting": "Đang gửi...",
+    "cancel": "Hủy",
+    "reportContentTitle": "Báo cáo nội dung",
+    "reportUserTitle": "Báo cáo người dùng",
+    "reportContentDescription": "Hãy cho chúng tôi biết nội dung này có vấn đề gì. Đội ngũ kiểm duyệt sẽ xem xét báo cáo của bạn.",
+    "reportUserDescription": "Hãy cho chúng tôi biết người dùng này có vấn đề gì. Đội ngũ kiểm duyệt sẽ xem xét báo cáo của bạn.",
+    "reportUserDetailLabel": "Mô tả vấn đề với người dùng này",
+    "reportUserDetailPlaceholder": "Hãy mô tả chi tiết hơn về hành vi của người dùng này...",
+    "fakeAccount": "Tài khoản giả mạo / mạo danh",
+    "harassment": "Quấy rối / bắt nạt",
+    "spamUser": "Spam / làm phiền",
+    "inappropriateProfile": "Trang cá nhân không phù hợp"
   }
 }

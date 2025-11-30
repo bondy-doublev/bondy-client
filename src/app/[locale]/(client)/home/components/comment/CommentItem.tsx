@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useReplies } from "@/app/hooks/useReplies";
 import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
+import { Flag, Trash2 } from "lucide-react";
+import ReportModal from "@/app/components/report/ReportModal";
+import { moderationService } from "@/services/reportService";
+import { TargetType } from "@/models/Report";
 
 export default function CommentItem({
   t,
@@ -39,6 +43,8 @@ export default function CommentItem({
   const [seeReplies, setSeeReplies] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [childCount, setChildCount] = useState(comment.childCount ?? 0);
+
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const {
     replies,
@@ -70,6 +76,14 @@ export default function CommentItem({
         setChildCount((prev) => prev + 1);
       }
     }
+  };
+
+  const handleSubmitReport = async (reason: string) => {
+    await moderationService.createReport({
+      targetType: TargetType.COMMENT,
+      targetId: comment.id,
+      reason,
+    });
   };
 
   return (
@@ -111,14 +125,14 @@ export default function CommentItem({
             </div>
           </div>
 
-          {/* Menu delete */}
-          {comment.user.id === user?.id && (
+          {/* Menu delete / report */}
+          {comment.user.id === user?.id ? (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     className="h-8 w-8 flex items-center justify-center 
-                               rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                     rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
                   >
                     <span className="text-lg leading-none">⋯</span>
                   </button>
@@ -126,13 +140,42 @@ export default function CommentItem({
 
                 <DropdownMenuContent
                   align="start"
-                  className="w-28 bg-white rounded-xl shadow-md"
+                  className="w-32 bg-white rounded-xl shadow-md"
                 >
                   <DropdownMenuItem
-                    className="text-red-600 cursor-pointer hover:bg-red-50"
+                    className="text-red-600 cursor-pointer hover:bg-red-50 flex items-center gap-2"
                     onClick={() => onDelete(comment.id, replies.length)}
                   >
-                    {t("delete")}
+                    <Trash2 size={14} color="red" />
+                    <span>{t("delete")}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="h-8 w-8 flex items-center justify-center 
+                     rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  >
+                    <span className="text-lg leading-none">⋯</span>
+                  </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="start"
+                  className="w-32 bg-white rounded-xl shadow-md"
+                >
+                  <DropdownMenuItem
+                    className="text-red-600 cursor-pointer hover:bg-red-50 flex items-center gap-2"
+                    onClick={() => {
+                      setShowReportModal(true);
+                    }}
+                  >
+                    <Flag size={14} color="red" />
+                    <span>{t("report")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -191,6 +234,13 @@ export default function CommentItem({
           </div>
         )}
       </div>
+
+      <ReportModal
+        open={showReportModal}
+        target="content"
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleSubmitReport}
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import EditPostModal from "@/app/[locale]/(client)/home/components/post/EditPostModal";
+import { moderationService } from "@/services/reportService";
+import { TargetType } from "@/models/Report";
 
 type Props = {
   post: Post;
@@ -117,6 +119,14 @@ export default function PostCard({
     );
   }
 
+  const handleSubmitReport = async (reason: string) => {
+    await moderationService.createReport({
+      targetType: TargetType.POST,
+      targetId: post.id,
+      reason,
+    });
+  };
+
   return (
     <div
       className={`text-sm bg-white rounded-xl space-y-2 ${
@@ -133,6 +143,7 @@ export default function PostCard({
         isPublic={editablePost.visibility}
         onDelete={handleDeletePost}
         onEdit={() => setShowEdit(true)}
+        onReport={handleSubmitReport}
       />
       <PostContent
         content={editablePost.contentText}

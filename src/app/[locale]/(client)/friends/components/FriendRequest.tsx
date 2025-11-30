@@ -47,10 +47,7 @@ export default function FriendRequests() {
 
   const handleReject = async (friendship: Friendship) => {
     try {
-      await friendService.rejectFriendRequest(
-        friendship.receiverId,
-        friendship.senderId
-      );
+      await friendService.unFriend(friendship.senderId);
       // Xóa khỏi state
       setRequests((prev) => prev.filter((r) => r.id !== friendship.id));
     } catch (err) {

@@ -190,7 +190,8 @@
     "noNewMedia": "No new media selected",
     "back": "Back",
     "postDetailTitle": "Post detail",
-    "notFoundTitle": "Post not found"
+    "notFoundTitle": "Post not found",
+    "report": "Report post"
   },
   "friend": {
     "friends": "Friends",
@@ -208,7 +209,18 @@
     "post": "Post",
     "friend": "Friend",
     "scrollToLoadMore": "Scroll down to load more",
-    "loading": "Loading..."
+    "loading": "Loading...",
+
+    "addFriend": "Add friend",
+    "requestSent": "Friend request sent",
+    "respondRequest": "Respond to request",
+    "message": "Message",
+    "report": "Report",
+
+    "cancelRequest": "Cancel request",
+    "acceptRequest": "Accept request",
+    "rejectRequest": "Reject request",
+    "unfriend": "Unfriend"
   },
   "notification": {
     "notification": "Notification",
@@ -271,5 +283,36 @@
     "someoneElse": "Someone",
     "noMessages": "No messages yet",
     "connecting": "Connecting..."
+  },
+  "report": {
+    "report": "Report",
+    "reportTitle": "Report content",
+    "thisPost": "this post",
+
+    "reportDescription": "Tell us what is wrong with this content. Our moderation team will review your report.",
+
+    "reportQuickReasons": "Quick reasons",
+    "spam": "Spam",
+    "hate": "Hate / Harassment",
+    "nudity": "Nudity / Sexual content",
+    "violence": "Violence / Dangerous content",
+
+    "reportDetailLabel": "Describe the problem",
+    "reportDetailPlaceholder": "Please provide more details so we can better understand the issue...",
+
+    "submitReport": "Submit report",
+    "reporting": "Reporting...",
+    "cancel": "Cancel",
+
+    "reportContentTitle": "Report content",
+    "reportUserTitle": "Report user",
+    "reportContentDescription": "Tell us what is wrong with this content. Our moderation team will review your report.",
+    "reportUserDescription": "Tell us what is wrong with this user. Our moderation team will review your report.",
+    "reportUserDetailLabel": "Describe the problem with this user",
+    "reportUserDetailPlaceholder": "Please provide more details about this user’s behavior...",
+    "fakeAccount": "Fake account / impersonation",
+    "harassment": "Harassment / bullying",
+    "spamUser": "Spam / unwanted contact",
+    "inappropriateProfile": "Inappropriate profile"
   }
 }

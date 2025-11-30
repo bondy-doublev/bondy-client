@@ -55,7 +55,7 @@ export default function WallLayout({
   return (
     <div className="flex flex-col w-full justify-center gap-4 p-4 items-center lg:w-[60%]">
       {/* Header user */}
-      <WallHeader user={userInfo} />
+      <WallHeader wallUser={userInfo} />
 
       {/* ✅ Mini Navbar */}
       <div className="px-4 w-full">
