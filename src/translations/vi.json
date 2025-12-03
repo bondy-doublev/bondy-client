@@ -236,7 +236,9 @@
     "yourComment": "bình luận của bạn",
     "newNotification": "thông báo mới",
     "recently": "vừa xong",
-    "loadMore": "Xem thêm"
+    "loadMore": "Xem thêm",
+    "sentYouFriendRequest": "đã gửi lời mời kết bạn cho bạn",
+    "acceptedYourFriendRequest": "đã chấp nhận lời mời kết bạn của bạn"
   },
   "chat": {
     "chat": "Trò chuyện",

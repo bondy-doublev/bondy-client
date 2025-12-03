@@ -130,7 +130,7 @@ export default function MainFeed({
   return (
     <div className={`max-w-[500px] space-y-6 mb-4 ${className}`}>
       {/* Reels của tôi + bạn bè */}
-      <VisibleReels />
+      {!wallOwner && <VisibleReels />}
 
       {/* Composer đăng bài */}
       <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
