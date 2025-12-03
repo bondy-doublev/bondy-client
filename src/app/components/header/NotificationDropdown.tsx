@@ -2,29 +2,34 @@
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import { Bell } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+
 import { NotificationContext } from "@/app/providers/NotificationProvider";
 import {
   handleNotificationMsg,
   notificationService,
 } from "@/services/notificationService";
-import { useTranslations } from "next-intl";
 import { markAllNotificationsAsRead } from "@/lib/notificationSocket";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Notification } from "@/models/Notfication";
+import { getNotificationRedirectPath } from "@/lib/notificationRoute";
+
+// 👇 dùng Popover thay vì DropdownMenu
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 export default function NotificationDropdown() {
   const t = useTranslations("notification");
   const { notifications, setNotifications } = useContext(NotificationContext);
   const router = useRouter();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -68,25 +73,25 @@ export default function NotificationDropdown() {
     fetchMoreNotifications(true); // load trang đầu khi mount
   }, []);
 
-  const handleDropdownOpen = async (open: boolean) => {
-    setIsOpen(open);
+  const handleOpenChange = async (nextOpen: boolean) => {
+    setOpen(nextOpen);
 
-    if (open) {
+    if (nextOpen) {
+      // mở dropdown -> mark read trên BE
       try {
         await markAllNotificationsAsRead();
       } catch (err) {
         console.error("❌ markAllAsRead failed:", err);
       }
     } else {
+      // đóng dropdown -> sync isRead trên client
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     }
   };
 
-  // 👉 Helper format thời gian: nếu hôm nay thì chỉ HH:mm, còn lại dd/MM/yyyy HH:mm
   const formatNotificationTime = (value: any) => {
     const createdAt = new Date(value);
     const now = new Date();
-
     const isToday = createdAt.toDateString() === now.toDateString();
 
     if (isToday) {
@@ -105,10 +110,18 @@ export default function NotificationDropdown() {
     });
   };
 
+  const handleClick = (n: Notification) => {
+    const path = getNotificationRedirectPath(n);
+    if (path) {
+      router.push(path);
+      setOpen(false); // đóng dropdown sau khi điều hướng nếu muốn
+    }
+  };
+
   return (
-    <DropdownMenu onOpenChange={handleDropdownOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange} modal={false}>
       {/* 🔔 Icon chuông */}
-      <DropdownMenuTrigger asChild>
+      <PopoverTrigger asChild>
         <div className="relative w-8 h-8 flex items-center justify-center cursor-pointer rounded-full hover:bg-gray-100 transition">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
@@ -117,10 +130,10 @@ export default function NotificationDropdown() {
             </span>
           )}
         </div>
-      </DropdownMenuTrigger>
+      </PopoverTrigger>
 
       {/* 📋 Danh sách thông báo */}
-      <DropdownMenuContent
+      <PopoverContent
         align="end"
         className="w-96 p-0 rounded-xl border bg-white shadow-xl max-h-[460px] overflow-y-auto scroll-custom"
       >
@@ -156,11 +169,7 @@ export default function NotificationDropdown() {
                       ? "bg-green-100 hover:bg-green-100"
                       : "bg-white hover:bg-green-100"
                   }`}
-                  onClick={
-                    n.redirectId !== null
-                      ? () => router.push(`/post/${n.redirectId}/detail`)
-                      : () => {}
-                  }
+                  onClick={() => handleClick(n)}
                 >
                   {n.actorAvatarUrl ? (
                     <UserAvatar
@@ -207,7 +216,7 @@ export default function NotificationDropdown() {
             )}
           </>
         )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -236,7 +236,9 @@
     "yourComment": "your comment",
     "newNotification": "new notification",
     "recently": "recently",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "sentYouFriendRequest": "sent you a friend request",
+    "acceptedYourFriendRequest": "accepted your friend request"
   },
   "chat": {
     "chat": "Chat",

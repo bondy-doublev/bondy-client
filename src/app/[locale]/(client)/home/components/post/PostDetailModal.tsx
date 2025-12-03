@@ -63,7 +63,6 @@ export function PostDetailModal({
             <CommentSection
               t={t}
               postId={post.id}
-              mode="modal"
               onCommentCountChange={(pid, delta) =>
                 onCommentCountChange?.(pid, delta)
               }

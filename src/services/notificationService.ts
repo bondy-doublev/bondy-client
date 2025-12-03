@@ -53,6 +53,10 @@ export const handleNotificationMsg = (
       "repliedYourComment",
     [`${NotificationType.MENTION}_${RefType.COMMENT}`]: "mentionedYouInComment",
     [`${NotificationType.MENTION}_${RefType.POST}`]: "taggedYouInPost",
+    [`${NotificationType.FRIEND_REQUEST}_${RefType.USER}`]:
+      "sentYouFriendRequest",
+    [`${NotificationType.FRIEND_ACCEPT}_${RefType.USER}`]:
+      "acceptedYourFriendRequest",
   };
 
   const key = `${n.type}_${n.refType}`;
