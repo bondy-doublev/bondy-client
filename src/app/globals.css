@@ -257,6 +257,7 @@ button:hover,
 
 .scroll-custom::-webkit-scrollbar {
   width: 8px;
+  height: 6px;
 }
 
 .scroll-custom::-webkit-scrollbar-thumb {

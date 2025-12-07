@@ -1,11 +1,13 @@
+"use client";
+
+import { useRef, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
-
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
 import { useMyFriends } from "@/app/hooks/useMyFriends";
 import { useTranslations } from "next-intl";
+
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 
 export default function MyFriends() {
   const t = useTranslations("friend");
@@ -13,48 +15,101 @@ export default function MyFriends() {
   const { user } = useAuthStore();
   const currentUserId = user?.id ?? 0;
 
-  const { loading, friendUsers } = useMyFriends(currentUserId);
+  const { friendUsers, isInitialLoading, loading, hasMore, loadMore } =
+    useMyFriends(currentUserId);
+
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !loading && hasMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    const el = loaderRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [hasMore, loading, loadMore]);
 
   if (!user) {
-    return <div></div>;
+    return <div className="text-sm text-gray-500">{t("loadingUser")}</div>;
   }
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold text-green-700 mb-4">
-        {t("friends")}
-      </h1>
-      {loading ? (
-        <div className="text-green-700">{t("loading")}</div>
-      ) : friendUsers.length === 0 ? (
-        <div className="text-gray-500">{t("noFriends")}</div>
-      ) : (
-        <ScrollArea className="h-[600px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {friendUsers.map((f) => (
-              <Card
-                key={f.id}
-                className="bg-green-100 text-black p-4 flex flex-col items-center gap-2 shadow"
-              >
-                <Avatar className="w-20 h-20 rounded-full">
-                  {f.avatarUrl ? (
-                    <AvatarImage src={f.avatarUrl} alt={f.fullName} />
-                  ) : (
-                    <AvatarFallback>{f.fullName}</AvatarFallback>
-                  )}
-                </Avatar>
+    <section className="bg-white rounded-xl border border-gray-100 p-4 pt-2 space-y-2">
+      <div className="flex justify-between items-center">
+        <h2 className="font-semibold text-gray-700 py-2">{t("friends")}</h2>
+      </div>
 
-                <div className="text-center mt-2">
-                  <div className="font-semibold">{f.fullName}</div>
-                  {f.address && (
-                    <div className="text-sm text-gray-700">{f.address}</div>
-                  )}
+      {isInitialLoading ? (
+        <div className="text-sm text-gray-600">{t("loading")}</div>
+      ) : friendUsers.length === 0 ? (
+        <div className="text-sm text-gray-500">{t("noFriends")}</div>
+      ) : (
+        <>
+          {/* card to hơn: 1 cột trên mobile, 2 cột từ md trở lên */}
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {friendUsers.map((f) => (
+              <li
+                key={f.id}
+                className="group cursor-pointer flex items-center gap-4 hover:bg-gray-50 p-4 rounded-md border border-gray-100 min-h-[96px]"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="relative">
+                    {f.avatarUrl ? (
+                      <UserAvatar
+                        userId={f.id}
+                        avatarUrl={f.avatarUrl}
+                        className="w-16 h-16 md:w-20 md:h-20 rounded-md"
+                      />
+                    ) : (
+                      <DefaultAvatar
+                        userId={f.id}
+                        firstName={f.fullName}
+                        className="w-16 h-16 md:w-20 md:h-20 rounded-md"
+                      />
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p
+                      className="text-sm md:text-base font-medium text-gray-800 hover:underline hover:text-green-600 truncate"
+                      title={f.fullName}
+                    >
+                      <UserName userId={f.id} fullname={f.fullName ?? ""} />
+                    </p>
+                    {f.address && (
+                      <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+                        {f.address}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </Card>
+              </li>
             ))}
-          </div>
-        </ScrollArea>
+          </ul>
+
+          {hasMore && (
+            <div
+              ref={loaderRef}
+              className="mt-3 h-8 flex items-center justify-center text-xs text-gray-500"
+            >
+              {loading && t("loading")}
+            </div>
+          )}
+        </>
       )}
-    </div>
+    </section>
   );
 }

@@ -194,11 +194,40 @@
     "report": "Report post"
   },
   "friend": {
+    "friendsPageTitle": "Friends",
+    "friendsPageSubtitle": "Manage your connections and friend requests.",
+    "tabSuggestions": "Suggestions",
+    "tabRequests": "Friend requests",
+    "tabFriends": "All friends",
+    "tabSent": "Sent requests",
+
     "friends": "Friends",
     "contacts": "Contacts",
     "loading": "Loading...",
-    "noFriends": "No friends",
-    "seeAllFriends": "See all friends"
+    "seeAllFriends": "See all friends",
+
+    "loadingUser": "Loading user information...",
+    "noFriends": "You don't have any friends yet.",
+
+    "suggestionsTitle": "People you may know",
+    "noSuggestions": "There are no suggestions right now.",
+    "mutualFriends": "{count} mutual friends",
+    "nearby": "Nearby",
+    "addFriend": "Add friend",
+    "pending": "Request sent",
+    "sendRequestFailed": "Failed to send friend request. Please try again.",
+
+    "pendingSentTitle": "Friend requests sent",
+    "noPendingSent": "You don't have any pending friend requests.",
+    "waitingResponse": "Waiting for their response",
+
+    "friendRequestsTitle": "Friend requests",
+    "noFriendRequests": "You don't have any friend requests.",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "acceptFailed": "Failed to confirm friend request. Please try again.",
+    "rejectFailed": "Failed to delete friend request. Please try again.",
+    "loadMore": "Load more"
   },
   "wall": {
     "friends": "Friends",

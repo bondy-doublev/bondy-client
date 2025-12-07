@@ -194,11 +194,40 @@
     "report": "Báo cáo bài viết"
   },
   "friend": {
+    "friendsPageTitle": "Bạn bè",
+    "friendsPageSubtitle": "Quản lý kết nối và lời mời kết bạn của bạn.",
+    "tabSuggestions": "Gợi ý",
+    "tabRequests": "Lời mời kết bạn",
+    "tabFriends": "Tất cả bạn bè",
+    "tabSent": "Đã gửi",
+
     "friends": "Bạn bè",
     "contacts": "Danh bạ",
     "loading": "Đang tải...",
-    "noFriends": "Chưa có bạn bè",
-    "seeAllFriends": "Xem tất cả bạn bè"
+    "seeAllFriends": "Xem tất cả bạn bè",
+
+    "loadingUser": "Đang tải thông tin người dùng...",
+    "noFriends": "Bạn chưa có người bạn nào",
+
+    "suggestionsTitle": "Gợi ý kết bạn",
+    "noSuggestions": "Hiện chưa có gợi ý nào",
+    "mutualFriends": "{count} bạn chung",
+    "nearby": "Gần bạn",
+    "addFriend": "Thêm bạn bè",
+    "pending": "Đang chờ",
+    "sendRequestFailed": "Gửi lời mời kết bạn thất bại",
+
+    "pendingSentTitle": "Lời mời đã gửi",
+    "noPendingSent": "Không có lời mời nào đang chờ",
+    "waitingResponse": "Đang chờ phản hồi",
+
+    "friendRequestsTitle": "Lời mời kết bạn",
+    "noFriendRequests": "Không có lời mời kết bạn nào",
+    "confirm": "Xác nhận",
+    "delete": "Xóa",
+    "acceptFailed": "Xác nhận lời mời thất bại",
+    "rejectFailed": "Xóa lời mời thất bại",
+    "loadMore": "Tải thêm"
   },
   "wall": {
     "friends": "Bạn bè",
