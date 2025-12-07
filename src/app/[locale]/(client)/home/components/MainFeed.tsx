@@ -160,9 +160,9 @@ export default function MainFeed({ className, wallOwner }: Props) {
       <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
 
       {/* Hiển thị feed: MỖI POST LÀ PostCard, kể cả share-post */}
-      {posts.map((post) => (
+      {posts.map((post, index) => (
         <PostCard
-          key={post.id}
+          key={index}
           post={post}
           isSharePost={!!post.sharedFrom}
           onComment={() => setSelectedPost(post)}
