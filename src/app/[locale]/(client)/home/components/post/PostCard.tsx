@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import EditPostModal from "@/app/[locale]/(client)/home/components/post/EditPostModal";
 import { moderationService } from "@/services/reportService";
 import { TargetType } from "@/models/Report";
+import ShareModal from "@/app/[locale]/(client)/home/components/post/ShareModal";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 
 type Props = {
   post: Post;
@@ -45,6 +47,13 @@ export default function PostCard({
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
+  // NEW: state cho ShareModal
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  // NEW: lấy danh sách bạn bè để gửi tin nhắn
+  const currentUserId = user?.id ?? 0;
+  const { friendUsers } = useMyFriends(currentUserId);
+
   useEffect(() => {
     // đồng bộ khi prop post thay đổi từ bên ngoài (ví dụ PostDetailModal)
     setEditablePost(post);
@@ -59,9 +68,9 @@ export default function PostCard({
     await reactionService.toggleReaction({ postId: post.id });
   };
 
-  const handleShare = async () => {
-    setShareCount((prev) => prev + 1);
-    await shareService.create({ postId: post.id });
+  // MỚI: thay vì share trực tiếp -> mở ShareModal
+  const handleOpenShareModal = () => {
+    setShowShareModal(true);
   };
 
   const handleDeletePost = () => {
@@ -127,6 +136,41 @@ export default function PostCard({
     });
   };
 
+  // NEW: handler cho ShareModal
+  const handleShareToFeed = async ({
+    message,
+    isPublic,
+  }: {
+    message: string;
+    isPublic: boolean;
+  }) => {
+    // tuỳ API của bạn, mình demo payload generic
+    await shareService.create({
+      postId: editablePost.id,
+      content: message,
+      isPublic,
+      type: "FEED", // nếu backend có field type
+    });
+    setShareCount((prev) => prev + 1);
+  };
+
+  const handleSendAsMessage = async ({
+    message,
+    friendIds,
+  }: {
+    message: string;
+    friendIds: number[];
+  }) => {
+    // tuỳ implementation: có thể dùng messageService riêng
+    await shareService.create({
+      postId: editablePost.id,
+      content: message,
+      receiverIds: friendIds,
+      type: "MESSAGE",
+    });
+    // shareCount thường không tăng khi gửi tin nhắn, bạn tuỳ chỉnh
+  };
+
   return (
     <div
       className={`text-sm bg-white rounded-xl space-y-2 ${
@@ -161,8 +205,9 @@ export default function PostCard({
         onComment={onComment}
         reacted={reacted}
         onToggleLike={handleToggleLike}
-        onShare={handleShare}
+        onShare={handleOpenShareModal} // MỚI: mở ShareModal
       />
+
       {/* Modal sửa bài */}
       {showEdit && (
         <EditPostModal
@@ -183,6 +228,29 @@ export default function PostCard({
               visibility: updated.visibility ?? prev.visibility,
             }));
           }}
+        />
+      )}
+
+      {/* NEW: ShareModal giống Facebook */}
+      {showShareModal && (
+        <ShareModal
+          t={t}
+          open={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          friends={friendUsers.map((f) => ({
+            id: f.id,
+            fullName: f.fullName,
+            avatarUrl: f.avatarUrl,
+          }))}
+          originalPostPreview={
+            // có thể thay bằng card share riêng, mình dùng lại content cho gọn
+            <PostContent
+              content={editablePost.contentText}
+              mediaAttachments={editablePost.mediaAttachments}
+            />
+          }
+          onShareToFeed={handleShareToFeed}
+          onSendAsMessage={handleSendAsMessage}
         />
       )}
     </div>

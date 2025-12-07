@@ -30,7 +30,9 @@ export default function PostStats({
           </div>
           <div className="cursor-pointer hover:underline">
             {shares}{" "}
-            {shares > 1 ? t("shares").toLowerCase() : t("share").toLowerCase()}
+            {shares > 1
+              ? t("shares").toLowerCase()
+              : t("share.title").toLowerCase()}
           </div>
         </div>
       </div>

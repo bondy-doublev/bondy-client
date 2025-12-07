@@ -124,7 +124,6 @@
     "likes": "likes",
     "comment": "Comment",
     "comments": "comments",
-    "share": "Share",
     "shares": "shares",
     "hour": "hour",
     "hours": "hours",
@@ -191,7 +190,23 @@
     "back": "Back",
     "postDetailTitle": "Post detail",
     "notFoundTitle": "Post not found",
-    "report": "Report post"
+    "report": "Report post",
+    "share": {
+      "title": "Share",
+      "shareToFeed": "Share to your feed",
+      "sendAsMessage": "Send as message",
+      "audience": "Audience",
+      "chooseFriends": "Choose friends",
+      "selected": "selected",
+      "searchFriends": "Search friends...",
+      "noFriendsFound": "No friends found.",
+      "selectAtLeastOneFriend": "Please select at least one friend.",
+      "saySomething": "Say something about this...",
+      "saySomethingMessage": "Write something to send with this link...",
+      "originalPost": "Original post",
+      "shareNow": "Share now",
+      "send": "Send"
+    }
   },
   "friend": {
     "friendsPageTitle": "Friends",

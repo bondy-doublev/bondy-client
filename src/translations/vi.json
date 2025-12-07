@@ -124,7 +124,6 @@
     "likes": "lượt thích",
     "comment": "Bình luận",
     "comments": "bình luận",
-    "share": "Chia sẻ",
     "shares": "chia sẻ",
     "hour": "giờ",
     "minute": "phút",
@@ -191,7 +190,23 @@
     "back": "Quay về",
     "postDetailTitle": "Chi tiết bài viết",
     "notFoundTitle": "Không tìm thấy bài viết",
-    "report": "Báo cáo bài viết"
+    "report": "Báo cáo bài viết",
+    "share": {
+      "title": "Chia sẻ",
+      "shareToFeed": "Chia sẻ lên bảng tin",
+      "sendAsMessage": "Gửi dưới dạng tin nhắn",
+      "audience": "Đối tượng",
+      "chooseFriends": "Chọn bạn bè",
+      "selected": "đã chọn",
+      "searchFriends": "Tìm kiếm bạn bè...",
+      "noFriendsFound": "Không tìm thấy bạn bè nào.",
+      "selectAtLeastOneFriend": "Vui lòng chọn ít nhất một người bạn.",
+      "saySomething": "Nói gì đó về nội dung này...",
+      "saySomethingMessage": "Viết gì đó kèm liên kết này...",
+      "originalPost": "Bài viết gốc",
+      "shareNow": "Chia sẻ ngay",
+      "send": "Gửi"
+    }
   },
   "friend": {
     "friendsPageTitle": "Bạn bè",
