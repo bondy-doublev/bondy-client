@@ -2,7 +2,7 @@ import { api } from "@/lib/axios";
 import { PaginationParams } from "@/types/PaginationParams";
 import { DEFAULT_PAGINATION } from "@/constants/pagination";
 import { Toast } from "@/lib/toast";
-import { Feed, MediaAttachment } from "@/models/Post";
+import { MediaAttachment, Post } from "@/models/Post";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/wall`;
 
@@ -13,7 +13,7 @@ export const wallService = {
     size = DEFAULT_PAGINATION.size,
     sortBy = DEFAULT_PAGINATION.sortBy,
     direction = DEFAULT_PAGINATION.direction,
-  }: PaginationParams & { userId: number }): Promise<Feed[]> {
+  }: PaginationParams & { userId: number }): Promise<Post[]> {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
@@ -26,7 +26,7 @@ export const wallService = {
       const res = proxyRes.data;
       if (!res.data) return [];
 
-      return res.data.content as Feed[];
+      return res.data.content as Post[];
     } catch (error: any) {
       console.error("Error:", error);
       Toast.error(error);

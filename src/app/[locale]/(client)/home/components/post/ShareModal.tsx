@@ -97,6 +97,7 @@ export default function ShareModal({
 
     try {
       setLoading(true);
+
       if (mode === "feed") {
         await onShareToFeed({
           message: message.trim(),
@@ -105,7 +106,7 @@ export default function ShareModal({
       } else {
         const friendIds = Array.from(selectedFriendIds);
         if (friendIds.length === 0) {
-          // có thể đổi sang toast
+          // TODO: thay bằng toast nếu có
           alert(
             t("share.selectAtLeastOneFriend") ||
               "Vui lòng chọn ít nhất 1 người bạn"
@@ -118,6 +119,7 @@ export default function ShareModal({
           friendIds,
         });
       }
+
       handleClose();
     } finally {
       setLoading(false);
@@ -125,9 +127,7 @@ export default function ShareModal({
   };
 
   const canSubmit = useMemo(() => {
-    if (mode === "feed") {
-      return true;
-    }
+    if (mode === "feed") return true;
     return selectedFriendIds.size > 0;
   }, [mode, selectedFriendIds.size]);
 
@@ -136,13 +136,13 @@ export default function ShareModal({
       <DialogOverlay className="fixed inset-0 bg-black/30 z-[60]" />
       <DialogContent
         className="
-          w-[95%] md:max-w-xl 
-          bg-white rounded-2xl shadow-xl 
+          w-[95%] md:max-w-xl
+          bg-white rounded-2xl shadow-xl
           p-0 overflow-hidden z-[70]
           max-h-[90vh] flex flex-col
         "
       >
-        {/* Header */}
+        {/* Header giống EditPostModal */}
         <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10 relative shrink-0">
           <DialogTitle className="text-base pt-2 font-semibold text-gray-800 leading-none">
             {t("share.title") || "Chia sẻ"}
@@ -158,13 +158,13 @@ export default function ShareModal({
           </DialogClose>
         </DialogHeader>
 
-        {/* Body */}
-        <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-          {/* Mode switch: FB style: Chia sẻ lên bảng tin / Gửi dưới dạng tin nhắn */}
+        {/* Body scroll được, footer dính dưới */}
+        <div className="p-4 space-y-4 flex-1 overflow-y-auto scroll-custom">
+          {/* Mode switch: FB style */}
           <div className="flex items-center bg-gray-100 rounded-full p-1 text-xs font-medium">
             <button
               type="button"
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full ${
+              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full transition ${
                 mode === "feed"
                   ? "bg-white shadow text-gray-900"
                   : "text-gray-600"
@@ -176,7 +176,7 @@ export default function ShareModal({
             </button>
             <button
               type="button"
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full ${
+              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full transition ${
                 mode === "message"
                   ? "bg-white shadow text-gray-900"
                   : "text-gray-600"
@@ -188,7 +188,7 @@ export default function ShareModal({
             </button>
           </div>
 
-          {/* Nếu là chia sẻ lên tường, cho chọn quyền riêng tư giống FB */}
+          {/* audience cho share lên tường */}
           {mode === "feed" && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600">
@@ -221,7 +221,7 @@ export default function ShareModal({
             </div>
           )}
 
-          {/* Nếu gửi tin nhắn, cho chọn bạn bè */}
+          {/* chọn bạn khi gửi message */}
           {mode === "message" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -248,7 +248,7 @@ export default function ShareModal({
               </div>
 
               {/* Danh sách bạn bè */}
-              <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+              <div className="max-h-48 overflow-y-auto border rounded-lg divide-y scroll-custom">
                 {filteredFriends.length === 0 ? (
                   <div className="p-3 text-xs text-gray-500">
                     {t("share.noFriendsFound") || "Không tìm thấy bạn nào."}
@@ -265,6 +265,7 @@ export default function ShareModal({
                           checked ? "bg-green-50" : ""
                         }`}
                       >
+                        {/* Avatar nhỏ giống các chỗ khác */}
                         <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center text-xs font-semibold text-gray-700">
                           {f.avatarUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -314,7 +315,7 @@ export default function ShareModal({
             }
           />
 
-          {/* Preview bài gốc */}
+          {/* Preview bài gốc: style giống share nested card */}
           <div className="border rounded-xl bg-gray-50 p-2">
             <div className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1">
               {t("share.originalPost") || "Bài viết gốc"}
@@ -323,29 +324,29 @@ export default function ShareModal({
               {originalPostPreview}
             </div>
           </div>
+        </div>
 
-          {/* Footer buttons */}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              disabled={loading}
-              className="px-3 text-sm"
-            >
-              {t("cancel") || "Hủy"}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={loading || !canSubmit}
-              className="px-4 text-sm bg-green-600 hover:bg-green-700"
-            >
-              {loading
-                ? t("loading") || "Đang xử lý..."
-                : mode === "feed"
-                ? t("share.shareNow") || "Chia sẻ ngay"
-                : t("share.send") || "Gửi"}
-            </Button>
-          </div>
+        {/* Footer cố định, giống EditPostModal */}
+        <div className="px-4 pb-4 pt-1 border-t flex justify-end gap-2 shrink-0 bg-white">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={loading}
+            className="px-3 text-sm"
+          >
+            {t("cancel") || "Hủy"}
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !canSubmit}
+            className="px-4 text-sm bg-green-600 hover:bg-green-700"
+          >
+            {loading
+              ? t("loading") || "Đang xử lý..."
+              : mode === "feed"
+              ? t("share.shareNow") || "Chia sẻ ngay"
+              : t("share.send") || "Gửi"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -103,13 +103,17 @@ export default function FriendSidebar({
                 <UserAvatar
                   userId={friend.id}
                   avatarUrl={friend.avatarUrl}
-                  className={isNewFeed ? "w-10 h-10" : "w-24 h-24 rounded-lg"}
+                  className={
+                    isNewFeed ? "w-10 h-10" : "w-22.5 h-22.5 rounded-lg"
+                  }
                 />
               ) : (
                 <DefaultAvatar
                   userId={friend.id}
                   firstName={friend?.fullName}
-                  className={isNewFeed ? "w-10 h-10" : "w-24 h-24 rounded-lg"}
+                  className={
+                    isNewFeed ? "w-10 h-10" : "w-22.5 h-22.5 rounded-lg"
+                  }
                 />
               )}
               {isNewFeed && (

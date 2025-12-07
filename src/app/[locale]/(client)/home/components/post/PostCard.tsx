@@ -4,26 +4,30 @@ import PostActions from "@/app/[locale]/(client)/home/components/post/PostAction
 import PostContent from "@/app/[locale]/(client)/home/components/post/PostContent";
 import PostHeader from "@/app/[locale]/(client)/home/components/post/PostHeader";
 import PostStats from "@/app/[locale]/(client)/home/components/post/PostStats";
+import EditPostModal from "@/app/[locale]/(client)/home/components/post/EditPostModal";
+import ShareModal from "@/app/[locale]/(client)/home/components/post/ShareModal";
+
 import { Post } from "@/models/Post";
 import { reactionService } from "@/services/reactionService";
 import { shareService } from "@/services/shareService";
+import { moderationService } from "@/services/reportService";
+import { TargetType } from "@/models/Report";
+
 import { useAuthStore } from "@/store/authStore";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
+
 import { getTimeAgo } from "@/utils/format";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import EditPostModal from "@/app/[locale]/(client)/home/components/post/EditPostModal";
-import { moderationService } from "@/services/reportService";
-import { TargetType } from "@/models/Report";
-import ShareModal from "@/app/[locale]/(client)/home/components/post/ShareModal";
-import { useMyFriends } from "@/app/hooks/useMyFriends";
+import { useRouter } from "next/navigation";
 
 type Props = {
   post: Post;
   onComment?: () => void;
   isDetail?: boolean;
-  isSharePost?: boolean;
-  onDelete?: (postId: number, type: "POST") => void;
+  isSharePost?: boolean; // giờ chỉ để header hiển thị kiểu "A đã chia sẻ"
+  onDelete?: (postId: number, type: "POST" | "SHARE") => void;
 };
 
 export default function PostCard({
@@ -33,6 +37,8 @@ export default function PostCard({
   isSharePost = false,
   onDelete,
 }: Props) {
+  const router = useRouter();
+
   const t = useTranslations("post");
   const { user } = useAuthStore();
 
@@ -47,10 +53,9 @@ export default function PostCard({
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
-  // NEW: state cho ShareModal
+  // state cho ShareModal
   const [showShareModal, setShowShareModal] = useState(false);
 
-  // NEW: lấy danh sách bạn bè để gửi tin nhắn
   const currentUserId = user?.id ?? 0;
   const { friendUsers } = useMyFriends(currentUserId);
 
@@ -68,7 +73,6 @@ export default function PostCard({
     await reactionService.toggleReaction({ postId: post.id });
   };
 
-  // MỚI: thay vì share trực tiếp -> mở ShareModal
   const handleOpenShareModal = () => {
     setShowShareModal(true);
   };
@@ -76,13 +80,13 @@ export default function PostCard({
   const handleDeletePost = () => {
     setIsDeleted(true);
     setDeleteCountdown(10);
-    setPendingDelete(false); // reset
+    setPendingDelete(false);
 
     const timer = setInterval(() => {
       setDeleteCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setPendingDelete(true); // báo hiệu đã đến lúc xóa
+          setPendingDelete(true);
         }
         return prev - 1;
       });
@@ -100,9 +104,10 @@ export default function PostCard({
   // Gọi onDelete sau khi render xong
   useEffect(() => {
     if (pendingDelete) {
-      onDelete?.(post.id, "POST");
+      // share hay không share thì vẫn là 1 Post id
+      onDelete?.(post.id, editablePost.sharedFrom ? "SHARE" : "POST");
     }
-  }, [pendingDelete, onDelete, post.id]);
+  }, [pendingDelete, onDelete, post.id, editablePost.sharedFrom]);
 
   // Dọn timer khi unmount
   useEffect(() => {
@@ -136,7 +141,7 @@ export default function PostCard({
     });
   };
 
-  // NEW: handler cho ShareModal
+  // Handler cho ShareModal - share lên tường
   const handleShareToFeed = async ({
     message,
     isPublic,
@@ -144,16 +149,15 @@ export default function PostCard({
     message: string;
     isPublic: boolean;
   }) => {
-    // tuỳ API của bạn, mình demo payload generic
     await shareService.create({
       postId: editablePost.id,
-      content: message,
+      message,
       isPublic,
-      type: "FEED", // nếu backend có field type
     });
     setShareCount((prev) => prev + 1);
   };
 
+  // Handler cho ShareModal - gửi tin nhắn cho bạn bè
   const handleSendAsMessage = async ({
     message,
     friendIds,
@@ -161,15 +165,19 @@ export default function PostCard({
     message: string;
     friendIds: number[];
   }) => {
-    // tuỳ implementation: có thể dùng messageService riêng
-    await shareService.create({
+    // TODO: tuỳ backend, bạn có thể dùng service khác (messageService)
+    await shareService.sendAsMessage?.({
       postId: editablePost.id,
-      content: message,
+      message,
       receiverIds: friendIds,
-      type: "MESSAGE",
     });
-    // shareCount thường không tăng khi gửi tin nhắn, bạn tuỳ chỉnh
   };
+
+  const handleGoToDetail = (postId: number) => {
+    router.push(`/post/${post.id}/detail`);
+  };
+
+  const original = editablePost.sharedFrom ?? null;
 
   return (
     <div
@@ -183,16 +191,51 @@ export default function PostCard({
         seconds={getTimeAgo(editablePost.createdAt)}
         taggedUsers={editablePost.taggedUsers}
         isOwner={editablePost.owner.id === user?.id}
-        isSharePost={isSharePost}
         isPublic={editablePost.visibility}
         onDelete={handleDeletePost}
         onEdit={() => setShowEdit(true)}
         onReport={handleSubmitReport}
+        onGoDetail={() => handleGoToDetail(post.id)}
       />
+
+      {/* Nội dung của bài share / bài thường */}
       <PostContent
         content={editablePost.contentText}
         mediaAttachments={editablePost.mediaAttachments}
       />
+
+      {/* Nếu là bài share, hiển thị bài gốc như 1 post bình thường (không có stats/actions) */}
+      {original && (
+        <div className="mx-4 border rounded-xl overflow-hidden">
+          {/* Header bài gốc */}
+          <div className="">
+            <PostHeader
+              t={t}
+              owner={original.owner}
+              seconds={getTimeAgo(original.createdAt)}
+              taggedUsers={original.taggedUsers}
+              isOwner={original.owner.id === user?.id}
+              isSharePost={false}
+              isPublic={original.visibility}
+              // không cho sửa/xoá/report từ card lồng bên trong
+              onDelete={undefined}
+              onEdit={undefined}
+              onReport={undefined}
+              isShareFromPost={true}
+              onGoDetail={() => handleGoToDetail(original.id)}
+            />
+          </div>
+
+          {/* Content bài gốc */}
+          <div className="py-2">
+            <PostContent
+              content={original.contentText}
+              mediaAttachments={original.mediaAttachments}
+            />
+          </div>
+        </div>
+      )}
+
       <PostStats
         t={t}
         likes={likeCount}
@@ -205,7 +248,8 @@ export default function PostCard({
         onComment={onComment}
         reacted={reacted}
         onToggleLike={handleToggleLike}
-        onShare={handleOpenShareModal} // MỚI: mở ShareModal
+        onShare={handleOpenShareModal}
+        isSharePost={!!original}
       />
 
       {/* Modal sửa bài */}
@@ -231,7 +275,7 @@ export default function PostCard({
         />
       )}
 
-      {/* NEW: ShareModal giống Facebook */}
+      {/* ShareModal giống Facebook */}
       {showShareModal && (
         <ShareModal
           t={t}
@@ -243,11 +287,24 @@ export default function PostCard({
             avatarUrl: f.avatarUrl,
           }))}
           originalPostPreview={
-            // có thể thay bằng card share riêng, mình dùng lại content cho gọn
-            <PostContent
-              content={editablePost.contentText}
-              mediaAttachments={editablePost.mediaAttachments}
-            />
+            original ? (
+              <div className="bg-gray-50 border rounded-lg overflow-hidden">
+                <div className="px-3 pt-2 pb-1 text-sm font-semibold text-gray-800">
+                  {original.owner.fullName}
+                </div>
+                <div className="px-3 pb-3">
+                  <PostContent
+                    content={original.contentText}
+                    mediaAttachments={original.mediaAttachments}
+                  />
+                </div>
+              </div>
+            ) : (
+              <PostContent
+                content={editablePost.contentText}
+                mediaAttachments={editablePost.mediaAttachments}
+              />
+            )
           }
           onShareToFeed={handleShareToFeed}
           onSendAsMessage={handleSendAsMessage}
