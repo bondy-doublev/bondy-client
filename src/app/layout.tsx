@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import NotificationProvider from "@/app/providers/NotificationProvider";
+import ChatProvider from "@/app/providers/ChatProvider";
 
 export const metadata = {
   title: "Bondy | Keep connect with the world!",
@@ -41,7 +42,9 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider locale={locale} messages={messages}>
             <ToastContainer />
-            <NotificationProvider>{children}</NotificationProvider>
+            <NotificationProvider>
+              <ChatProvider>{children}</ChatProvider>
+            </NotificationProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

@@ -21,12 +21,15 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useChat } from "@/app/providers/ChatProvider"; // 👈 THÊM
+
+import { chatService } from "@/services/chatService"; // 👈 dùng để get/create room
 
 type Props = {
   post: Post;
   onComment?: () => void;
   isDetail?: boolean;
-  isSharePost?: boolean; // giờ chỉ để header hiển thị kiểu "A đã chia sẻ"
+  isSharePost?: boolean;
   onDelete?: (postId: number, type: "POST" | "SHARE") => void;
 };
 
@@ -41,6 +44,7 @@ export default function PostCard({
 
   const t = useTranslations("post");
   const { user } = useAuthStore();
+  const { sendMessage } = useChat(); // 👈 lấy từ ChatProvider
 
   const [editablePost, setEditablePost] = useState<Post>(post);
   const [showEdit, setShowEdit] = useState(false);
@@ -53,14 +57,12 @@ export default function PostCard({
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
-  // state cho ShareModal
   const [showShareModal, setShowShareModal] = useState(false);
 
   const currentUserId = user?.id ?? 0;
   const { friendUsers } = useMyFriends(currentUserId);
 
   useEffect(() => {
-    // đồng bộ khi prop post thay đổi từ bên ngoài (ví dụ PostDetailModal)
     setEditablePost(post);
     setReacted(post.reacted ?? false);
     setLikeCount(post.reactionCount ?? 0);
@@ -101,15 +103,12 @@ export default function PostCard({
     setPendingDelete(false);
   };
 
-  // Gọi onDelete sau khi render xong
   useEffect(() => {
     if (pendingDelete) {
-      // share hay không share thì vẫn là 1 Post id
       onDelete?.(post.id, editablePost.sharedFrom ? "SHARE" : "POST");
     }
   }, [pendingDelete, onDelete, post.id, editablePost.sharedFrom]);
 
-  // Dọn timer khi unmount
   useEffect(() => {
     return () => {
       if (deleteTimer) clearInterval(deleteTimer);
@@ -141,7 +140,7 @@ export default function PostCard({
     });
   };
 
-  // Handler cho ShareModal - share lên tường
+  // Share lên News Feed (giữ nguyên)
   const handleShareToFeed = async ({
     message,
     isPublic,
@@ -157,7 +156,7 @@ export default function PostCard({
     setShareCount((prev) => prev + 1);
   };
 
-  // Handler cho ShareModal - gửi tin nhắn cho bạn bè
+  // ✅ Share như tin nhắn, dùng ChatProvider
   const handleSendAsMessage = async ({
     message,
     friendIds,
@@ -165,12 +164,47 @@ export default function PostCard({
     message: string;
     friendIds: number[];
   }) => {
-    // TODO: tuỳ backend, bạn có thể dùng service khác (messageService)
-    await shareService.sendAsMessage?.({
-      postId: editablePost.id,
-      message,
-      receiverIds: friendIds,
-    });
+    if (!user) return;
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const postLink = `${origin}/post/${editablePost.id}/detail`;
+
+    const finalContent = message ? `${message}\n${postLink}` : postLink;
+
+    await Promise.all(
+      friendIds.map(async (friendId) => {
+        try {
+          // 1️⃣ Tìm room 1-1 đã tồn tại
+          const rooms = await chatService.getPrivateRooms(user.id);
+          const existing = (rooms as any[]).find((r) =>
+            r.members?.some((m: any) => m.id === friendId)
+          );
+
+          let roomId: string;
+
+          if (existing) {
+            roomId = existing.id;
+          } else {
+            // 2️⃣ Nếu chưa có, tạo room mới
+            const room = await chatService.createRoom(
+              "Chat cá nhân",
+              false,
+              [user.id as any, friendId as any] // đang chơi any nên không cần quá strict
+            );
+            roomId = room.id;
+          }
+
+          // 3️⃣ Gửi tin nhắn qua socket
+          sendMessage({
+            senderId: user.id,
+            roomId,
+            content: finalContent,
+          });
+        } catch (err) {
+          console.error("Send share as message failed:", err);
+        }
+      })
+    );
   };
 
   const handleGoToDetail = (postId: number) => {
@@ -198,16 +232,13 @@ export default function PostCard({
         onGoDetail={() => handleGoToDetail(post.id)}
       />
 
-      {/* Nội dung của bài share / bài thường */}
       <PostContent
         content={editablePost.contentText}
         mediaAttachments={editablePost.mediaAttachments}
       />
 
-      {/* Nếu là bài share, hiển thị bài gốc như 1 post bình thường (không có stats/actions) */}
       {original && (
         <div className="mx-4 border rounded-xl overflow-hidden">
-          {/* Header bài gốc */}
           <div className="">
             <PostHeader
               t={t}
@@ -217,7 +248,6 @@ export default function PostCard({
               isOwner={original.owner.id === user?.id}
               isSharePost={false}
               isPublic={original.visibility}
-              // không cho sửa/xoá/report từ card lồng bên trong
               onDelete={undefined}
               onEdit={undefined}
               onReport={undefined}
@@ -226,7 +256,6 @@ export default function PostCard({
             />
           </div>
 
-          {/* Content bài gốc */}
           <div className="py-2">
             <PostContent
               content={original.contentText}
@@ -252,7 +281,6 @@ export default function PostCard({
         isSharePost={!!original}
       />
 
-      {/* Modal sửa bài */}
       {showEdit && (
         <EditPostModal
           t={t}
@@ -275,7 +303,6 @@ export default function PostCard({
         />
       )}
 
-      {/* ShareModal giống Facebook */}
       {showShareModal && (
         <ShareModal
           t={t}
@@ -307,7 +334,7 @@ export default function PostCard({
             )
           }
           onShareToFeed={handleShareToFeed}
-          onSendAsMessage={handleSendAsMessage}
+          onSendAsMessage={handleSendAsMessage} // 👈 dùng handler mới
         />
       )}
     </div>

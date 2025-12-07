@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -62,11 +62,20 @@ export default function ShareModal({
   );
   const [loading, setLoading] = useState(false);
 
+  // 👇 số lượng friend hiển thị hiện tại (infinite scroll)
+  const [visibleCount, setVisibleCount] = useState(20);
+  const friendListRef = useRef<HTMLDivElement | null>(null);
+
   const filteredFriends = useMemo(() => {
     const keyword = searchFriend.trim().toLowerCase();
     if (!keyword) return friends;
     return friends.filter((f) => f.fullName.toLowerCase().includes(keyword));
   }, [friends, searchFriend]);
+
+  // Reset visibleCount khi search / mode / danh sách friends đổi
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [searchFriend, mode, friends.length]);
 
   const toggleFriend = (id: number) => {
     setSelectedFriendIds((prev) => {
@@ -84,6 +93,7 @@ export default function ShareModal({
     setSearchFriend("");
     setSelectedFriendIds(new Set());
     setLoading(false);
+    setVisibleCount(20);
   };
 
   const handleClose = () => {
@@ -106,7 +116,6 @@ export default function ShareModal({
       } else {
         const friendIds = Array.from(selectedFriendIds);
         if (friendIds.length === 0) {
-          // TODO: thay bằng toast nếu có
           alert(
             t("share.selectAtLeastOneFriend") ||
               "Vui lòng chọn ít nhất 1 người bạn"
@@ -130,6 +139,20 @@ export default function ShareModal({
     if (mode === "feed") return true;
     return selectedFriendIds.size > 0;
   }, [mode, selectedFriendIds.size]);
+
+  // 👇 handler cho infinite scroll list bạn bè
+  const handleFriendListScroll = (
+    e: React.UIEvent<HTMLDivElement, UIEvent>
+  ) => {
+    const el = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 24;
+
+    if (isNearBottom && visibleCount < filteredFriends.length) {
+      setVisibleCount((prev) => Math.min(prev + 20, filteredFriends.length));
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -160,7 +183,7 @@ export default function ShareModal({
 
         {/* Body scroll được, footer dính dưới */}
         <div className="p-4 space-y-4 flex-1 overflow-y-auto scroll-custom">
-          {/* Mode switch: FB style */}
+          {/* Mode switch */}
           <div className="flex items-center bg-gray-100 rounded-full p-1 text-xs font-medium">
             <button
               type="button"
@@ -247,14 +270,18 @@ export default function ShareModal({
                 />
               </div>
 
-              {/* Danh sách bạn bè */}
-              <div className="max-h-48 overflow-y-auto border rounded-lg divide-y scroll-custom">
+              {/* Danh sách bạn bè + infinite scroll */}
+              <div
+                ref={friendListRef}
+                onScroll={handleFriendListScroll}
+                className="max-h-48 overflow-y-auto border rounded-lg divide-y scroll-custom"
+              >
                 {filteredFriends.length === 0 ? (
                   <div className="p-3 text-xs text-gray-500">
                     {t("share.noFriendsFound") || "Không tìm thấy bạn nào."}
                   </div>
                 ) : (
-                  filteredFriends.map((f) => {
+                  filteredFriends.slice(0, visibleCount).map((f) => {
                     const checked = selectedFriendIds.has(f.id);
                     return (
                       <button
@@ -265,7 +292,7 @@ export default function ShareModal({
                           checked ? "bg-green-50" : ""
                         }`}
                       >
-                        {/* Avatar nhỏ giống các chỗ khác */}
+                        {/* Avatar */}
                         <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center text-xs font-semibold text-gray-700">
                           {f.avatarUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -298,6 +325,12 @@ export default function ShareModal({
                     );
                   })
                 )}
+
+                {visibleCount < filteredFriends.length && (
+                  <div className="p-2 text-[11px] text-center text-gray-400">
+                    {t("share.loadingMore") || "Đang tải thêm bạn..."}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -315,7 +348,7 @@ export default function ShareModal({
             }
           />
 
-          {/* Preview bài gốc: style giống share nested card */}
+          {/* Preview bài gốc */}
           <div className="border rounded-xl bg-gray-50 p-2">
             <div className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1">
               {t("share.originalPost") || "Bài viết gốc"}
@@ -326,7 +359,7 @@ export default function ShareModal({
           </div>
         </div>
 
-        {/* Footer cố định, giống EditPostModal */}
+        {/* Footer */}
         <div className="px-4 pb-4 pt-1 border-t flex justify-end gap-2 shrink-0 bg-white">
           <Button
             variant="outline"

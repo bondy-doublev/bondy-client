@@ -1,19 +1,12 @@
-import { Client, IMessage } from "@stomp/stompjs";
-import type { ChatMessage, SendMessagePayload } from "@/services/chatService";
+// src/lib/chatSocket.ts
+import { io, Socket } from "socket.io-client";
 
-function toWsUrl(baseHttpUrl: string) {
-  return baseHttpUrl.replace(/^http/i, "ws");
-}
-
-const COMM_BASE = `${process.env.NEXT_PUBLIC_CHAT_URL}${
-  process.env.NEXT_PUBLIC_COMM_PATH || ""
-}`;
-const WS_BROKER_URL = `${toWsUrl(COMM_BASE)}/ws`;
+const CHAT_URL = process.env.NEXT_PUBLIC_CHAT_URL || "http://localhost:8086";
 
 export type ChatSocket = {
-  client: Client;
+  socket: Socket;
   isConnected: () => boolean;
-  sendMessage: (payload: SendMessagePayload) => void;
+  sendMessage: (payload: any) => void;
   updateMessage: (messageId: number, content: string) => void;
   deleteMessage: (messageId: number) => void;
   updateHeadersAndReconnect: (headers: Record<string, string>) => Promise<void>;
@@ -21,100 +14,98 @@ export type ChatSocket = {
 
 export function createChatSocket(opts: {
   conversationId?: number;
-  onMessage?: (msg: ChatMessage) => void;
-  onUnreadSummary?: (summary: any) => void;
+  onMessage?: (msg: any) => void;
+  onUnreadSummary?: (summary: any) => void; // { roomId, count } từ BE
   onConnected?: () => void;
   xUser: { id: number; role?: string; email?: string };
   debug?: boolean;
 }): ChatSocket {
-  const connectHeaders: Record<string, string> = {
-    "X-User-Id": String(opts.xUser.id),
-  };
-  if (opts.xUser.role) connectHeaders["X-User-Role"] = opts.xUser.role;
-  if (opts.xUser.email) connectHeaders["X-Email"] = opts.xUser.email;
-
-  const client = new Client({
-    brokerURL: WS_BROKER_URL,
-    connectHeaders,
-    debug: opts.debug ? (s) => console.log("[STOMP]", s) : () => {},
-    reconnectDelay: 5000,
-    heartbeatIncoming: 10000,
-    heartbeatOutgoing: 10000,
+  const socket = io(CHAT_URL, {
+    transports: ["websocket"],
+    auth: {
+      "X-User-Id": String(opts.xUser.id),
+      ...(opts.xUser.role ? { "X-User-Role": opts.xUser.role } : {}),
+      ...(opts.xUser.email ? { "X-Email": opts.xUser.email } : {}),
+    },
   });
 
-  const queue: Array<{ destination: string; body: string }> = [];
+  if (opts.debug) {
+    socket.onAny((event, ...args) => {
+      console.log("[SOCKET][EVENT]", event, args);
+    });
+  }
 
-  client.onConnect = () => {
+  socket.on("connect", () => {
     console.log("[WS] Connected as", opts.xUser.id);
 
-    // 1️⃣ Sub conversation message
+    // Join room cá nhân để nhận badge
+    socket.emit("joinRoom", {
+      roomId: String(opts.xUser.id),
+      userId: opts.xUser.id,
+    });
+
+    // Join room hội thoại cụ thể (nếu có)
     if (opts.conversationId) {
-      client.subscribe(`/topic/conversations.${opts.conversationId}`, (msg) => {
-        console.log("Subscribe topic conversation");
-        opts.onMessage?.(JSON.parse(msg.body));
+      socket.emit("joinRoom", {
+        roomId: String(opts.conversationId),
+        userId: opts.xUser.id,
       });
     }
 
-    // 2️⃣ Sub direct message
-    client.subscribe("/user/queue/messages", (msg) => {
-      console.log("Subscribe queue message");
-      opts.onMessage?.(JSON.parse(msg.body));
-    });
-
-    // 3️⃣ Sub unread summary (badge)
-    client.subscribe(`/user/queue/unread.summary`, (msg) => {
-      try {
-        const summary = JSON.parse(msg.body);
-        console.log("Subscribe queue user");
-        opts.onUnreadSummary?.(summary);
-      } catch (err) {
-        console.error("Failed to parse unread summary:", err);
-      }
-    });
-
-    // Flush queued frames
-    while (queue.length && client.connected) {
-      const item = queue.shift()!;
-      client.publish(item);
-    }
-
-    // Notify when ready
     opts.onConnected?.();
-  };
+  });
 
-  client.onStompError = (frame) => {
-    console.error("STOMP error:", frame.headers["message"], frame.body);
-  };
-  client.onWebSocketError = (e) => {
-    console.error("WS error:", e);
-  };
+  socket.on("connect_error", (err) => {
+    console.error("[WS] connect_error:", err);
+  });
 
-  const publish = (destination: string, body: string) => {
-    if (client.connected) client.publish({ destination, body });
-    else queue.push({ destination, body });
-  };
+  socket.on("error", (err) => {
+    console.error("[WS] error:", err);
+  });
 
-  const sendMessage = (payload: SendMessagePayload) => {
-    publish("/app/chat.sendMessage", JSON.stringify(payload));
+  // Nhận tin nhắn mới từ gateway: this.server.to(roomId).emit('newMessage', msg);
+  socket.on("newMessage", (msg: any) => {
+    opts.onMessage?.(msg);
+  });
+
+  // Nhận cập nhật badge: this.server.to(userId).emit('updateUnreadBadge', { roomId, count });
+  socket.on("updateUnreadBadge", (summary: any) => {
+    opts.onUnreadSummary?.(summary);
+  });
+
+  const sendMessage = (payload: any) => {
+    // Map với @SubscribeMessage('sendMessage')
+    socket.emit("sendMessage", payload);
   };
 
   const updateMessage = (messageId: number, content: string) => {
-    publish("/app/chat.updateMessage", JSON.stringify({ messageId, content }));
+    socket.emit("editMessage", {
+      id: messageId,
+      userId: opts.xUser.id,
+      content,
+    });
   };
 
   const deleteMessage = (messageId: number) => {
-    publish("/app/chat.deleteMessage", JSON.stringify(messageId));
+    socket.emit("deleteMessage", {
+      id: messageId,
+      userId: opts.xUser.id,
+    });
   };
 
   const updateHeadersAndReconnect = async (headers: Record<string, string>) => {
-    await client.deactivate();
-    client.connectHeaders = headers;
-    client.activate();
+    // Cập nhật auth rồi reconnect
+    socket.disconnect();
+    socket.auth = {
+      ...(socket.auth || {}),
+      ...headers,
+    };
+    socket.connect();
   };
 
   return {
-    client,
-    isConnected: () => client.connected,
+    socket,
+    isConnected: () => socket.connected,
     sendMessage,
     updateMessage,
     deleteMessage,
