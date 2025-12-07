@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { useAuthStore } from "@/store/authStore";
-import { useTranslations } from "next-intl";
-import { Feed } from "@/models/Post";
-import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
+import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
+import { Post } from "@/models/Post";
+
+import { useAuthStore } from "@/store/authStore";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+
 type Props = {
-  feed: Feed;
-  onComment: (post: Feed["post"]) => void;
+  post: Post; // chính là share-post (có sharedFrom)
+  onComment: (post: Post) => void;
   onDelete?: (postId: number, type: "SHARE") => void;
 };
 
-export default function SharePost({ feed, onComment, onDelete }: Props) {
+export default function SharePost({ post, onComment, onDelete }: Props) {
   const { user } = useAuthStore();
   const t = useTranslations("post");
 
@@ -24,10 +26,9 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
-  // 🧩 Ref cho vùng menu
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // 🧠 Đóng menu khi click ra ngoài
+  // Đóng menu khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -46,7 +47,7 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
     };
   }, [isMenuOpen]);
 
-  // 🗑️ Bắt đầu đếm ngược xoá
+  // Bắt đầu đếm ngược xoá share
   const handleDeleteShare = () => {
     setIsDeleted(true);
     setDeleteCountdown(10);
@@ -66,26 +67,27 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
     setIsMenuOpen(false);
   };
 
-  // ↩️ Hoàn tác xoá
   const handleUndoDelete = () => {
     if (deleteTimer) clearInterval(deleteTimer);
     setIsDeleted(false);
     setPendingDelete(false);
   };
 
-  // ⏰ Sau khi đếm ngược xong thì xoá thật
+  // Sau khi đếm ngược xong thì xoá thật (call parent)
   useEffect(() => {
     if (pendingDelete) {
-      onDelete?.(feed.id, "SHARE");
+      onDelete?.(post.id, "SHARE");
     }
-  }, [pendingDelete, onDelete, feed.id]);
+  }, [pendingDelete, onDelete, post.id]);
 
-  // 🧹 Dọn timer khi unmount
+  // Dọn timer khi unmount
   useEffect(() => {
     return () => {
       if (deleteTimer) clearInterval(deleteTimer);
     };
   }, [deleteTimer]);
+
+  if (!user) return null;
 
   if (isDeleted) {
     return (
@@ -105,58 +107,57 @@ export default function SharePost({ feed, onComment, onDelete }: Props) {
     );
   }
 
+  const sharer = post.owner;
+  const original = post.sharedFrom ?? null;
+
   return (
-    <>
-      {user && (
-        <div className="p-4 rounded-xl shadow bg-white">
-          <div className="flex justify-between items-center">
-            <Link href={"/wall/" + feed.user.id}>
-              <p className="text-sm text-gray-600 mb-2">
-                <span className="font-bold hover:underline cursor-pointer">
-                  {user?.id === feed.user.id ? t("you") : feed.user?.fullName}
-                </span>{" "}
-                {t("sharedPost")}
-              </p>
-            </Link>
+    <div className="p-4 rounded-xl shadow bg-white">
+      <div className="flex justify-between items-center">
+        <Link href={"/wall/" + sharer.id}>
+          <p className="text-sm text-gray-600 mb-2">
+            <span className="font-bold hover:underline cursor-pointer">
+              {user.id === sharer.id ? t("you") : sharer.fullName}
+            </span>{" "}
+            {t("sharedPost")}
+          </p>
+        </Link>
 
-            {/* ⚙️ Menu */}
-            {feed.user.id === user?.id && (
-              <div className="relative mb-2" ref={menuRef}>
+        {/* Menu xoá share */}
+        {sharer.id === user.id && (
+          <div className="relative mb-2" ref={menuRef}>
+            <button
+              className="w-8 h-8 rounded-full hover:bg-gray-100"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+            >
+              ⋯
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md text-sm z-10">
                 <button
-                  className="w-8 h-8 rounded-full hover:bg-gray-100"
-                  onClick={() => setIsMenuOpen((prev) => !prev)}
+                  className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500"
+                  onClick={handleDeleteShare}
                 >
-                  ⋯
+                  {t("delete")}
                 </button>
-
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md text-sm z-10">
-                    <button
-                      className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500"
-                      onClick={handleDeleteShare}
-                    >
-                      {t("delete")}
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>
+        )}
+      </div>
 
-          {/* 📄 Bài gốc */}
-          {feed.post ? (
-            <PostCard
-              post={feed.post}
-              onComment={() => onComment(feed.post)}
-              isSharePost
-            />
-          ) : (
-            <div className="text-sm text-gray-500 italic">
-              {t("originalPostDeleted")}
-            </div>
-          )}
+      {/* Bài gốc */}
+      {original ? (
+        <PostCard
+          post={original}
+          onComment={() => onComment(original)}
+          isSharePost
+        />
+      ) : (
+        <div className="text-sm text-gray-500 italic">
+          {t("originalPostDeleted")}
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -18,9 +18,10 @@ export default function PostHeader({
   isOwner = false,
   onEdit,
   onDelete,
-  isSharePost,
   isPublic, // đã có
   onReport,
+  isShareFromPost = false,
+  onGoDetail,
 }: {
   t: (key: string) => string;
   owner: UserBasic;
@@ -29,9 +30,10 @@ export default function PostHeader({
   isOwner?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
-  isSharePost?: boolean;
   isPublic: boolean;
   onReport: (reason: string) => Promise<void>;
+  isShareFromPost?: boolean;
+  onGoDetail: () => void;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,7 +112,7 @@ export default function PostHeader({
         </div>
 
         <div className="text-xs text-gray-500 flex items-center gap-1">
-          <span className="hover:underline cursor-pointer">
+          <span className="hover:underline cursor-pointer" onClick={onGoDetail}>
             {formatTime(seconds, t)} {t("ago")}
           </span>
 
@@ -130,7 +132,7 @@ export default function PostHeader({
         </div>
       </div>
 
-      {isOwner && !isSharePost && (
+      {isOwner && isShareFromPost === false && (
         <div className="relative mb-2" ref={menuRef}>
           <button
             className="w-8 h-8 rounded-full hover:bg-gray-100"
@@ -166,7 +168,7 @@ export default function PostHeader({
         </div>
       )}
 
-      {!isOwner && !isSharePost && (
+      {!isOwner && isShareFromPost === false && (
         <div className="relative mb-2" ref={menuRef}>
           <button
             className="w-8 h-8 rounded-full hover:bg-gray-100"

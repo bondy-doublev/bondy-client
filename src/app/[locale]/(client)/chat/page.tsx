@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { chatService, ChatRoom, Message } from "@/services/chatService";
-import io, { Socket } from "socket.io-client";
 import { useAuthStore } from "@/store/authStore";
 import { friendService } from "@/services/friendService";
 import { userService } from "@/services/userService";
@@ -13,9 +12,11 @@ import {
   uploadCloudinaryMultiple,
   uploadCloudinarySingle,
 } from "@/services/uploadService";
+import { useChat } from "@/app/providers/ChatProvider"; // 👈 thêm
 
 export default function ChatPage() {
   const { user } = useAuthStore();
+  const { socket: chatSocket } = useChat(); // 👈 lấy socket wrapper từ provider
 
   const [tab, setTab] = useState<"personal" | "group">("personal");
   const [conversations, setConversations] = useState<ChatRoom[]>([]);
@@ -27,7 +28,6 @@ export default function ChatPage() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [newMsg, setNewMsg] = useState("");
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [friends, setFriends] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
@@ -36,6 +36,7 @@ export default function ChatPage() {
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // cập nhật ref
   useEffect(() => {
     selectedRoomRef.current = selectedRoom;
   }, [selectedRoom]);
@@ -76,7 +77,9 @@ export default function ChatPage() {
         const rooms = await chatService.getPrivateRooms(user.id);
         const roomsWithNames = await Promise.all(
           rooms.map(async (room) => {
-            const member = room.members.find((m: any) => m.id !== user.id);
+            const member = (room as any).members?.find(
+              (m: any) => m.id !== user.id
+            );
             let displayName = "Unknown";
             if (member) {
               try {
@@ -102,17 +105,16 @@ export default function ChatPage() {
     fetchConversations(tabRef.current);
   }, [tab, user?.id]);
 
-  // --- Socket
+  // --- Socket events (dùng socket từ ChatProvider)
   useEffect(() => {
-    if (!user) return;
-    const s = io(`${process.env.NEXT_PUBLIC_CHAT_URL}`);
-    setSocket(s);
+    if (!user || !chatSocket) return;
+    const s = chatSocket.socket;
 
-    s.on("newMessage", (msg: Message) => {
+    const handleNewMessage = (msg: Message) => {
       if (selectedRoomRef.current?.id === msg.roomId) {
         setMessages((prev) => [...prev, msg]);
 
-        // Auto scroll to bottom khi nhận tin nhắn mới
+        // Auto scroll to bottom
         setTimeout(() => {
           const container = messageContainerRef.current;
           if (container) {
@@ -128,22 +130,30 @@ export default function ChatPage() {
         }, 100);
       }
       fetchConversations(tabRef.current);
-    });
+    };
 
-    s.on("messageEdited", (msg: Message) => {
+    const handleEdited = (msg: Message) => {
       if (selectedRoomRef.current?.id === msg.roomId) {
         setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
       }
-    });
+    };
 
-    s.on("messageDeleted", (msg: Message) => {
+    const handleDeleted = (msg: Message) => {
       if (selectedRoomRef.current?.id === msg.roomId) {
         setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
       }
-    });
+    };
 
-    return () => s.disconnect();
-  }, [user]);
+    s.on("newMessage", handleNewMessage);
+    s.on("messageEdited", handleEdited);
+    s.on("messageDeleted", handleDeleted);
+
+    return () => {
+      s.off("newMessage", handleNewMessage);
+      s.off("messageEdited", handleEdited);
+      s.off("messageDeleted", handleDeleted);
+    };
+  }, [user, chatSocket]);
 
   useEffect(() => {
     setMessages([]); // reset messages khi đổi tab
@@ -153,9 +163,8 @@ export default function ChatPage() {
 
   // --- Load room messages + pagination
   const loadRoomMessages = async (room: ChatRoom, reset = true) => {
-    // Nếu phòng được chọn = phòng đang mở → không reset
     if (selectedRoom?.id === room.id && reset) {
-      return; // 👈 không làm gì nữa
+      return;
     }
 
     setSelectedRoom(room);
@@ -174,7 +183,6 @@ export default function ChatPage() {
           if (container) container.scrollTop = container.scrollHeight;
         }, 100);
       } else {
-        // pagination load more
         const container = messageContainerRef.current;
         if (!container) return;
 
@@ -192,16 +200,22 @@ export default function ChatPage() {
         }, 50);
       }
 
-      if (socket && user) {
-        socket.emit("joinRoom", { roomId: room.id, userId: user.id });
-        socket.emit("openRoom", { roomId: room.id, userId: user.id });
+      if (chatSocket && user) {
+        chatSocket.socket.emit("joinRoom", {
+          roomId: room.id,
+          userId: user.id,
+        });
+        chatSocket.socket.emit("openRoom", {
+          roomId: room.id,
+          userId: user.id,
+        });
       }
     } catch (err) {
       console.error("Error loading messages:", err);
     }
   };
 
-  // --- Infinity scroll - FIXED
+  // --- Infinity scroll
   useEffect(() => {
     const container = messageContainerRef.current;
     if (!container) {
@@ -220,7 +234,6 @@ export default function ChatPage() {
         page,
       });
 
-      // Kiểm tra scroll gần đầu (trong vòng 50px từ top)
       if (scrollTop < 50 && hasMore && !isLoadingMore && selectedRoom) {
         console.log("Triggering load more...");
         setIsLoadingMore(true);
@@ -245,7 +258,7 @@ export default function ChatPage() {
 
   // --- Send
   const handleSend = async () => {
-    if (!selectedRoom || !socket || !user) return;
+    if (!selectedRoom || !chatSocket || !user) return;
     if (!newMsg.trim() && attachments.length === 0) return;
 
     let fileUrl: string = "";
@@ -270,7 +283,7 @@ export default function ChatPage() {
         }));
       }
 
-      socket.emit("sendMessage", {
+      chatSocket.sendMessage({
         senderId: user.id,
         roomId: selectedRoom.id,
         content: newMsg,
@@ -287,7 +300,6 @@ export default function ChatPage() {
       setReplyingMessage(null);
       fetchConversations(tabRef.current);
 
-      // Auto scroll to bottom khi gửi
       setTimeout(() => {
         const container = messageContainerRef.current;
         if (container) {
@@ -302,14 +314,14 @@ export default function ChatPage() {
 
   // --- Edit/Delete/Reply
   const handleEditMessage = async (msg: Message, newContent: string) => {
-    if (!socket || !user) return;
+    if (!chatSocket || !user) return;
     try {
       const updated = await chatService.editMessage(
         msg.id,
         newContent,
         user.id
       );
-      socket.emit("editMessage", updated);
+      chatSocket.updateMessage(msg.id as any, newContent);
       setMessages((prev) =>
         prev.map((m) => (m.id === updated.id ? updated : m))
       );
@@ -320,10 +332,10 @@ export default function ChatPage() {
   };
 
   const handleDeleteMessage = async (msg: Message) => {
-    if (!socket || !user) return;
+    if (!chatSocket || !user) return;
     try {
       const deleted = await chatService.deleteMessage(msg.id, user.id);
-      socket.emit("deleteMessage", deleted);
+      chatSocket.deleteMessage(msg.id as any);
       setMessages((prev) =>
         prev.map((m) => (m.id === deleted.id ? deleted : m))
       );
@@ -458,7 +470,6 @@ export default function ChatPage() {
         />
       )}
 
-      {/* Loading indicator */}
       {isLoadingMore && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2">
           <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>

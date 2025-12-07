@@ -1,6 +1,190 @@
+// "use client";
+
+// import { useEffect, useState, useRef } from "react";
+// import { usePathname, useRouter } from "next/navigation";
+// import {
+//   Home,
+//   Users,
+//   Video,
+//   Users2,
+//   MessageCircle,
+//   Search,
+// } from "lucide-react";
+// import Image from "next/image";
+// import io from "socket.io-client";
+// import { useAuthStore } from "@/store/authStore";
+// import { Input } from "@/components/ui/input";
+// import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+// import { DialogTitle } from "@radix-ui/react-dialog";
+// import LanguageSwitcher from "@/app/components/header/LanguageSwitcher";
+// import { ModeToggle } from "@/app/components/header/ModeToggle";
+// import NotificationDropdown from "@/app/components/header/NotificationDropdown";
+// import UserDropdown from "@/app/components/header/UserDropdown";
+// import MenuDrawer from "@/app/components/header/MenuDrawer";
+// import { chatService } from "@/services/chatService";
+// import { requestBrowserNotificationPermission } from "@/lib/browserNotification";
+
+// export default function Navbar() {
+//   const pathname = usePathname();
+//   const router = useRouter();
+//   const inputRef = useRef<HTMLInputElement>(null);
+//   const { user } = useAuthStore(); // có user.id
+
+//   const [unreadBadge, setUnreadBadge] = useState(0);
+//   const socketRef = useRef<any>(null);
+
+//   useEffect(() => {
+//     if (!user?.id) return;
+
+//     // --- Kết nối socket
+//     const socket = io(
+//       process.env.NEXT_PUBLIC_CHAT_URL || "http://localhost:8086",
+//       {
+//         transports: ["websocket"],
+//       }
+//     );
+//     socketRef.current = socket;
+
+//     // --- Đăng ký user để nhận badge
+//     socket.emit("joinRoom", { roomId: user.id.toString(), userId: user.id });
+//     console.log("✅ Joined personal socket room:", user.id);
+
+//     // --- Lắng nghe badge cập nhật real-time
+//     socket.on("updateUnreadBadge", ({ roomId, count }) => {
+//       chatService
+//         .getUnreadCount(user.id)
+//         .then((total) => setUnreadBadge(total))
+//         .catch((err) => console.error("Fetch unread count failed:", err));
+//     });
+
+//     // --- Fetch tổng unread ban đầu
+//     chatService
+//       .getUnreadCount(user.id)
+//       .then((total) => setUnreadBadge(total))
+//       .catch((err) => console.error("Fetch unread count failed:", err));
+
+//     // --- Cleanup
+//     return () => {
+//       socket.disconnect();
+//       console.log("❌ Socket disconnected");
+//     };
+//   }, [user?.id]);
+
+//   useEffect(() => {
+//     if (!user?.id) return;
+//     requestBrowserNotificationPermission();
+//   }, [user?.id]);
+
+//   const navItems = [
+//     { path: "/", icon: Home },
+//     { path: "/friends", icon: Users },
+//     {
+//       path: "/chat",
+//       icon: MessageCircle,
+//       badge: unreadBadge,
+//     },
+//     { path: "/videos", icon: Video },
+//     { path: "/groups", icon: Users2 },
+//   ];
+
+//   return (
+//     <header className="w-full bg-green text-foreground shadow-md sticky top-0 z-50">
+//       <div className="max-w-8xl mx-auto flex items-center justify-between px-4 py-2">
+//         {/* Left */}
+//         <div className="flex items-center space-x-3 flex-1">
+//           <Image
+//             width={32}
+//             height={32}
+//             src="/images/logo/favicon.png"
+//             alt="Logo"
+//             className="w-8 h-8 rounded cursor-pointer"
+//             onClick={() => router.push("/")}
+//           />
+//           <h2
+//             className="text-xl font-semibold cursor-pointer"
+//             onClick={() => router.push("/")}
+//           >
+//             Bondy
+//           </h2>
+
+//           {/* Search (Desktop) */}
+//           <div className="relative hidden sm:block w-full max-w-xs">
+//             <input
+//               type="text"
+//               placeholder="Search..."
+//               className="w-full pl-10 pr-3 py-2 rounded-full bg-muted text-sm text-black focus:outline-none"
+//             />
+//             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+//           </div>
+
+//           {/* Search (Mobile) */}
+//           <div className="sm:hidden">
+//             <Dialog>
+//               <DialogTrigger asChild>
+//                 <Search className="w-6 h-6 cursor-pointer hover:text-cyan transition" />
+//               </DialogTrigger>
+//               <DialogContent className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
+//                 <DialogTitle />
+//                 <Input
+//                   ref={inputRef}
+//                   placeholder="Search..."
+//                   className="pl-4 w-full text-black"
+//                 />
+//               </DialogContent>
+//             </Dialog>
+//           </div>
+//         </div>
+
+//         {/* Center: Nav */}
+//         <div className="hidden sm:flex items-center space-x-8 justify-center flex-1">
+//           {navItems.map(({ path, icon: Icon, badge }) => (
+//             <div key={path} className="relative">
+//               <Icon
+//                 onClick={() => router.push(path)}
+//                 className={`w-6 h-6 cursor-pointer transition ${
+//                   pathname === path ? "text-cyan" : "hover:text-cyan"
+//                 }`}
+//               />
+//               {!!badge && (
+//                 <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white rounded-full px-1">
+//                   {badge}
+//                 </span>
+//               )}
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* Right */}
+//         <div className="flex items-center space-x-4 flex-1 justify-end">
+//           <div className="hidden xl:flex items-center space-x-4">
+//             <LanguageSwitcher />
+//             <ModeToggle />
+//             <NotificationDropdown />
+//             <UserDropdown />
+//           </div>
+//           <div className="xl:hidden flex items-center space-x-4">
+//             <LanguageSwitcher />
+//             <NotificationDropdown />
+//             <MessageCircle
+//               onClick={() => {
+//                 router.push("/chat");
+//               }}
+//               className="w-6 h-6 cursor-pointer hover:text-cyan transition"
+//             />
+//             <UserDropdown />
+//             <MenuDrawer />
+//           </div>
+//         </div>
+//       </div>
+//     </header>
+//   );
+// }
+
+
+// src/app/components/header/Navbar.tsx (hoặc đường dẫn bạn đang dùng)
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
@@ -11,7 +195,6 @@ import {
   Search,
 } from "lucide-react";
 import Image from "next/image";
-import io from "socket.io-client";
 import { useAuthStore } from "@/store/authStore";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -21,54 +204,15 @@ import { ModeToggle } from "@/app/components/header/ModeToggle";
 import NotificationDropdown from "@/app/components/header/NotificationDropdown";
 import UserDropdown from "@/app/components/header/UserDropdown";
 import MenuDrawer from "@/app/components/header/MenuDrawer";
-import { chatService } from "@/services/chatService";
 import { requestBrowserNotificationPermission } from "@/lib/browserNotification";
+import { useChat } from "@/app/providers/ChatProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuthStore(); // có user.id
-
-  const [unreadBadge, setUnreadBadge] = useState(0);
-  const socketRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    // --- Kết nối socket
-    const socket = io(
-      process.env.NEXT_PUBLIC_CHAT_URL || "http://localhost:8086",
-      {
-        transports: ["websocket"],
-      }
-    );
-    socketRef.current = socket;
-
-    // --- Đăng ký user để nhận badge
-    socket.emit("joinRoom", { roomId: user.id.toString(), userId: user.id });
-    console.log("✅ Joined personal socket room:", user.id);
-
-    // --- Lắng nghe badge cập nhật real-time
-    socket.on("updateUnreadBadge", ({ roomId, count }) => {
-      chatService
-        .getUnreadCount(user.id)
-        .then((total) => setUnreadBadge(total))
-        .catch((err) => console.error("Fetch unread count failed:", err));
-    });
-
-    // --- Fetch tổng unread ban đầu
-    chatService
-      .getUnreadCount(user.id)
-      .then((total) => setUnreadBadge(total))
-      .catch((err) => console.error("Fetch unread count failed:", err));
-
-    // --- Cleanup
-    return () => {
-      socket.disconnect();
-      console.log("❌ Socket disconnected");
-    };
-  }, [user?.id]);
+  const { user } = useAuthStore();
+  const { unreadCount } = useChat(); // 👈 lấy từ ChatProvider
 
   useEffect(() => {
     if (!user?.id) return;
@@ -81,7 +225,7 @@ export default function Navbar() {
     {
       path: "/chat",
       icon: MessageCircle,
-      badge: unreadBadge,
+      badge: unreadCount, // 👈 dùng unreadCount
     },
     { path: "/videos", icon: Video },
     { path: "/groups", icon: Users2 },

@@ -122,7 +122,7 @@ export default function VisibleReels() {
       </div>
 
       {/* Avatars horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto py-2">
+      <div className="flex gap-3 overflow-x-auto py-2 scroll-custom">
         {[user, ...friendUsers]
           .sort((a, b) => {
             const aCount = countReels(a?.id || 0);

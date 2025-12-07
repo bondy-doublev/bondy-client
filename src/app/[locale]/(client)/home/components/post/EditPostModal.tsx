@@ -42,6 +42,9 @@ export default function EditPostModal({
   const [tagged, setTagged] = useState<UserBasic[]>(post.taggedUsers ?? []);
   const [saving, setSaving] = useState(false);
 
+  // share-post? => chỉ cho sửa text
+  const isSharePost = !!post.sharedFrom;
+
   // Visibility
   const [isPublic, setIsPublic] = useState<boolean>(post.visibility ?? true);
 
@@ -102,29 +105,47 @@ export default function EditPostModal({
     setNewFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // Cho phép lưu nếu: có text sau trim HOẶC còn media sau khi xoá HOẶC có file mới
+  // Cho phép lưu:
+  // - Post thường: phải có text hoặc media
+  // - Share-post: luôn cho phép (vì luôn có sharedFrom)
   const willHaveAnyContent = useMemo(() => {
+    if (isSharePost) return true;
+
     const textOk = content.trim() !== "";
     const mediaLeft =
       (post.mediaAttachments?.length ?? 0) -
       selectedForRemove.size +
       newFiles.length;
     return textOk || mediaLeft > 0;
-  }, [content, post.mediaAttachments, selectedForRemove, newFiles.length]);
+  }, [
+    isSharePost,
+    content,
+    post.mediaAttachments,
+    selectedForRemove,
+    newFiles.length,
+  ]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      const removeAttachmentIds = Array.from(selectedForRemove);
 
-      const res = await postService.update({
+      // Nếu là share-post: chỉ sửa text, giữ nguyên mọi thứ khác
+      const removeAttachmentIds = isSharePost
+        ? []
+        : Array.from(selectedForRemove);
+
+      const payload: any = {
         postId: post.id,
         content: content.trim(), // "" để xoá text nếu cần
-        isPublic,
-        tagUserIds,
+        isPublic: isSharePost ? post.visibility : isPublic,
+        tagUserIds: isSharePost
+          ? post.taggedUsers.map((u) => u.id)
+          : tagUserIds,
         removeAttachmentIds,
-        newMediaFiles: newFiles,
-      });
+        newMediaFiles: isSharePost ? [] : newFiles,
+      };
+
+      const res = await postService.update(payload);
 
       // Ưu tiên dùng post từ backend
       const updated: Post =
@@ -138,10 +159,10 @@ export default function EditPostModal({
           return {
             ...post,
             contentText: content.trim(),
-            taggedUsers: tagged,
-            mediaAttachments: keptOld, // media mới chưa có url nếu backend không trả
-            mediaCount: keptOld.length,
-            visibility: isPublic,
+            taggedUsers: isSharePost ? post.taggedUsers : tagged,
+            mediaAttachments: isSharePost ? post.mediaAttachments : keptOld,
+            mediaCount: (isSharePost ? post.mediaAttachments : keptOld).length,
+            visibility: isSharePost ? post.visibility : isPublic,
           } as Post;
         })();
 
@@ -171,61 +192,67 @@ export default function EditPostModal({
         </DialogHeader>
 
         <div className="p-4 space-y-4">
-          {/* Visibility toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t("addToYourPost")}:</span>
-            <button
-              type="button"
-              onClick={() => setIsPublic(true)}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                isPublic
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              <Globe size={14} /> {t("public")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsPublic(false)}
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                !isPublic
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              <Lock size={14} /> {t("private")}
-            </button>
-          </div>
-
-          {/* Tagged friends */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-800">
-                {t("taggedUsers")}
-              </div>
+          {/* Visibility toggle - ẩn nếu là share-post */}
+          {!isSharePost && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                {t("addToYourPost")}:
+              </span>
               <button
-                onClick={() => setShowTagModal(true)}
-                className="text-sm text-green-600 hover:underline"
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                  isPublic
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-gray-700"
+                }`}
               >
-                {t("editTags")}
+                <Globe size={14} /> {t("public")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                  !isPublic
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                <Lock size={14} /> {t("private")}
               </button>
             </div>
-            {tagged.length === 0 ? (
-              <p className="text-xs text-gray-500">{t("noTaggedUsers")}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {tagged.map((u) => (
-                  <span
-                    key={u.id}
-                    className="text-xs px-2 py-1 bg-gray-100 rounded-full"
-                  >
-                    {u.fullName}
-                  </span>
-                ))}
+          )}
+
+          {/* Tagged friends - ẩn nếu là share-post */}
+          {!isSharePost && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-gray-800">
+                  {t("taggedUsers")}
+                </div>
+                <button
+                  onClick={() => setShowTagModal(true)}
+                  className="text-sm text-green-600 hover:underline"
+                >
+                  {t("editTags")}
+                </button>
               </div>
-            )}
-          </div>
+              {tagged.length === 0 ? (
+                <p className="text-xs text-gray-500">{t("noTaggedUsers")}</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {tagged.map((u) => (
+                    <span
+                      key={u.id}
+                      className="text-xs px-2 py-1 bg-gray-100 rounded-full"
+                    >
+                      {u.fullName}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Content */}
           <textarea
@@ -235,8 +262,8 @@ export default function EditPostModal({
             placeholder={t("saySomething")}
           />
 
-          {/* Media hiện có + chọn để xoá */}
-          {post.mediaAttachments?.length > 0 && (
+          {/* Media hiện có + chọn để xoá - ẩn nếu là share-post */}
+          {!isSharePost && post.mediaAttachments?.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="text-sm font-medium text-gray-800">
@@ -303,70 +330,72 @@ export default function EditPostModal({
             </div>
           )}
 
-          {/* Media mới thêm */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-800">
-                {t("addMedia")}
+          {/* Media mới thêm - ẩn nếu là share-post */}
+          {!isSharePost && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-gray-800">
+                  {t("addMedia")}
+                </div>
+                <button
+                  type="button"
+                  onClick={handlePickFiles}
+                  className="text-sm flex items-center gap-1 text-green-600 hover:underline"
+                >
+                  <Plus size={16} /> {t("chooseFiles")}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={handleFilesChosen}
+                />
               </div>
-              <button
-                type="button"
-                onClick={handlePickFiles}
-                className="text-sm flex items-center gap-1 text-green-600 hover:underline"
-              >
-                <Plus size={16} /> {t("chooseFiles")}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*,video/*"
-                className="hidden"
-                onChange={handleFilesChosen}
-              />
-            </div>
 
-            {newFiles.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2">
-                {newFiles.map((f, idx) => {
-                  const isVideo = f.type?.startsWith("video/");
-                  const url = URL.createObjectURL(f);
-                  return (
-                    <div
-                      key={`${f.name}-${idx}`}
-                      className="relative border rounded-lg overflow-hidden group"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => removeNewFile(idx)}
-                        className="absolute top-2 left-2 z-10 bg-red-600 text-white rounded-full p-1 shadow-md"
-                        aria-label="remove-new-file"
+              {newFiles.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {newFiles.map((f, idx) => {
+                    const isVideo = f.type?.startsWith("video/");
+                    const url = URL.createObjectURL(f);
+                    return (
+                      <div
+                        key={`${f.name}-${idx}`}
+                        className="relative border rounded-lg overflow-hidden group"
                       >
-                        <X size={14} />
-                      </button>
-                      <div className="absolute inset-0 transition bg-black/0 group-hover:bg-black/10" />
-                      {isVideo ? (
-                        <video
-                          src={url}
-                          className="w-full h-28 object-cover"
-                          muted
-                        />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={url}
-                          alt={f.name}
-                          className="w-full h-28 object-cover"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-500">{t("noNewMedia")}</p>
-            )}
-          </div>
+                        <button
+                          type="button"
+                          onClick={() => removeNewFile(idx)}
+                          className="absolute top-2 left-2 z-10 bg-red-600 text-white rounded-full p-1 shadow-md"
+                          aria-label="remove-new-file"
+                        >
+                          <X size={14} />
+                        </button>
+                        <div className="absolute inset-0 transition bg-black/0 group-hover:bg-black/10" />
+                        {isVideo ? (
+                          <video
+                            src={url}
+                            className="w-full h-28 object-cover"
+                            muted
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={url}
+                            alt={f.name}
+                            className="w-full h-28 object-cover"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">{t("noNewMedia")}</p>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button
@@ -381,7 +410,7 @@ export default function EditPostModal({
               onClick={handleSave}
               disabled={saving || !willHaveAnyContent}
               className={
-                selectedForRemove.size > 0
+                !isSharePost && selectedForRemove.size > 0
                   ? "bg-red-600 hover:bg-red-700"
                   : "bg-green-600 hover:bg-green-700"
               }
@@ -392,7 +421,8 @@ export default function EditPostModal({
         </div>
       </DialogContent>
 
-      {showTagModal && (
+      {/* TagModal chỉ dùng cho post thường */}
+      {!isSharePost && showTagModal && (
         <TagModal
           t={t}
           showModal={showTagModal}

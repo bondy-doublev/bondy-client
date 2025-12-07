@@ -1,35 +1,127 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { friendService } from "@/services/friendService";
 import { useAuthStore } from "@/store/authStore";
+import { Friendship } from "@/models/Friendship";
+import { useTranslations } from "next-intl";
+import { SortDirection, SortField } from "@/constants/pagination";
 
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 
-import { Friendship } from "@/models/Friendship"; // kiểu mới
+const PAGE_SIZE = 10;
 
 export default function FriendRequests() {
+  const t = useTranslations("friend");
+
   const { user } = useAuthStore();
   const currentUserId = user?.id;
 
   const [requests, setRequests] = useState<Friendship[]>([]);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchRequests = async () => {
-    if (!currentUserId) return;
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  const loadMore = useCallback(async () => {
+    if (!currentUserId || loading || !hasMore) return;
+
     setLoading(true);
     try {
-      const res = await friendService.getPendingRequests(currentUserId);
-      setRequests(res || []);
+      const newData = await friendService.getPendingRequests(currentUserId, {
+        page,
+        size: PAGE_SIZE,
+        sortBy: SortField.CREATED_AT,
+        direction: SortDirection.DESC,
+      });
+
+      setRequests((prev) => [...prev, ...newData]);
+
+      if (newData.length < PAGE_SIZE) {
+        setHasMore(false);
+      } else {
+        setPage((prev) => prev + 1);
+      }
     } catch (err) {
       console.error(err);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId, page, loading, hasMore]);
+
+  // Initial load
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    let cancelled = false;
+
+    const fetchFirstPage = async () => {
+      setLoading(true);
+      setRequests([]);
+      setPage(0);
+      setHasMore(true);
+
+      try {
+        const firstPage = await friendService.getPendingRequests(
+          currentUserId,
+          {
+            page: 0,
+            size: PAGE_SIZE,
+            sortBy: SortField.CREATED_AT,
+            direction: SortDirection.DESC,
+          }
+        );
+
+        if (cancelled) return;
+
+        setRequests(firstPage);
+
+        if (firstPage.length < PAGE_SIZE) {
+          setHasMore(false);
+        } else {
+          setPage(1);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setHasMore(false);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchFirstPage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUserId]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !loading && hasMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    const el = loaderRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [hasMore, loading, loadMore]);
 
   const handleAccept = async (friendship: Friendship) => {
     try {
@@ -37,88 +129,134 @@ export default function FriendRequests() {
         friendship.receiverId,
         friendship.senderId
       );
-      // Xóa khỏi state
       setRequests((prev) => prev.filter((r) => r.id !== friendship.id));
     } catch (err) {
       console.error(err);
-      alert("Failed to accept request");
+      alert(t("acceptFailed"));
     }
   };
 
   const handleReject = async (friendship: Friendship) => {
     try {
       await friendService.unFriend(friendship.senderId);
-      // Xóa khỏi state
       setRequests((prev) => prev.filter((r) => r.id !== friendship.id));
     } catch (err) {
       console.error(err);
-      alert("Failed to reject request");
+      alert(t("rejectFailed"));
     }
   };
 
-  useEffect(() => {
-    fetchRequests();
-  }, [currentUserId]);
+  if (!currentUserId) {
+    return <div className="text-sm text-gray-500">{t("loadingUser")}</div>;
+  }
 
-  if (!currentUserId) return <div>Loading user info...</div>;
+  const isInitialLoading = loading && page === 0;
 
   return (
-    <div className="py-6 mx-auto">
-      <h1 className="text-2xl font-semibold text-green-700 mb-4">
-        Lời mời kết bạn
-      </h1>
-      {loading ? (
-        <div className="text-green-700">Đang tải...</div>
+    <section className="bg-white rounded-xl border border-gray-100 p-4 pt-2 space-y-2">
+      <div className="flex justify-between items-center">
+        <h2 className="font-semibold text-gray-700 py-2">
+          {t("friendRequestsTitle")}
+        </h2>
+      </div>
+
+      {isInitialLoading ? (
+        <div className="text-sm text-gray-600">{t("loading")}</div>
       ) : requests.length === 0 ? (
-        <div className="text-gray-500">Không có lời mời kết bạn nào</div>
+        <div className="text-sm text-gray-500">{t("noFriendRequests")}</div>
       ) : (
-        <ScrollArea className="h-[600px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <>
+          {/* card to hơn: 1 cột trên mobile, 2 cột từ md trở lên */}
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {requests.map((f) => {
               const sender = f.senderInfo;
+              if (!sender) return null;
+
               return (
-                <Card
+                <li
                   key={f.id}
-                  className="bg-green-100 text-black p-4 flex flex-col items-center gap-2 shadow"
+                  className="
+                    group cursor-pointer
+                    flex flex-col sm:flex-row
+                    items-start sm:items-center
+                    justify-between
+                    gap-4 hover:bg-gray-50
+                    p-4 rounded-lg border border-gray-100 min-h-[96px]
+                  "
                 >
-                  <Avatar className="w-20 h-20 rounded-full">
-                    {sender?.avatarUrl ? (
-                      <AvatarImage
-                        src={sender.avatarUrl}
-                        alt={sender.fullName}
-                      />
-                    ) : (
-                      <AvatarFallback>{sender?.fullName[0]}</AvatarFallback>
-                    )}
-                  </Avatar>
+                  {/* Avatar + name */}
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="relative">
+                      {sender.avatarUrl ? (
+                        <UserAvatar
+                          userId={sender.id}
+                          avatarUrl={sender.avatarUrl}
+                          className="w-16 h-16 md:w-20 md:h-20 rounded-lg"
+                        />
+                      ) : (
+                        <DefaultAvatar
+                          userId={sender.id}
+                          firstName={sender.fullName}
+                          className="w-16 h-16 md:w-20 md:h-20 rounded-lg"
+                        />
+                      )}
+                    </div>
 
-                  <div className="text-center">
-                    <div className="font-semibold">{sender?.fullName}</div>
+                    <div className="min-w-0">
+                      <p
+                        className="text-sm md:text-base font-medium text-gray-800 hover:underline hover:text-green-600 truncate"
+                        title={sender.fullName}
+                      >
+                        <UserName
+                          userId={sender.id}
+                          fullname={sender.fullName ?? ""}
+                        />
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2 mt-2 w-full">
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-500 text-white"
-                      onClick={() => handleAccept(f)}
+                  {/* Nút:
+                      - mobile (<md): inline với avatar+name (vì flex-row)
+                      - md-only: xuống hàng dưới (vì md:flex-col)
+                      - lg+: lại lên ngang avatar+name (lg:flex-row)
+                  */}
+                  <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAccept(f);
+                      }}
+                      className="px-3 py-2 rounded-md text-xs md:text-sm font-medium
+                 bg-green-600 text-white hover:bg-green-700"
                     >
-                      Xác nhận
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-green-700 border-green-500 hover:bg-green-100"
-                      onClick={() => handleReject(f)}
+                      {t("confirm")}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReject(f);
+                      }}
+                      className="px-3 py-2 rounded-md text-xs md:text-sm font-medium
+                 border border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
-                      Xóa
-                    </Button>
+                      {t("delete")}
+                    </button>
                   </div>
-                </Card>
+                </li>
               );
             })}
-          </div>
-        </ScrollArea>
+          </ul>
+
+          {hasMore && (
+            <div
+              ref={loaderRef}
+              className="mt-3 h-8 flex items-center justify-center text-xs text-gray-500"
+            >
+              {loading && t("loading")}
+            </div>
+          )}
+        </>
       )}
-    </div>
+    </section>
   );
 }
