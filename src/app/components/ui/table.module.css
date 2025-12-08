@@ -1,0 +1,11 @@
+.table {
+  @apply relative w-full overflow-auto;
+  @apply bg-background border;
+}
+.table tr th:not(:last-child),
+.table tr td:not(:last-child) {
+  @apply border-r;
+}
+.table thead {
+  background-color: var(--table-header-bg);
+}/*# sourceMappingURL=table.module.css.map */

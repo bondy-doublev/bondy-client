@@ -68,8 +68,7 @@ export default function ChatProvider({
 
         // Tùy backend: nếu summary có total / totalUnread thì dùng;
         // nếu không, bạn có thể sửa lại logic này hoặc fetch REST giống code cũ.
-        const total =
-          (summary && (summary.totalUnread ?? summary.total ?? 0)) || 0;
+        const total = (summary && (summary.count ?? summary.count ?? 0)) || 0;
         setUnreadCount(total);
       },
       onConnected: () => {
