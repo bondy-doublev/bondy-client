@@ -148,11 +148,7 @@ export default function SharePost({ post, onComment, onDelete }: Props) {
 
       {/* Bài gốc */}
       {original ? (
-        <PostCard
-          post={original}
-          onComment={() => onComment(original)}
-          isSharePost
-        />
+        <PostCard post={original} onComment={() => onComment(original)} />
       ) : (
         <div className="text-sm text-gray-500 italic">
           {t("originalPostDeleted")}

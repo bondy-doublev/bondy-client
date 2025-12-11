@@ -142,7 +142,7 @@ export default function WallFeed({ className, wallOwner }: Props) {
   const isOwner = user?.id === wallOwner.id;
 
   return (
-    <div className={`max-w-[500px] space-y-6 mb-4 ${className ?? ""}`}>
+    <div className={`space-y-6 mb-4 ${className ?? ""}`}>
       {/* Tường user: không Reels, nhưng Composer gắn owner */}
       {isOwner && (
         <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />

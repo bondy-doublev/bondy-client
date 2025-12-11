@@ -104,7 +104,11 @@ export default function FriendSidebar({
                   userId={friend.id}
                   avatarUrl={friend.avatarUrl}
                   className={
-                    isNewFeed ? "w-10 h-10" : "w-22.5 h-22.5 rounded-lg"
+                    isNewFeed
+                      ? "w-10 h-10"
+                      : !isDetail
+                      ? "w-22.5 h-22.5 rounded-lg"
+                      : "w-18 h-18 rounded-lg"
                   }
                 />
               ) : (
@@ -112,7 +116,11 @@ export default function FriendSidebar({
                   userId={friend.id}
                   firstName={friend?.fullName}
                   className={
-                    isNewFeed ? "w-10 h-10" : "w-22.5 h-22.5 rounded-lg"
+                    isNewFeed
+                      ? "w-10 h-10"
+                      : !isDetail
+                      ? "w-22.5 h-22.5 rounded-lg"
+                      : "w-18 h-18 rounded-lg"
                   }
                 />
               )}

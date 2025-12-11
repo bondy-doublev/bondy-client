@@ -134,7 +134,7 @@ export default function MainFeed({ className }: Props) {
   };
 
   return (
-    <div className={`max-w-[500px] space-y-6 mb-4 ${className ?? ""}`}>
+    <div className={`max-w-[550px] space-y-6 mb-4 ${className ?? ""}`}>
       {/* Reels của tôi + bạn bè */}
       <VisibleReels />
 
