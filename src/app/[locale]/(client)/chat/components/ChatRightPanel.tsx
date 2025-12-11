@@ -214,7 +214,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                 <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
                   {members.map((m) => (
                     <li
-                      onClick={() => router.push(`wall/${m.id}`)}
+                      onClick={() => router.push(`/user/${m.id}`)}
                       key={m.id}
                       className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-all border border-emerald-200 hover:border-emerald-400 hover:shadow-md"
                     >

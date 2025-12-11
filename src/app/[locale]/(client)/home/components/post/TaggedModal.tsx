@@ -65,7 +65,7 @@ export default function TaggedModal({
             <ul className="space-y-3">
               {users.map((user) => (
                 <li
-                  onClick={() => router.push("/wall/" + user.id)}
+                  onClick={() => router.push("/user/" + user.id)}
                   key={user.id}
                   className="flex items-center gap-3 p-1 cursor-pointer hover:bg-gray-100 hover:rounded-xl"
                 >

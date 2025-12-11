@@ -62,6 +62,10 @@ export default function ChatProvider({
       debug: process.env.NODE_ENV === "development",
       onMessage: (msg) => {
         setMessages((prev) => [...prev, msg]);
+
+        if (msg.senderId !== user.id) {
+          // var newNotification =
+        }
       },
       onUnreadSummary: (summary) => {
         setUnreadSummary(summary);

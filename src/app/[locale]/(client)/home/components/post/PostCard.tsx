@@ -37,7 +37,6 @@ export default function PostCard({
   post,
   onComment,
   isDetail = false,
-  isSharePost = false,
   onDelete,
 }: Props) {
   const router = useRouter();
@@ -58,9 +57,6 @@ export default function PostCard({
   const [pendingDelete, setPendingDelete] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
-
-  const currentUserId = user?.id ?? 0;
-  const { friendUsers } = useMyFriends(currentUserId);
 
   useEffect(() => {
     setEditablePost(post);
@@ -308,30 +304,32 @@ export default function PostCard({
           t={t}
           open={showShareModal}
           onClose={() => setShowShareModal(false)}
-          friends={friendUsers.map((f) => ({
-            id: f.id,
-            fullName: f.fullName,
-            avatarUrl: f.avatarUrl,
-          }))}
           originalPostPreview={
-            original ? (
-              <div className="bg-gray-50 border rounded-lg overflow-hidden">
-                <div className="px-3 pt-2 pb-1 text-sm font-semibold text-gray-800">
-                  {original.owner.fullName}
-                </div>
-                <div className="px-3 pb-3">
-                  <PostContent
-                    content={original.contentText}
-                    mediaAttachments={original.mediaAttachments}
-                  />
-                </div>
+            <div className="overflow-hidden">
+              <div className="">
+                <PostHeader
+                  t={t}
+                  owner={post.owner}
+                  seconds={getTimeAgo(post.createdAt)}
+                  taggedUsers={post.taggedUsers}
+                  isOwner={post.owner.id === user?.id}
+                  isSharePost={false}
+                  isPublic={post.visibility}
+                  onDelete={undefined}
+                  onEdit={undefined}
+                  onReport={undefined}
+                  isShareFromPost={true}
+                  onGoDetail={() => handleGoToDetail(post.id)}
+                />
               </div>
-            ) : (
-              <PostContent
-                content={editablePost.contentText}
-                mediaAttachments={editablePost.mediaAttachments}
-              />
-            )
+
+              <div className="py-2">
+                <PostContent
+                  content={post.contentText}
+                  mediaAttachments={post.mediaAttachments}
+                />
+              </div>
+            </div>
           }
           onShareToFeed={handleShareToFeed}
           onSendAsMessage={handleSendAsMessage} // 👈 dùng handler mới

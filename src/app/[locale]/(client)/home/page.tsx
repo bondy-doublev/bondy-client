@@ -11,7 +11,7 @@ export default function Home() {
       </div>
 
       {/* Sidebar bạn bè (to hơn) */}
-      <div className="hidden xl:block fixed right-10 top-20">
+      <div className="hidden xl:block fixed right-5 top-20">
         <FriendSidebar />
       </div>
 

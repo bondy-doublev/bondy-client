@@ -1,5 +1,5 @@
 "use client";
-import MediaSidebar from "@/app/[locale]/(wall)/wall/components/MediaSidebar";
+import MediaSidebar from "@/app/[locale]/(wall)/user/components/MediaSidebar";
 import { useParams } from "next/navigation";
 
 export default function MediaPage() {
