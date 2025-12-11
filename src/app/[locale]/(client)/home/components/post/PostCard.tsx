@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useChat } from "@/app/providers/ChatProvider"; // 👈 THÊM
 
 import { chatService } from "@/services/chatService"; // 👈 dùng để get/create room
+import User from "@/models/User";
 
 type Props = {
   post: Post;
@@ -58,9 +59,6 @@ export default function PostCard({
   const [pendingDelete, setPendingDelete] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
-
-  const currentUserId = user?.id ?? 0;
-  const { friendUsers } = useMyFriends(currentUserId);
 
   useEffect(() => {
     setEditablePost(post);
@@ -308,11 +306,6 @@ export default function PostCard({
           t={t}
           open={showShareModal}
           onClose={() => setShowShareModal(false)}
-          friends={friendUsers.map((f) => ({
-            id: f.id,
-            fullName: f.fullName,
-            avatarUrl: f.avatarUrl,
-          }))}
           originalPostPreview={
             original ? (
               <div className="bg-gray-50 border rounded-lg overflow-hidden">

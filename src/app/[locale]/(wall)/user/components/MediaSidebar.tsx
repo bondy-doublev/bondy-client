@@ -122,7 +122,7 @@ export default function MediaSidebar({
           {medias.length > 0 && !isDetail && (
             <div className="text-center">
               <Link
-                href={`/wall/${userId}/media`}
+                href={`/user/${userId}/media`}
                 className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
               >
                 {t("seeAllMedias")}

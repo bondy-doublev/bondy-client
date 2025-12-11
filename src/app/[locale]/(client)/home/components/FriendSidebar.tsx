@@ -166,7 +166,7 @@ export default function FriendSidebar({
 
         {!isNewFeed && friendUsers.length > 0 && !isDetail && (
           <Link
-            href={`/wall/${userId}/friends`}
+            href={`/user/${userId}/friends`}
             className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
           >
             {t("seeAllFriends")}

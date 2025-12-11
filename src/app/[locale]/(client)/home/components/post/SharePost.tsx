@@ -113,7 +113,7 @@ export default function SharePost({ post, onComment, onDelete }: Props) {
   return (
     <div className="p-4 rounded-xl shadow bg-white">
       <div className="flex justify-between items-center">
-        <Link href={"/wall/" + sharer.id}>
+        <Link href={"/user/" + sharer.id}>
           <p className="text-sm text-gray-600 mb-2">
             <span className="font-bold hover:underline cursor-pointer">
               {user.id === sharer.id ? t("you") : sharer.fullName}

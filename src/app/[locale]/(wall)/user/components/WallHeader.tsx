@@ -97,7 +97,7 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
                 userId={wallUser.id}
                 fullname={fullname}
               />
-              <Link href={`/wall/${wallUser.id}/friends`}>
+              <Link href={`/user/${wallUser.id}/friends`}>
                 <span className="text-sm text-gray-600 hover:underline">
                   {wallUser.friendCount}{" "}
                   {wallUser.friendCount > 1

@@ -1,12 +1,13 @@
 "use client";
 
 import MainFeed from "@/app/[locale]/(client)/home/components/MainFeed";
-import MediaSidebar from "@/app/[locale]/(wall)/wall/components/MediaSidebar";
+import MediaSidebar from "@/app/[locale]/(wall)/user/components/MediaSidebar";
 import FriendSidebar from "@/app/[locale]/(client)/home/components/FriendSidebar";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/userService";
 import User from "@/models/User";
 import { useParams } from "next/navigation";
+import WallFeed from "@/app/[locale]/(wall)/user/components/WallFeed";
 
 export default function Page() {
   const { userId } = useParams();
@@ -29,7 +30,7 @@ export default function Page() {
         />
       </div>
       {userInfo && (
-        <MainFeed wallOwner={userInfo} className="w-full max-w-full" />
+        <WallFeed wallOwner={userInfo} className="w-full max-w-full" />
       )}
     </div>
   );
