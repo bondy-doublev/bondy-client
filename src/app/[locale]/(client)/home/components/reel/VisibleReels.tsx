@@ -27,7 +27,7 @@ interface ReelDataForEdit {
 export default function VisibleReels() {
   const { user } = useAuthStore();
   const userId = user?.id;
-  const { friendUsers } = useMyFriends(userId || 0);
+  const { friendUsers } = useMyFriends(userId || 0, { getAll: true });
 
   const [reels, setReels] = useState<ReelResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -171,7 +171,9 @@ export default function VisibleReels() {
             `}
                 />
                 <span className="text-xs mt-1">
-                  {u?.id === userId ? t("you") : u?.fullName?.split(" ")[0] || "U"}
+                  {u?.id === userId
+                    ? t("you")
+                    : u?.fullName?.split(" ")[0] || "U"}
                 </span>
               </div>
             );
