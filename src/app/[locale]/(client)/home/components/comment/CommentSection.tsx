@@ -77,7 +77,7 @@ export default function CommentSection({
   };
 
   return (
-    <div className="relative px-4 pb-4">
+    <div className="relative px-4">
       {/* List comment + load more: có hiệu ứng */}
       {showComments ? (
         <div
@@ -110,8 +110,8 @@ export default function CommentSection({
       )}
 
       {/* Composer sticky: hiện ngay, không delay */}
-      <div className="sticky bottom-0 left-0 bg-white pt-3 -mx-4 border-t">
-        <div className="px-4">
+      <div className="sticky bottom-0 left-0 bg-white -mx-4 border-t">
+        <div className="p-4">
           <CommentComposer t={t} onSubmit={handleCreateComment} />
         </div>
       </div>
