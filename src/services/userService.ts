@@ -55,11 +55,16 @@ export const userService = {
     firstName?: string;
     middleName?: string;
     lastName?: string;
-    dob?: string;
+    dob?: string; // "YYYY-MM-DD"
     gender?: boolean;
   }) {
     try {
-      const response: AxiosResponse = await api.put(`${API_URL}`, data);
+      const payload = {
+        ...data,
+        dob: data.dob ? `${data.dob}T00:00:00` : undefined,
+      };
+
+      const response = await api.put(`${API_URL}`, payload);
       return response.data;
     } catch (error) {
       throw new Error("Failed to update profile");

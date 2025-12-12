@@ -154,7 +154,7 @@ export default function PostHeader({
                 <span>{t("edit")}</span>
               </button>
               <button
-                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500 flex items-center gap-2"
+                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-gray-600 flex items-center gap-2"
                 onClick={() => {
                   setIsMenuOpen(false);
                   onDelete?.();
@@ -180,7 +180,7 @@ export default function PostHeader({
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md text-sm z-10">
               <button
-                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-red-500 flex items-center gap-2"
+                className="w-full px-4 py-2 hover:bg-gray-100 text-left text-gray-600 flex items-center gap-2"
                 onClick={() => {
                   setIsMenuOpen(false);
                   setShowReportModal(true);
