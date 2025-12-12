@@ -161,12 +161,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       />
 
       <div className="w-full p-2 md:p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        {/* Mobile menu button */}
         <button
           className="md:hidden p-2 mr-2 rounded hover:bg-gray-100"
           onClick={() => {
-            const event = new CustomEvent("openSidebar");
-            window.dispatchEvent(event);
+            const params = new URLSearchParams(window.location.search);
+            const roomId = params.get("roomId");
+
+            if (roomId) {
+              // Nếu đang ở trong phòng → quay lại trang trước
+              window.history.back();
+              // Không có room → mở sidebar
+              const event = new CustomEvent("openSidebar");
+              window.dispatchEvent(event);
+              return;
+            }
           }}
         >
           ☰
