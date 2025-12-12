@@ -12,13 +12,29 @@ import {
   uploadCloudinaryMultiple,
   uploadCloudinarySingle,
 } from "@/services/uploadService";
-import { useChat } from "@/app/providers/ChatProvider"; // 👈 thêm
+import { useChat } from "@/app/providers/ChatProvider";
+import { useTranslations } from "use-intl";
+import { toast } from "react-toastify";
 
 export default function ChatPage() {
   const { user } = useAuthStore();
-  const { socket: chatSocket } = useChat(); // 👈 lấy socket wrapper từ provider
+  const { socket: chatSocket } = useChat();
 
-  const [tab, setTab] = useState<"personal" | "group">("personal");
+  // --- init tab and roomId from URL if present
+  const getUrlParams = () => {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      tab: (p.get("tab") as "personal" | "group") || "personal",
+      roomId: p.get("roomId") || null,
+    };
+  };
+
+  const initial =
+    typeof window !== "undefined"
+      ? getUrlParams()
+      : { tab: "personal", roomId: null };
+
+  const [tab, setTab] = useState<"personal" | "group">(initial.tab);
   const [conversations, setConversations] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,6 +51,13 @@ export default function ChatPage() {
   const tabRef = useRef(tab);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const hasRoom = !!selectedRoom?.id;
+  const shouldShowSidebarMobile = isMobile && !hasRoom && isSidebarOpen;
+  const t = useTranslations("chat");
+
+  // store desired roomId from URL on first load so we can open it after conversations fetched
+  const initialRoomIdRef = useRef<string | null>(initial.roomId);
 
   // cập nhật ref
   useEffect(() => {
@@ -51,6 +74,26 @@ export default function ChatPage() {
     return () => window.removeEventListener("openSidebar", openHandler);
   }, []);
 
+  // --- helper: update URL (pushState)
+  const updateUrl = (
+    newTab?: "personal" | "group",
+    roomId?: string | null,
+    replace = false
+  ) => {
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    if (newTab) params.set("tab", newTab);
+    else if (!params.has("tab")) params.set("tab", tab);
+
+    if (roomId) params.set("roomId", roomId);
+    else params.delete("roomId");
+
+    const newUrl = `${url.pathname}?${params.toString()}`;
+    if (replace) window.history.replaceState({}, "", newUrl);
+    else window.history.pushState({}, "", newUrl);
+  };
+
   // --- Load friends
   const handleGetFriends = async () => {
     if (!user?.id) return;
@@ -61,7 +104,7 @@ export default function ChatPage() {
       );
       setFriends(friendList);
     } catch (err) {
-      console.error("Error loading friends:", err);
+      console.error(t("errorLoadingFriends"), err);
     }
   };
 
@@ -80,12 +123,12 @@ export default function ChatPage() {
             const member = (room as any).members?.find(
               (m: any) => m.id !== user.id
             );
-            let displayName = "Unknown";
+            let displayName = t("unknown");
             if (member) {
               try {
                 const profile = await userService.getBasicProfile(member.id);
                 displayName =
-                  profile.data.fullName || profile.username || "Unknown";
+                  profile.data.fullName || profile.username || t("unknown");
               } catch {}
             }
             return { ...room, displayName };
@@ -97,13 +140,45 @@ export default function ChatPage() {
         setConversations(rooms);
       }
     } catch (err) {
-      console.error("Error loading conversations:", err);
+      console.error(t("errorLoadingConversations"), err);
     }
   };
 
+  // fetch conversations whenever tab or user changes
   useEffect(() => {
     fetchConversations(tabRef.current);
+    // Also update URL tab (replace on first load to avoid polluting history)
+    updateUrl(tabRef.current, selectedRoom?.id || null, true);
   }, [tab, user?.id]);
+
+  // --- handle popstate (back/forward)
+  useEffect(() => {
+    const onPopState = () => {
+      const p = new URLSearchParams(window.location.search);
+      const urlTab = (p.get("tab") as "personal" | "group") || "personal";
+      const urlRoomId = p.get("roomId") || null;
+
+      // apply tab
+      setTab(urlTab);
+
+      // if there's a roomId and conversations already loaded, open it; else remember to open after conversations load
+      if (urlRoomId) {
+        const room = conversations.find((r) => r.id === urlRoomId);
+        if (room) {
+          loadRoomMessages(room);
+        } else {
+          initialRoomIdRef.current = urlRoomId;
+        }
+      } else {
+        // no room in URL -> close selectedRoom
+        setSelectedRoom(null);
+        setMessages([]);
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [conversations]);
 
   // --- Socket events (dùng socket từ ChatProvider)
   useEffect(() => {
@@ -155,10 +230,17 @@ export default function ChatPage() {
     };
   }, [user, chatSocket]);
 
+  // --- reset messages only when tab truly changes by user (not on reload)
+  const prevTabRef = useRef(tab);
   useEffect(() => {
-    setMessages([]); // reset messages khi đổi tab
-    setSelectedRoom(null); // reset room
-    fetchConversations(tabRef.current);
+    if (prevTabRef.current !== tab) {
+      // tab changed by user -> reset selection
+      setMessages([]);
+      setSelectedRoom(null);
+      // update url (push new tab and clear roomId)
+      updateUrl(tab, null);
+    }
+    prevTabRef.current = tab;
   }, [tab]);
 
   // --- Load room messages + pagination
@@ -210,8 +292,11 @@ export default function ChatPage() {
           userId: user.id,
         });
       }
+
+      // update URL (push roomId) when a room is opened
+      updateUrl(tab, room.id);
     } catch (err) {
-      console.error("Error loading messages:", err);
+      console.error(t("errorLoadingMessages"), err);
     }
   };
 
@@ -219,7 +304,7 @@ export default function ChatPage() {
   useEffect(() => {
     const container = messageContainerRef.current;
     if (!container) {
-      console.log("No container ref");
+      // console.log(t("noContainerRef"));
       return;
     }
 
@@ -235,12 +320,12 @@ export default function ChatPage() {
       });
 
       if (scrollTop < 50 && hasMore && !isLoadingMore && selectedRoom) {
-        console.log("Triggering load more...");
+        // console.log(t("triggeringLoadMore"));
         setIsLoadingMore(true);
 
         loadRoomMessages(selectedRoom, false).finally(() => {
           setTimeout(() => {
-            console.log("Load more completed");
+            // console.log(t("loadMoreCompleted"));
             setIsLoadingMore(false);
           }, 500);
         });
@@ -248,15 +333,15 @@ export default function ChatPage() {
     };
 
     container.addEventListener("scroll", handleScroll);
-    console.log("Scroll listener attached");
+    // console.log("Scroll listener attached");
 
     return () => {
       container.removeEventListener("scroll", handleScroll);
-      console.log("Scroll listener removed");
+      // console.log("Scroll listener removed");
     };
   }, [selectedRoom, hasMore, isLoadingMore, page]);
 
-  // --- Send
+  // --- Send (unchanged)
   const handleSend = async () => {
     if (!selectedRoom || !chatSocket || !user) return;
     if (!newMsg.trim() && attachments.length === 0) return;
@@ -308,11 +393,11 @@ export default function ChatPage() {
       }, 100);
     } catch (err) {
       console.error(err);
-      alert("Upload file thất bại");
+      toast.error(t("uploadFileFailed"));
     }
   };
 
-  // --- Edit/Delete/Reply
+  // --- Edit/Delete/Reply (unchanged)
   const handleEditMessage = async (msg: Message, newContent: string) => {
     if (!chatSocket || !user) return;
     try {
@@ -327,7 +412,7 @@ export default function ChatPage() {
       );
     } catch (err) {
       console.error(err);
-      alert("Không thể chỉnh sửa tin nhắn");
+      toast.error(t("editMessageFailed"));
     }
   };
 
@@ -341,7 +426,7 @@ export default function ChatPage() {
       );
     } catch (err) {
       console.error(err);
-      alert("Không thể xóa tin nhắn");
+      toast.error(t("deleteMessageFailed"));
     }
   };
 
@@ -353,7 +438,7 @@ export default function ChatPage() {
     await fetchConversations(tabRef.current);
   };
 
-  // --- Create room
+  // --- Create room (unchanged)
   const handleCreateRoom = async (
     groupName?: string,
     personalFriendId?: string
@@ -372,7 +457,7 @@ export default function ChatPage() {
         loadRoomMessages(room);
       } else {
         if (!groupName || selectedFriends.length < 2) {
-          alert("Chọn ít nhất 2 bạn và nhập tên nhóm");
+          toast.error(t("selectAtLeastTwoFriendsAndEnterGroupName"));
           return;
         }
         const memberIds = [user.id, ...selectedFriends];
@@ -384,7 +469,7 @@ export default function ChatPage() {
       }
     } catch (err) {
       console.error("Error creating room:", err);
-      alert("Không thể tạo phòng chat");
+      toast.error(t("errorCreatingRoom"));
     }
   };
 
@@ -394,20 +479,40 @@ export default function ChatPage() {
     }
   }, []);
 
+  // when conversations updated, if URL had a roomId to open -> open it
+  useEffect(() => {
+    if (conversations.length === 0) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get("roomId") || initialRoomIdRef.current;
+    if (roomId) {
+      const room = conversations.find((r) => r.id === roomId);
+      if (room) {
+        loadRoomMessages(room);
+        // clear initial ref so we don't re-open repeatedly
+        initialRoomIdRef.current = null;
+      }
+    }
+  }, [conversations]);
+
   return (
     <div className="flex h-[90vh] flex-col md:flex-row">
-      {isSidebarOpen && (
+      {shouldShowSidebarMobile && (
         <div
           className="fixed inset-0 z-50 bg-black/50"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-      {isSidebarOpen && window.innerWidth < 768 ? (
+
+      {/* SIDEBAR MOBILE (overlay) */}
+      {isMobile && !hasRoom && isSidebarOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Sidebar
             className="bg-white w-11/12 max-w-sm h-5/6 shadow-lg rounded-lg p-4"
             tab={tab}
-            setTab={setTab}
+            setTab={(v) => {
+              setTab(v);
+              updateUrl(v, null);
+            }}
             currentUserId={user?.id}
             conversations={conversations}
             selectedRoomId={selectedRoom?.id || null}
@@ -419,14 +524,20 @@ export default function ChatPage() {
           />
         </div>
       ) : (
+        /* SIDEBAR DESKTOP */
         <Sidebar
           className="hidden md:block w-[300px]"
           tab={tab}
-          setTab={setTab}
+          setTab={(v) => {
+            setTab(v);
+            updateUrl(v, null);
+          }}
           currentUserId={user?.id}
           conversations={conversations}
           selectedRoomId={selectedRoom?.id || null}
-          onSelectRoom={loadRoomMessages}
+          onSelectRoom={(room) => {
+            loadRoomMessages(room);
+          }}
           onOpenDialog={() => setOpenDialog(true)}
         />
       )}
@@ -473,7 +584,7 @@ export default function ChatPage() {
       {isLoadingMore && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2">
           <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-          Đang tải tin nhắn cũ...
+          {t("loadingMore")}
         </div>
       )}
     </div>

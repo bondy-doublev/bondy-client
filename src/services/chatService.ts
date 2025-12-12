@@ -17,6 +17,13 @@ export type Message = {
   imageUrl?: string;
   attachments?: { url: string; type: "image" | "file"; fileName?: string }[];
   replyToMessageId?: string;
+  sharedPost?: {
+    postId?: number;
+    title: string;
+    link?: string;
+    authorName?: string;
+    authorAvatar?: string;
+  };
   isEdited: boolean;
   isDeleted: boolean;
   readBy: string[];

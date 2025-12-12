@@ -505,15 +505,6 @@ export default function PostCard({
 
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const postLink = `${origin}/post/${editablePost.id}/detail`;
-    const finalContent = message ? `${message}\n${postLink}` : postLink;
-
-    let rooms: any[] = [];
-    try {
-      rooms = (await chatService.getPrivateRooms(user.id)) as any[];
-    } catch (e) {
-      console.error("Get private rooms failed:", e);
-      // vẫn cố gửi => sẽ tạo room khi cần
-    }
 
     await Promise.all(
       friendIds.map(async (friendId) => {
@@ -538,7 +529,15 @@ export default function PostCard({
           sendMessage({
             senderId: user.id,
             roomId,
-            content: finalContent,
+            content: message,
+            sharedPost: {
+              postId: post?.id,
+              title: post?.contentText,
+              image: post?.mediaAttachments?.[0]?.url,
+              link: postLink,
+              authorName: post?.owner?.fullName,
+              authorAvatar: post?.owner?.avatarUrl,
+            },
           });
         } catch (err) {
           console.error("Send share as message failed:", err);
