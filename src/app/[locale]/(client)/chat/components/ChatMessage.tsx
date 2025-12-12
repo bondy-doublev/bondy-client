@@ -13,6 +13,7 @@ import { FaFileAlt } from "react-icons/fa";
 import Modal from "react-modal";
 import { useTranslations } from "use-intl";
 import { UniversalConfirmDialog } from "@/components/common/ConfirmModal";
+import { SharedPostCard } from "./SharedPostCard";
 
 interface ChatMessageProps {
   msg: Message;
@@ -175,6 +176,8 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 ? t("deleted")
                 : replyMessage.content
                 ? replyMessage.content
+                : replyMessage.sharedPost
+                ? `📤 ${replyMessage.sharedPost.title}`
                 : replyMessage.attachments?.length
                 ? replyMessage.attachments
                     .map((a) => (a.type === "image" ? t("image") : t("file")))
@@ -187,47 +190,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 mt-1">
-            {hasAttachments &&
-              attachments.slice(0, 4).map((a, index) =>
-                a.type === "image" ? (
-                  <img
-                    key={index}
-                    src={a.url}
-                    alt={a.fileName}
-                    className="w-20 h-20 object-cover rounded cursor-pointer"
-                    onClick={() => openModal(a.url)}
-                  />
-                ) : (
-                  <a
-                    key={index}
-                    href={a.url}
-                    target="_blank"
-                    className="text-blue-500 text-xs max-w-[80px] truncate"
-                  >
-                    <FaFileAlt className="inline mr-1" />
-                    {a.fileName || a.url.split("/").pop()}
-                  </a>
-                )
-              )}
-            {!hasAttachments && msg.imageUrl && (
-              <img
-                src={msg.imageUrl}
-                alt="img"
-                className="max-w-full md:max-w-xs h-auto rounded mt-1"
-              />
-            )}
-            {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
-              <a
-                href={msg.fileUrl}
-                target="_blank"
-                className="text-blue-500 mt-1 block"
-              >
-                {msg.fileUrl.split("/").pop()}
-              </a>
-            )}
-          </div>
-
+          {/* Nội dung text - hiển thị trước shared post */}
           <div className="text-sm mt-1 w-full">
             {msg.isDeleted ? (
               <i>{t("deleted")}</i>
@@ -236,14 +199,14 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 <textarea
                   value={draftContent}
                   onChange={(e) => setDraftContent(e.target.value)}
-                  className="w-full border rounded p-2 h-20 focus:outline-none"
+                  className="w-full border rounded p-2 h-20 focus:outline-none text-black"
                 />
 
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => {
                       setIsEditingInline(false);
-                      setDraftContent(msg.content); // restore
+                      setDraftContent(msg.content);
                     }}
                     className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-green-600"
                   >
@@ -252,7 +215,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
 
                   <button
                     onClick={() => {
-                      onEdit(msg, draftContent);
+                      onEdit(msg, draftContent || "");
                       setIsEditingInline(false);
                     }}
                     className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -263,11 +226,63 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
               </div>
             ) : (
               <>
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {msg.content && (
+                  <div className="whitespace-pre-wrap mb-2">{msg.content}</div>
+                )}
               </>
             )}
           </div>
 
+          {/* Shared Post Card */}
+          {msg.sharedPost && !msg.isDeleted && (
+            <SharedPostCard sharedPost={msg?.sharedPost} isMine={isMine} />
+          )}
+
+          {/* Attachments */}
+          {!msg.sharedPost && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {hasAttachments &&
+                attachments.slice(0, 4).map((a, index) =>
+                  a.type === "image" ? (
+                    <img
+                      key={index}
+                      src={a.url}
+                      alt={a.fileName}
+                      className="w-20 h-20 object-cover rounded cursor-pointer"
+                      onClick={() => openModal(a.url)}
+                    />
+                  ) : (
+                    <a
+                      key={index}
+                      href={a.url}
+                      target="_blank"
+                      className="text-blue-500 text-xs max-w-[80px] truncate"
+                    >
+                      <FaFileAlt className="inline mr-1" />
+                      {a.fileName || a.url.split("/").pop()}
+                    </a>
+                  )
+                )}
+              {!hasAttachments && msg.imageUrl && (
+                <img
+                  src={msg.imageUrl}
+                  alt="img"
+                  className="max-w-full md:max-w-xs h-auto rounded mt-1"
+                />
+              )}
+              {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
+                <a
+                  href={msg.fileUrl}
+                  target="_blank"
+                  className="text-blue-500 mt-1 block"
+                >
+                  {msg.fileUrl.split("/").pop()}
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Timestamp */}
           <div
             className={`text-xs flex items-center gap-1 ${
               isMine ? "text-white justify-end" : "text-gray-600 justify-start"

@@ -285,6 +285,8 @@
     "acceptedYourFriendRequest": "accepted your friend request"
   },
   "chat": {
+    "sharedPost": "Share Post",
+    "viewPost": "View Post",
     "errorLoadingFriends": "Error loading friends",
     "unknown": "Unknown",
     "errorLoadingConversations": "Error loading conversations",

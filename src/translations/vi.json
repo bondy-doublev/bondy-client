@@ -285,6 +285,8 @@
     "acceptedYourFriendRequest": "đã chấp nhận lời mời kết bạn của bạn"
   },
   "chat": {
+    "sharedPost": "Bài viết được chia sẻ",
+    "viewPost": "Xem bài viết",
     "errorLoadingFriends": "Lỗi khi tải bạn bè",
     "unknown": "Không xác định",
     "errorLoadingConversations": "Lỗi khi tải cuộc trò chuyện",
