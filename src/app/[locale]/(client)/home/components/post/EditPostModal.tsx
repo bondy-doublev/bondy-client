@@ -42,7 +42,7 @@ export default function EditPostModal({
   const [tagged, setTagged] = useState<UserBasic[]>(post.taggedUsers ?? []);
   const [saving, setSaving] = useState(false);
 
-  // share-post? => chỉ cho sửa text
+  // share-post? => vẫn cho sửa mọi thứ, CHỈ KHÔNG CHO SỬA MEDIA
   const isSharePost = !!post.sharedFrom;
 
   // Visibility
@@ -92,12 +92,10 @@ export default function EditPostModal({
     const totalAfter = mediaLeft + newFiles.length + files.length;
     const MAX = 20; // nên đồng bộ với PropsConfig
     if (totalAfter > MAX) {
-      // bạn có thể thay bằng Toast
       alert(`Tối đa ${MAX} media cho một bài viết.`);
       return;
     }
     setNewFiles((prev) => [...prev, ...files]);
-    // clean input để có thể chọn lại cùng file
     e.currentTarget.value = "";
   };
 
@@ -129,40 +127,36 @@ export default function EditPostModal({
     try {
       setSaving(true);
 
-      // Nếu là share-post: chỉ sửa text, giữ nguyên mọi thứ khác
+      // ✅ Share-post: KHÔNG chỉnh media, nhưng vẫn sửa visibility + tag + text bình thường
       const removeAttachmentIds = isSharePost
         ? []
         : Array.from(selectedForRemove);
 
       const payload: any = {
         postId: post.id,
-        content: content.trim(), // "" để xoá text nếu cần
-        isPublic: isSharePost ? post.visibility : isPublic,
-        tagUserIds: isSharePost
-          ? post.taggedUsers.map((u) => u.id)
-          : tagUserIds,
+        content: content.trim(),
+        isPublic, // ✅ share cũng dùng state isPublic
+        tagUserIds, // ✅ share cũng dùng state tagged
         removeAttachmentIds,
         newMediaFiles: isSharePost ? [] : newFiles,
       };
 
       const res = await postService.update(payload);
 
-      // Ưu tiên dùng post từ backend
       const updated: Post =
         res?.data ??
         (() => {
-          // Fallback: chỉ cập nhật local phần chắc chắn
+          // Fallback local
           const removed = new Set(removeAttachmentIds);
-          const keptOld = post.mediaAttachments.filter(
-            (m) => !removed.has(m.id)
-          );
+          const keptOld =
+            post.mediaAttachments?.filter((m) => !removed.has(m.id)) ?? [];
           return {
             ...post,
             contentText: content.trim(),
-            taggedUsers: isSharePost ? post.taggedUsers : tagged,
+            taggedUsers: tagged,
             mediaAttachments: isSharePost ? post.mediaAttachments : keptOld,
             mediaCount: (isSharePost ? post.mediaAttachments : keptOld).length,
-            visibility: isSharePost ? post.visibility : isPublic,
+            visibility: isPublic,
           } as Post;
         })();
 
@@ -192,67 +186,62 @@ export default function EditPostModal({
         </DialogHeader>
 
         <div className="p-4 space-y-4">
-          {/* Visibility toggle - ẩn nếu là share-post */}
-          {!isSharePost && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                {t("addToYourPost")}:
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsPublic(true)}
-                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                  isPublic
-                    ? "bg-green-600 text-white border-green-600"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                <Globe size={14} /> {t("public")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsPublic(false)}
-                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
-                  !isPublic
-                    ? "bg-green-600 text-white border-green-600"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                <Lock size={14} /> {t("private")}
-              </button>
-            </div>
-          )}
+          {/* ✅ Visibility toggle: share-post cũng hiện */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">{t("addToYourPost")}:</span>
+            <button
+              type="button"
+              onClick={() => setIsPublic(true)}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                isPublic
+                  ? "bg-green-600 text-white border-green-600"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              <Globe size={14} /> {t("public")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPublic(false)}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border ${
+                !isPublic
+                  ? "bg-green-600 text-white border-green-600"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              <Lock size={14} /> {t("private")}
+            </button>
+          </div>
 
-          {/* Tagged friends - ẩn nếu là share-post */}
-          {!isSharePost && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-gray-800">
-                  {t("taggedUsers")}
-                </div>
-                <button
-                  onClick={() => setShowTagModal(true)}
-                  className="text-sm text-green-600 hover:underline"
-                >
-                  {t("editTags")}
-                </button>
+          {/* ✅ Tagged friends: share-post cũng hiện */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium text-gray-800">
+                {t("taggedUsers")}
               </div>
-              {tagged.length === 0 ? (
-                <p className="text-xs text-gray-500">{t("noTaggedUsers")}</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {tagged.map((u) => (
-                    <span
-                      key={u.id}
-                      className="text-xs px-2 py-1 bg-gray-100 rounded-full"
-                    >
-                      {u.fullName}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <button
+                onClick={() => setShowTagModal(true)}
+                className="text-sm text-green-600 hover:underline"
+              >
+                {t("editTags")}
+              </button>
             </div>
-          )}
+
+            {tagged.length === 0 ? (
+              <p className="text-xs text-gray-500">{t("noTaggedUsers")}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {tagged.map((u) => (
+                  <span
+                    key={u.id}
+                    className="text-xs px-2 py-1 bg-gray-100 rounded-full"
+                  >
+                    {u.fullName}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Content */}
           <textarea
@@ -262,7 +251,7 @@ export default function EditPostModal({
             placeholder={t("saySomething")}
           />
 
-          {/* Media hiện có + chọn để xoá - ẩn nếu là share-post */}
+          {/* ✅ Media: vẫn ẩn với share-post */}
           {!isSharePost && post.mediaAttachments?.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -288,7 +277,6 @@ export default function EditPostModal({
                         checked ? "ring-2 ring-red-500" : ""
                       }`}
                     >
-                      {/* Overlay icon X */}
                       <div
                         className={`absolute top-2 left-2 z-10 text-white rounded-full p-1 shadow-md ${
                           checked ? "bg-red-600" : "bg-black/40"
@@ -297,14 +285,12 @@ export default function EditPostModal({
                         <X size={14} />
                       </div>
 
-                      {/* Hover overlay */}
                       <div
                         className={`absolute inset-0 transition bg-black/0 group-hover:bg-black/10 ${
                           checked ? "bg-black/30" : ""
                         }`}
                       />
                       {m.type === "IMAGE" ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={m.url}
                           alt="media"
@@ -321,16 +307,9 @@ export default function EditPostModal({
                   );
                 })}
               </div>
-
-              {selectedForRemove.size > 0 && (
-                <div className="text-xs text-gray-500">
-                  {t("delete")}: {selectedForRemove.size} {t("selected")}
-                </div>
-              )}
             </div>
           )}
 
-          {/* Media mới thêm - ẩn nếu là share-post */}
           {!isSharePost && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -368,7 +347,6 @@ export default function EditPostModal({
                           type="button"
                           onClick={() => removeNewFile(idx)}
                           className="absolute top-2 left-2 z-10 bg-red-600 text-white rounded-full p-1 shadow-md"
-                          aria-label="remove-new-file"
                         >
                           <X size={14} />
                         </button>
@@ -380,7 +358,6 @@ export default function EditPostModal({
                             muted
                           />
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={url}
                             alt={f.name}
@@ -421,8 +398,8 @@ export default function EditPostModal({
         </div>
       </DialogContent>
 
-      {/* TagModal chỉ dùng cho post thường */}
-      {!isSharePost && showTagModal && (
+      {/* ✅ TagModal: share-post cũng dùng */}
+      {showTagModal && (
         <TagModal
           t={t}
           showModal={showTagModal}

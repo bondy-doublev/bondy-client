@@ -11,7 +11,7 @@ export default function UserName({
 }) {
   return (
     <Link
-      href={"/wall/" + userId}
+      href={"/user/" + userId}
       className={`hover:underline cursor-pointer ${className}`}
     >
       {fullname}

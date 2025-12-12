@@ -35,7 +35,10 @@ export default function TagModal({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { user } = useAuthStore();
-  const { loading, friendUsers } = useMyFriends(user?.id ?? 0);
+  const { loading, friendUsers } = useMyFriends(user?.id ?? 0, {
+    getAll: true,
+    enabled: showModal, // ✅ đóng modal = không fetch
+  });
 
   // ✅ Khi modal mở, khởi tạo selectedIds theo initialTagged (một lần mỗi lần mở)
   const prevOpenRef = useRef<boolean>(false);

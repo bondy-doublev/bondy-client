@@ -12,7 +12,7 @@ export function getNotificationRedirectPath(n: Notification): string | null {
       return `/post/${n.redirectId}/detail`;
 
     case RefType.USER:
-      return `/wall/${n.redirectId}`;
+      return `/user/${n.redirectId}`;
 
     default:
       return null;

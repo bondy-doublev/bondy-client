@@ -205,7 +205,8 @@
       "saySomethingMessage": "Viết gì đó kèm liên kết này...",
       "originalPost": "Bài viết gốc",
       "shareNow": "Chia sẻ ngay",
-      "send": "Gửi"
+      "send": "Gửi",
+      "noMediaHint": "Bài chia sẻ không thể chỉnh sửa ảnh hoặc video."
     }
   },
   "friend": {
@@ -242,7 +243,14 @@
     "delete": "Xóa",
     "acceptFailed": "Xác nhận lời mời thất bại",
     "rejectFailed": "Xóa lời mời thất bại",
-    "loadMore": "Tải thêm"
+    "loadMore": "Tải thêm",
+
+    "viewProfile": "Xem trang cá nhân",
+    "unfriend": "Hủy kết bạn",
+    "cancel": "Hủy",
+    "unfriending": "Đang hủy...",
+    "confirmUnfriendTitle": "Hủy kết bạn?",
+    "confirmUnfriendDesc": "Bạn sẽ không còn là bạn bè với người này."
   },
   "wall": {
     "friends": "Bạn bè",
@@ -252,6 +260,7 @@
     "seeAllMedias": "Xem tất cả",
     "post": "Bài viết",
     "friend": "Bạn",
+    "profile": "Thông tin cá nhân",
     "scrollToLoadMore": "Cuộn xuống để xem thêm",
     "loading": "Đang tải...",
 
@@ -264,7 +273,13 @@
     "cancelRequest": "Hủy lời mời",
     "acceptRequest": "Chấp nhận lời mời",
     "rejectRequest": "Từ chối lời mời",
-    "unfriend": "Hủy kết bạn"
+    "unfriend": "Hủy kết bạn",
+
+    "confirmDeleteMediaTitle": "Xóa media?",
+    "confirmDeleteMediaDesc": "Hành động này không thể hoàn tác.",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa..."
   },
   "notification": {
     "notification": "Thông báo",
