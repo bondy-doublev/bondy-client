@@ -11,22 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, Globe, Lock, Users, MessageCircle, Search } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 
 type ShareMode = "feed" | "message";
-
-type ShareFriend = {
-  id: number;
-  fullName: string;
-  avatarUrl?: string | null;
-};
 
 type ShareModalProps = {
   t: (key: string) => string;
   open: boolean;
   onClose: () => void;
-
-  /** Danh sách bạn bè để gửi tin nhắn */
-  friends: ShareFriend[];
 
   /** Preview bài gốc (card bài post, text, media…) */
   originalPostPreview: React.ReactNode;
@@ -44,11 +37,11 @@ type ShareModalProps = {
   }) => Promise<void> | void;
 };
 
+// unuse
 export default function ShareModal({
   t,
   open,
   onClose,
-  friends,
   originalPostPreview,
   onShareToFeed,
   onSendAsMessage,
@@ -66,16 +59,23 @@ export default function ShareModal({
   const [visibleCount, setVisibleCount] = useState(20);
   const friendListRef = useRef<HTMLDivElement | null>(null);
 
+  const { user } = useAuthStore();
+
+  const currentUserId = user?.id ?? 0;
+  const { friendUsers } = useMyFriends(currentUserId);
+
   const filteredFriends = useMemo(() => {
     const keyword = searchFriend.trim().toLowerCase();
-    if (!keyword) return friends;
-    return friends.filter((f) => f.fullName.toLowerCase().includes(keyword));
-  }, [friends, searchFriend]);
+    if (!keyword) return friendUsers;
+    return friendUsers.filter((f) =>
+      f.fullName!.toLowerCase().includes(keyword)
+    );
+  }, [friendUsers, searchFriend]);
 
   // Reset visibleCount khi search / mode / danh sách friends đổi
   useEffect(() => {
     setVisibleCount(20);
-  }, [searchFriend, mode, friends.length]);
+  }, [searchFriend, mode, friendUsers.length]);
 
   const toggleFriend = (id: number) => {
     setSelectedFriendIds((prev) => {
@@ -302,7 +302,7 @@ export default function ShareModal({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span>{f.fullName.charAt(0).toUpperCase()}</span>
+                            <span>{f.fullName!.charAt(0).toUpperCase()}</span>
                           )}
                         </div>
                         <div className="flex-1">

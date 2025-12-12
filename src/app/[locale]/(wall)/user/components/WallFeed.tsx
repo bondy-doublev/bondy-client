@@ -1,23 +1,26 @@
-// MainFeed.tsx
+// WallFeed.tsx
 "use client";
 
 import PostComposer from "@/app/[locale]/(client)/home/components/composer/PostComposer";
 import { PostDetailModal } from "@/app/[locale]/(client)/home/components/post/PostDetailModal";
 import PostCard from "@/app/[locale]/(client)/home/components/post/PostCard";
-import VisibleReels from "./reel/VisibleReels";
 
 import { Post } from "@/models/Post";
-import { feedService } from "@/services/feedService";
+import User from "@/models/User";
+
+import { wallService } from "@/services/wallService";
 import { postService } from "@/services/postService";
 
 import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 type Props = {
   className?: string;
+  wallOwner: User; // tường thì bắt buộc phải có owner
 };
 
-export default function MainFeed({ className }: Props) {
+export default function WallFeed({ className, wallOwner }: Props) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -26,13 +29,16 @@ export default function MainFeed({ className }: Props) {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isReloading, setIsReloading] = useState(false);
 
+  const { user } = useAuthStore();
+
   const t = useTranslations("post");
   const PAGE_SIZE = 5;
 
   const fetchPosts = async (page: number, reset = false) => {
     setLoading(true);
 
-    const newPosts: Post[] = await feedService.getFeeds({
+    const newPosts: Post[] = await wallService.getWallFeeds({
+      userId: wallOwner.id,
       page,
       size: PAGE_SIZE,
     });
@@ -62,7 +68,7 @@ export default function MainFeed({ className }: Props) {
       fetchPosts(page);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, wallOwner.id]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -133,15 +139,15 @@ export default function MainFeed({ className }: Props) {
     setSelectedPost((prev) => (prev?.id === postId ? null : prev));
   };
 
+  const isOwner = user?.id === wallOwner.id;
+
   return (
-    <div className={`max-w-[550px] space-y-6 mb-4 ${className ?? ""}`}>
-      {/* Reels của tôi + bạn bè */}
-      <VisibleReels />
+    <div className={`space-y-6 mb-4 ${className ?? ""}`}>
+      {/* Tường user: không Reels, nhưng Composer gắn owner */}
+      {isOwner && (
+        <PostComposer owner={wallOwner} onPostCreated={reloadFeeds} />
+      )}
 
-      {/* Composer đăng bài (home feed không có owner) */}
-      <PostComposer onPostCreated={reloadFeeds} />
-
-      {/* Feed */}
       {posts.map((post, index) => (
         <PostCard
           key={index}
@@ -152,14 +158,12 @@ export default function MainFeed({ className }: Props) {
         />
       ))}
 
-      {/* Infinite scroll loader */}
       {hasMore && (
         <div ref={loaderRef} className="text-center py-6 text-gray-500">
           {loading ? t("loading") : t("scrollToLoadMore")}
         </div>
       )}
 
-      {/* Modal chi tiết bài viết */}
       {selectedPost && (
         <PostDetailModal
           t={t}

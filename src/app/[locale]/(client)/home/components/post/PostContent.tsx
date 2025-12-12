@@ -5,7 +5,7 @@ import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { MediaAttachment } from "@/models/Post";
-import MediaModal from "@/app/[locale]/(wall)/wall/components/MediaModal";
+import MediaModal from "@/app/[locale]/(wall)/user/components/MediaModal";
 
 type ModalItem = {
   url: string;

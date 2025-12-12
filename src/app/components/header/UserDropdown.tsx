@@ -59,14 +59,11 @@ export default function UserDropdown() {
         {user ? (
           <>
             <div
-              onClick={() => router.push("/wall/" + user.id)}
+              onClick={() => router.push("/user/" + user.id)}
               className="px-3 py-2 border-b border-gray-200 text-sm font-medium cursor-pointer hover:bg-gray-100 hover:rounded-md"
             >
               {user?.firstName} {user?.lastName}
             </div>
-            <DropdownMenuItem asChild>
-              <Link href="/profile">Profile</Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/settings">Settings</Link>
             </DropdownMenuItem>

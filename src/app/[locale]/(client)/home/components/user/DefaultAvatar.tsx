@@ -23,7 +23,7 @@ export default function DefaultAvatar({
   const color = colors[initial.charCodeAt(0) % colors.length];
 
   return (
-    <Link href={"/wall/" + userId}>
+    <Link href={"/user/" + userId}>
       <div
         className={`relative w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold cursor-pointer hover:brightness-105 transition ring-2 ring-white ${color} ${className}`}
       >

@@ -1,6 +1,6 @@
 "use client";
 
-import WallHeader from "@/app/[locale]/(wall)/wall/components/WallHeader";
+import WallHeader from "@/app/[locale]/(wall)/user/components/WallHeader";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -17,12 +17,13 @@ export default function WallLayout({
   const t = useTranslations("wall");
   const pathname = usePathname();
   const pathnameWithoutLocale = pathname.replace(/^\/(en|vi)/, "");
-  const basePath = `/wall/${userId}`;
+  const basePath = `/user/${userId}`;
 
   const tabs = [
     { key: "posts", label: t("post"), href: basePath },
     { key: "friends", label: t("friends"), href: `${basePath}/friends` },
     { key: "media", label: t("media"), href: `${basePath}/media` },
+    { key: "profile", label: t("profile"), href: `${basePath}/profile` },
   ];
 
   const [userInfo, setUserInfo] = useState<User | null>(null);
@@ -53,7 +54,7 @@ export default function WallLayout({
   }
 
   return (
-    <div className="flex flex-col w-full justify-center gap-4 p-4 items-center lg:w-[60%]">
+    <div className="flex flex-col w-full justify-center gap-4 p-4 items-center lg:w-[65%]">
       {/* Header user */}
       <WallHeader wallUser={userInfo} />
 

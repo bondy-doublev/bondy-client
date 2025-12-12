@@ -205,7 +205,8 @@
       "saySomethingMessage": "Write something to send with this link...",
       "originalPost": "Original post",
       "shareNow": "Share now",
-      "send": "Send"
+      "send": "Send",
+      "noMediaHint": "You can't edit media on shared posts."
     }
   },
   "friend": {
@@ -242,7 +243,14 @@
     "delete": "Delete",
     "acceptFailed": "Failed to confirm friend request. Please try again.",
     "rejectFailed": "Failed to delete friend request. Please try again.",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+
+    "viewProfile": "View profile",
+    "unfriend": "Unfriend",
+    "cancel": "Cancel",
+    "unfriending": "Unfriending...",
+    "confirmUnfriendTitle": "Unfriend?",
+    "confirmUnfriendDesc": "You will no longer be friends with this person."
   },
   "wall": {
     "friends": "Friends",
@@ -252,6 +260,7 @@
     "seeAllMedias": "See all medias",
     "post": "Post",
     "friend": "Friend",
+    "profile": "Profile",
     "scrollToLoadMore": "Scroll down to load more",
     "loading": "Loading...",
 
@@ -264,7 +273,13 @@
     "cancelRequest": "Cancel request",
     "acceptRequest": "Accept request",
     "rejectRequest": "Reject request",
-    "unfriend": "Unfriend"
+    "unfriend": "Unfriend",
+
+    "confirmDeleteMediaTitle": "Delete media?",
+    "confirmDeleteMediaDesc": "This action cannot be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "deleting": "Deleting..."
   },
   "notification": {
     "notification": "Notification",
