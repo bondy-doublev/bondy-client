@@ -9,6 +9,7 @@ import ReelCreateModal from "./ReelCreateModal";
 import ReelViewModal from "./ReelViewModal"; // Import Modal mới
 import { ReelVisibility } from "@/enums"; // Import enum
 import ReelEditModal from "./ReelEditModal";
+import { useTranslations } from "use-intl";
 
 // Tạo type mới cho Reel để phù hợp với ReelEditModal
 interface ReelDataForEdit {
@@ -31,6 +32,7 @@ export default function VisibleReels() {
   const [reels, setReels] = useState<ReelResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
+  const t = useTranslations("reel");
 
   // State để quản lý Modal Xem
   const [selectedUserIdForView, setSelectedUserIdForView] = useState<
@@ -112,12 +114,12 @@ export default function VisibleReels() {
   return (
     <div className="p-4 bg-white rounded-xl shadow space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="font-semibold text-lg">Reels</h3>
+        <h3 className="font-semibold text-lg">{t("reels")}</h3>
         <button
           onClick={() => setOpenCreate(true)}
           className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
         >
-          Tạo reel
+          {t("createReel")}
         </button>
       </div>
 
@@ -169,14 +171,14 @@ export default function VisibleReels() {
             `}
                 />
                 <span className="text-xs mt-1">
-                  {u?.id === userId ? "Bạn" : u?.fullName?.split(" ")[0] || "U"}
+                  {u?.id === userId ? t("you") : u?.fullName?.split(" ")[0] || "U"}
                 </span>
               </div>
             );
           })}
       </div>
 
-      {loading && <div className="text-gray-500">Loading reels...</div>}
+      {loading && <div className="text-gray-500">{t("loadingMore")}</div>}
 
       {/* Modal Tạo reel (đã tách) */}
       {openCreate && (

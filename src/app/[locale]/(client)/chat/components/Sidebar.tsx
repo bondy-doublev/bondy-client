@@ -192,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
               const avatarUrl =
                 tab === "personal" ? r.avatarUrl : r.avatar || null;
               const displayName = tab === "personal" ? r.displayName : r.name;
-              const fallbackLetter = displayName? .[0]?.toUpperCase() || "? ";
+              const fallbackLetter = displayName?.[0]?.toUpperCase() || "? ";
 
               return (
                 <li key={r.id || index}>
