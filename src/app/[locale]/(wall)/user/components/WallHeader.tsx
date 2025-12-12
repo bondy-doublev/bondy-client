@@ -20,10 +20,14 @@ import FriendButton from "@/app/components/button/FriendButton";
 import ReportModal from "@/app/components/report/ReportModal";
 import { moderationService } from "@/services/reportService";
 import { TargetType } from "@/models/Report";
+import { useRouter } from "next/navigation";
+import ReelCreateModal from "@/app/[locale]/(client)/home/components/reel/ReelCreateModal";
 
 export default function WallHeader({ wallUser }: { wallUser: User }) {
   const t = useTranslations("wall");
   const { user } = useAuthStore();
+
+  const router = useRouter();
 
   const [showReportModal, setShowReportModal] = useState(false);
 
@@ -32,6 +36,7 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
   );
   const [loadingFriendship, setLoadingFriendship] = useState(false);
 
+  const [openCreateReel, setOpenCreateReel] = useState(false);
   useEffect(() => {
     const fetchStatus = async () => {
       if (!user || user.id === wallUser.id) return;
@@ -111,11 +116,15 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
           {isOwner ? (
             // ===== Tường của chính mình =====
             <div className="flex items-center gap-2">
-              <Button className="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
+              <Button
+                onClick={() => router.push(`/user/${wallUser.id}/profile`)}
+                className="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"
+              >
                 <MdEdit />
                 {t("editProfile")}
               </Button>
               <Button
+                onClick={() => setOpenCreateReel(true)}
                 variant="secondary"
                 className="bg-gray-100 hover:bg-gray-200 flex items-center gap-2"
               >
@@ -165,6 +174,17 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
         onClose={() => setShowReportModal(false)}
         onSubmit={handleSubmitReport}
       />
+
+      {/* Modal Tạo reel (đã tách) */}
+      {openCreateReel && (
+        <ReelCreateModal
+          userId={user?.id || 0}
+          open={openCreateReel}
+          onClose={() => setOpenCreateReel(false)}
+          onCreated={() => {}}
+          friends={[]}
+        />
+      )}
     </div>
   );
 }
