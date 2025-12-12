@@ -16,6 +16,7 @@ type Props = {
   onDelete?: (postId: number, type: "SHARE") => void;
 };
 
+// unuse
 export default function SharePost({ post, onComment, onDelete }: Props) {
   const { user } = useAuthStore();
   const t = useTranslations("post");

@@ -205,7 +205,8 @@
       "saySomethingMessage": "Write something to send with this link...",
       "originalPost": "Original post",
       "shareNow": "Share now",
-      "send": "Send"
+      "send": "Send",
+      "noMediaHint": "You can't edit media on shared posts."
     }
   },
   "friend": {
