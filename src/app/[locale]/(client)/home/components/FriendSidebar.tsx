@@ -2,13 +2,24 @@
 
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
 import { useAuthStore } from "@/store/authStore";
 import { useTranslations } from "next-intl";
-import { MoreHorizontal } from "lucide-react";
-import UserName from "@/app/[locale]/(client)/home/components/user/UserName";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MoreHorizontal, User as UserIcon, UserMinus } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+import { friendService } from "@/services/friendService";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function FriendSidebar({
   className,
@@ -20,18 +31,33 @@ export default function FriendSidebar({
   isDetail?: boolean;
 }) {
   const t = useTranslations("friend");
+  const router = useRouter();
 
   const { user } = useAuthStore();
   const currentUserId = userId ?? user?.id ?? 0;
 
-  // hook mới: thêm loading / hasMore / loadMore để dùng cho detail
   const { friendUsers, isInitialLoading, loading, hasMore, loadMore } =
     useMyFriends(currentUserId);
 
   const isNewFeed = !userId;
 
+  const isOwner = user?.id === userId;
+
+  // ✅ Không setState theo friendUsers nữa -> tránh loop
+  const [removedIds, setRemovedIds] = useState<Set<number>>(() => new Set());
+
+  const filteredFriends = useMemo(() => {
+    return friendUsers.filter((f) => !removedIds.has(f.id));
+  }, [friendUsers, removedIds]);
+
   // loader cho infinite scroll khi isDetail
   const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ tránh loadMore đổi reference gây effect chạy lại liên tục
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
 
   useEffect(() => {
     if (!isDetail || !hasMore) return;
@@ -40,7 +66,7 @@ export default function FriendSidebar({
       (entries) => {
         const target = entries[0];
         if (target.isIntersecting && !loading && hasMore) {
-          loadMore();
+          loadMoreRef.current();
         }
       },
       { threshold: 0.2 }
@@ -53,20 +79,22 @@ export default function FriendSidebar({
       if (el) observer.unobserve(el);
       observer.disconnect();
     };
-  }, [isDetail, hasMore, loading, loadMore]);
+  }, [isDetail, hasMore, loading]);
 
-  // tính danh sách friend sẽ render
-  const getVisibleFriends = () => {
-    if (isDetail) return friendUsers;
+  const visibleFriends = useMemo(() => {
+    if (isDetail) return filteredFriends;
+    if (isNewFeed) return filteredFriends.slice(0, 15);
+    return filteredFriends.slice(0, 9);
+  }, [filteredFriends, isDetail, isNewFeed]);
 
-    // newfeed + không detail => top 15, scroll được
-    if (isNewFeed) return friendUsers.slice(0, 15);
-
-    // không newfeed + không detail => top 9, không scroll, không load thêm
-    return friendUsers.slice(0, 9);
+  const handleUnfriend = async (friendId: number) => {
+    await friendService.unFriend(friendId);
+    setRemovedIds((prev) => {
+      const next = new Set(prev);
+      next.add(friendId);
+      return next;
+    });
   };
-
-  const visibleFriends = getVisibleFriends();
 
   const listContent = (
     <ul
@@ -88,6 +116,8 @@ export default function FriendSidebar({
               ? "flex items-center gap-3 hover:bg-gray-50 p-1 rounded-lg"
               : "flex flex-col items-start"
           }`}
+          // ✅ click item -> push profile (không dùng <Link> bọc cả item)
+          onClick={() => router.push(`/user/${friend.id}`)}
         >
           <div
             className={`flex ${
@@ -124,10 +154,12 @@ export default function FriendSidebar({
                   }
                 />
               )}
+
               {isNewFeed && (
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
               )}
             </div>
+
             <p
               className={`text-sm font-medium text-gray-700 hover:underline hover:text-green-600 ${
                 isNewFeed
@@ -138,23 +170,62 @@ export default function FriendSidebar({
               }`}
               title={friend.fullName}
             >
-              <UserName
-                userId={friend.id}
-                fullname={friend.fullName ?? ""}
-                className="font"
-              />
+              <UserName userId={friend.id} fullname={friend.fullName ?? ""} />
             </p>
           </div>
 
+          {/* 3 dots - chỉ detail */}
           {isDetail && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className="p-1 rounded-full hover:bg-gray-200"
-            >
-              <MoreHorizontal size={18} className="text-gray-600" />
-            </button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="p-1 rounded-full hover:bg-gray-200"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Friend actions"
+                  >
+                    <MoreHorizontal size={18} className="text-gray-600" />
+                  </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                  {/* View profile: dùng router.push để khỏi <a> lồng <a> */}
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      router.push(`/user/${friend.id}`);
+                    }}
+                  >
+                    <UserIcon className="w-4 h-4 mr-2" />
+                    {t("viewProfile")}
+                  </DropdownMenuItem>
+
+                  {isOwner && (
+                    <ConfirmDialog
+                      key={`confirm-unfriend-${friend.id}`}
+                      title={t("confirmUnfriendTitle")}
+                      description={t("confirmUnfriendDesc")}
+                      confirmText={t("unfriend")}
+                      cancelText={t("cancel")}
+                      loadingText={t("unfriending")}
+                      variant="destructive"
+                      onConfirm={() => handleUnfriend(friend.id)}
+                      trigger={
+                        <DropdownMenuItem
+                          className="text-gray-600 cursor-pointer"
+                          onSelect={(e) => {
+                            e.preventDefault(); // ✅ giữ dropdown để dialog mở ổn
+                          }}
+                        >
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          {t("unfriend")}
+                        </DropdownMenuItem>
+                      }
+                    />
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </li>
       ))}
@@ -172,7 +243,7 @@ export default function FriendSidebar({
           {isNewFeed ? t("contacts") : t("friends")}
         </h2>
 
-        {!isNewFeed && friendUsers.length > 0 && !isDetail && (
+        {!isNewFeed && filteredFriends.length > 0 && !isDetail && (
           <Link
             href={`/user/${userId}/friends`}
             className="text-green-600 hover:bg-green-100 p-2 rounded-md text-sm font-medium"
@@ -184,12 +255,8 @@ export default function FriendSidebar({
 
       {isInitialLoading ? (
         <p className="text-sm text-gray-500">{t("loading")}</p>
-      ) : friendUsers.length > 0 ? (
+      ) : filteredFriends.length > 0 ? (
         <>
-          {/* 
-            newfeed + không detail => bọc list trong div scroll 
-            còn lại render bình thường
-          */}
           {isNewFeed && !isDetail ? (
             <div className="max-h-96 overflow-y-auto pr-1 scroll-custom">
               {listContent}
@@ -198,7 +265,6 @@ export default function FriendSidebar({
             listContent
           )}
 
-          {/* Infinite scroll chỉ cho detail */}
           {isDetail && hasMore && (
             <div
               ref={loaderRef}

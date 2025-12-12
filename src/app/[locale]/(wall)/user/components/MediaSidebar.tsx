@@ -2,12 +2,22 @@
 
 import { MediaAttachment } from "@/models/Post";
 import { wallService } from "@/services/wallService";
+import { mediaService } from "@/services/mediaService";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { Play } from "lucide-react";
-import MediaModal from "./MediaModal";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { MoreHorizontal, Play, Trash2 } from "lucide-react";
+import MediaModal from "./MediaModal";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
 
 type ModalItem = {
   url: string;
@@ -29,13 +39,11 @@ export default function MediaSidebar({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  // index của media đang mở trong modal (null = không mở)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch media
   const fetchMedias = async (page: number, reset = false) => {
     if (!userId) return;
     setLoading(true);
@@ -46,9 +54,7 @@ export default function MediaSidebar({
         size: 9,
       });
 
-      if (!data || data.length < 9) {
-        setHasMore(false);
-      }
+      if (!data || data.length < 9) setHasMore(false);
 
       setMedias((prev) => (reset ? data : [...prev, ...data]));
     } catch (error) {
@@ -58,20 +64,17 @@ export default function MediaSidebar({
     }
   };
 
-  // Load page đầu tiên khi đổi user
   useEffect(() => {
     setPage(0);
     setHasMore(true);
     fetchMedias(0, true);
-    setSelectedIndex(null); // đóng modal nếu đang mở
+    setSelectedIndex(null);
   }, [userId]);
 
-  // Fetch khi page thay đổi (chỉ nếu isDetail)
   useEffect(() => {
     if (isDetail && page > 0) fetchMedias(page);
   }, [page, isDetail]);
 
-  // Infinite scroll (chỉ bật khi isDetail)
   useEffect(() => {
     if (!isDetail) return;
 
@@ -90,21 +93,23 @@ export default function MediaSidebar({
   }, [loading, hasMore, isDetail]);
 
   const handleModalReachEnd = () => {
-    // tuỳ bạn, nếu chỉ muốn load thêm ở trang detail:
     if (!isDetail) return;
-
-    if (!loading && hasMore) {
-      setPage((prev) => prev + 1);
-    }
+    if (!loading && hasMore) setPage((prev) => prev + 1);
   };
 
-  // map medias -> items cho modal
+  const handleDeleteMedia = async (mediaId: number) => {
+    await mediaService.delete({ mediaId });
+
+    // remove khỏi list
+    setMedias((prev) => prev.filter((m) => m.id !== mediaId));
+
+    // đóng modal để tránh lệch index (an toàn nhất)
+    setSelectedIndex(null);
+  };
+
   const modalItems: ModalItem[] = medias.map((media) => {
     const isVideo = media.type === "VIDEO" || media.url.endsWith(".mp4");
-    return {
-      url: media.url,
-      type: isVideo ? "video" : "image",
-    };
+    return { url: media.url, type: isVideo ? "video" : "image" };
   });
 
   return (
@@ -139,10 +144,54 @@ export default function MediaSidebar({
 
             return (
               <li
-                key={media.id}
+                key={media.id} // ✅ key ổn định
                 onClick={() => setSelectedIndex(index)}
                 className="relative aspect-square overflow-hidden rounded-md group cursor-pointer bg-black"
               >
+                {/* 3 dots - chỉ hiện ở detail */}
+                {isDetail && (
+                  <div
+                    className="absolute top-1 right-1 z-10"
+                    onClick={(e) => e.stopPropagation()} // ✅ không mở modal media
+                  >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white"
+                          aria-label="Media actions"
+                          onClick={(e) => e.stopPropagation()} // ✅
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        <ConfirmDialog
+                          key={`confirm-delete-media-${media.id}`}
+                          title={t("confirmDeleteMediaTitle")}
+                          description={t("confirmDeleteMediaDesc")}
+                          confirmText={t("delete")}
+                          cancelText={t("cancel")}
+                          loadingText={t("deleting")}
+                          variant="destructive"
+                          onConfirm={() => handleDeleteMedia(media.id)}
+                          trigger={
+                            <DropdownMenuItem
+                              className="text-gray-600 cursor-pointer"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {t("delete")}
+                            </DropdownMenuItem>
+                          }
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+
                 {isVideo ? (
                   <>
                     <video
@@ -179,7 +228,7 @@ export default function MediaSidebar({
         )}
       </aside>
 
-      {/* Modal hiển thị media (có thể next/prev) */}
+      {/* Modal hiển thị media */}
       {selectedIndex !== null && modalItems.length > 0 && (
         <MediaModal
           open={selectedIndex !== null}

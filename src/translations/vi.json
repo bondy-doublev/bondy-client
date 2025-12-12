@@ -243,7 +243,14 @@
     "delete": "Xóa",
     "acceptFailed": "Xác nhận lời mời thất bại",
     "rejectFailed": "Xóa lời mời thất bại",
-    "loadMore": "Tải thêm"
+    "loadMore": "Tải thêm",
+
+    "viewProfile": "Xem trang cá nhân",
+    "unfriend": "Hủy kết bạn",
+    "cancel": "Hủy",
+    "unfriending": "Đang hủy...",
+    "confirmUnfriendTitle": "Hủy kết bạn?",
+    "confirmUnfriendDesc": "Bạn sẽ không còn là bạn bè với người này."
   },
   "wall": {
     "friends": "Bạn bè",
@@ -266,7 +273,13 @@
     "cancelRequest": "Hủy lời mời",
     "acceptRequest": "Chấp nhận lời mời",
     "rejectRequest": "Từ chối lời mời",
-    "unfriend": "Hủy kết bạn"
+    "unfriend": "Hủy kết bạn",
+
+    "confirmDeleteMediaTitle": "Xóa media?",
+    "confirmDeleteMediaDesc": "Hành động này không thể hoàn tác.",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa..."
   },
   "notification": {
     "notification": "Thông báo",
