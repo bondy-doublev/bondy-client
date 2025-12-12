@@ -285,6 +285,7 @@
     "acceptedYourFriendRequest": "đã chấp nhận lời mời kết bạn của bạn"
   },
   "chat": {
+    "save": "Lưu",
     "chat": "Trò chuyện",
     "noMessagesYet": "Chưa có tin nhắn nào",
     "typeAMessage": "Nhập tin nhắn...",

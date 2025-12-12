@@ -28,7 +28,7 @@ export default function Navbar() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
-  const { unreadCount } = useChat(); // 👈 lấy từ ChatProvider
+  const { unreadCount } = useChat();
 
   useEffect(() => {
     if (!user?.id) return;

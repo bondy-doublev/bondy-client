@@ -177,9 +177,6 @@ export default function VisibleReels() {
       </div>
 
       {loading && <div className="text-gray-500">Loading reels...</div>}
-      {!loading && reels.length === 0 && (
-        <div className="text-gray-500 text-sm">No reels available</div>
-      )}
 
       {/* Modal Tạo reel (đã tách) */}
       {openCreate && (

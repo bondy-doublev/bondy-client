@@ -285,6 +285,7 @@
     "acceptedYourFriendRequest": "accepted your friend request"
   },
   "chat": {
+    "save": "Save",
     "chat": "Chat",
     "noMessagesYet": "No messages yet",
     "typeAMessage": "Type a message",

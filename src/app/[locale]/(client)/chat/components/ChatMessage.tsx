@@ -12,6 +12,7 @@ import { userService } from "@/services/userService";
 import { FaFileAlt } from "react-icons/fa";
 import Modal from "react-modal";
 import { useTranslations } from "use-intl";
+import { UniversalConfirmDialog } from "@/components/common/ConfirmModal";
 
 interface ChatMessageProps {
   msg: Message;
@@ -36,6 +37,10 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     const [modalOpen, setModalOpen] = useState(false);
     const [modalImg, setModalImg] = useState("");
     const menuRef = useRef<HTMLDivElement>(null);
+    const [isEditingInline, setIsEditingInline] = useState(false);
+    const [draftContent, setDraftContent] = useState(msg.content);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
     const t = useTranslations("chat");
 
     const isMine = String(msg.senderId) === String(user?.id);
@@ -83,14 +88,14 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     };
 
     const handleEdit = () => {
-      const newContent = prompt(t("editMessage"), msg.content);
-      if (newContent !== null) onEdit(msg, newContent);
+      setDraftContent(msg.content);
+      setIsEditingInline(true);
       setMenuVisible(false);
     };
 
     const handleDelete = () => {
-      if (confirm(t("deleteConfirm"))) onDelete(msg);
       setMenuVisible(false);
+      setDeleteDialogOpen(true);
     };
 
     const handleReply = () => {
@@ -223,23 +228,64 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             )}
           </div>
 
-          <div className="text-sm mt-1">
-            {msg.isDeleted ? <i>{t("deleted")}</i> : msg.content}{" "}
-            {msg.isEdited && !msg.isDeleted && <span>({t("edited")})</span>}
+          <div className="text-sm mt-1 w-full">
+            {msg.isDeleted ? (
+              <i>{t("deleted")}</i>
+            ) : isEditingInline ? (
+              <div className="flex flex-col gap-2">
+                <textarea
+                  value={draftContent}
+                  onChange={(e) => setDraftContent(e.target.value)}
+                  className="w-full border rounded p-2 h-20 focus:outline-none"
+                />
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setIsEditingInline(false);
+                      setDraftContent(msg.content); // restore
+                    }}
+                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-green-600"
+                  >
+                    {t("cancel")}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onEdit(msg, draftContent);
+                      setIsEditingInline(false);
+                    }}
+                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    {t("save")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              </>
+            )}
           </div>
 
           <div
-            className={`text-xs ${
-              isMine ? "text-white text-right" : "text-gray-600 text-left"
+            className={`text-xs flex items-center gap-1 ${
+              isMine ? "text-white justify-end" : "text-gray-600 justify-start"
             } mt-1`}
           >
-            {new Date(msg.createdAt).toLocaleString([], {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            <span>
+              {new Date(msg.createdAt).toLocaleString([], {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+
+            {msg.isEdited && (
+              <span className="opacity-70">({t("edited")})</span>
+            )}
           </div>
 
           {menuVisible && menuPosition && (
@@ -304,6 +350,19 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
             className="max-h-[80vh] max-w-[90vw] rounded"
           />
         </Modal>
+        <UniversalConfirmDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={() => {
+            onDelete(msg);
+            setDeleteDialogOpen(false);
+          }}
+          type="danger"
+          title={t("delete")}
+          description={t("deleteConfirm")}
+          confirmLabel={t("delete")}
+          cancelLabel={t("cancel")}
+        />
       </div>
     );
   }
