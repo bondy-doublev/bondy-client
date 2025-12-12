@@ -44,18 +44,40 @@ export const friendService = {
   },
 
   // Lấy danh sách bạn bè (đã accept) có phân trang
+  // Lấy danh sách bạn bè (đã accept) có phân trang / hoặc getAll
   async getFriends(
     userId: number,
-    pagination?: PaginationParams
+    pagination?: PaginationParams,
+    options?: { getAll?: boolean }
   ): Promise<Friendship[]> {
     try {
-      const query = buildPaginationQuery(pagination);
+      const params = new URLSearchParams();
+
+      // ✅ thêm cờ getAll
+      if (options?.getAll) {
+        params.set("getAll", "true");
+      }
+
+      // ✅ chỉ build paging nếu không getAll
+      if (!options?.getAll) {
+        const query = buildPaginationQuery(pagination);
+        // merge query string
+        query.split("&").forEach((pair) => {
+          const [k, v] = pair.split("=");
+          if (k) params.set(k, v ?? "");
+        });
+      }
+
+      const qs = params.toString();
       const proxyRes: AxiosResponse = await api.get(
-        `${API_URL}/friends/${userId}?${query}`
+        `${API_URL}/friends/${userId}${qs ? `?${qs}` : ""}`
       );
+
       const res = proxyRes.data; // AppApiResponse
-      // pageable -> res.data.content
-      return (res?.data?.content ?? []) as Friendship[];
+
+      // ✅ backend vẫn trả Page => res.data.content
+      // ✅ nếu backend bạn trả List khi getAll => fallback res.data
+      return ((res?.data?.content ?? res?.data ?? []) as Friendship[]) ?? [];
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get friends");

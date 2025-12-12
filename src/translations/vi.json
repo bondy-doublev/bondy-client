@@ -205,7 +205,8 @@
       "saySomethingMessage": "Viết gì đó kèm liên kết này...",
       "originalPost": "Bài viết gốc",
       "shareNow": "Chia sẻ ngay",
-      "send": "Gửi"
+      "send": "Gửi",
+      "noMediaHint": "Bài chia sẻ không thể chỉnh sửa ảnh hoặc video."
     }
   },
   "friend": {

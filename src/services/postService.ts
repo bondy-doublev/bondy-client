@@ -24,11 +24,13 @@ export const postService = {
     tagUserIds = [],
     mediaFiles = [],
     visibility = true,
+    originalPostId,
   }: {
     content?: string;
     tagUserIds?: number[];
     mediaFiles?: File[];
     visibility: boolean;
+    originalPostId?: number;
   }) {
     try {
       const formData = new FormData();
@@ -42,6 +44,9 @@ export const postService = {
       mediaFiles.forEach((f) => {
         formData.append("mediaFiles", f);
       });
+
+      if (originalPostId)
+        formData.append("originalPostId", originalPostId.toString());
 
       const res = await api.post(API_URL, formData, {});
       return res.data.data;
