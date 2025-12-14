@@ -206,7 +206,9 @@
       "originalPost": "Original post",
       "shareNow": "Share now",
       "send": "Send",
-      "noMediaHint": "You can't edit media on shared posts."
+      "noMediaHint": "You can't edit media on shared posts.",
+      "sent": "Shared post successfully",
+      "shared": "Shared post successfully"
     }
   },
   "friend": {

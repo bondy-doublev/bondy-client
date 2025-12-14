@@ -206,7 +206,9 @@
       "originalPost": "Bài viết gốc",
       "shareNow": "Chia sẻ ngay",
       "send": "Gửi",
-      "noMediaHint": "Bài chia sẻ không thể chỉnh sửa ảnh hoặc video."
+      "noMediaHint": "Bài chia sẻ không thể chỉnh sửa ảnh hoặc video.",
+      "sent": "Chia sẻ bài viết thành công",
+      "shared": "Chia sẻ bài viết thành công"
     }
   },
   "friend": {
