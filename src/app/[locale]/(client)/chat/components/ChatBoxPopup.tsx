@@ -5,15 +5,25 @@ import { Message, chatService } from "@/services/chatService";
 import { ChatMessage } from "./ChatMessage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FaMinus, FaTimes, FaPaperclip, FaExpand } from "react-icons/fa";
+import {
+  FaMinus,
+  FaTimes,
+  FaPaperclip,
+  FaExpand,
+  FaVideo,
+} from "react-icons/fa";
 import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { useChat } from "@/app/providers/ChatProvider";
+import { useCall } from "@/context/CallContext";
+import { useRingtone } from "@/app/hooks/useRingTone";
 import {
   uploadCloudinaryMultiple,
   uploadCloudinarySingle,
 } from "@/services/uploadService";
 import { toast } from "react-toastify";
+import { addDoc, collection, doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/configs/firebase";
 
 interface ChatBoxPopupProps {
   roomId: string;
@@ -38,20 +48,98 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const { socket: chatSocket } = useChat();
+  const { setOutgoingCallId, outgoingCallId, setOutgoingCallReceiver } =
+    useCall();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
+  const [roomMembers, setRoomMembers] = useState<number[]>([]);
+  const [callStatus, setCallStatus] = useState<string | null>(null);
+
   const messageEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const roomIdRef = useRef(roomId);
+
+  const isRinging = !!outgoingCallId && callStatus === "ringing";
+  useRingtone(isRinging);
 
   // ✅ Update ref when roomId changes
   useEffect(() => {
     roomIdRef.current = roomId;
   }, [roomId]);
+
+  // ✅ Fetch room members for call
+  useEffect(() => {
+    if (!roomId) return;
+
+    const fetchMembers = async () => {
+      try {
+        const room = await chatService.getRoomInformation(roomId);
+
+        // Get other members (exclude current user)
+        const otherMembers = room.members
+          .map((m: any) => m.userId)
+          .filter((id: number) => id !== currentUserId);
+
+        setRoomMembers(otherMembers);
+        console.log("📞 Room members for call:", otherMembers);
+      } catch (err) {
+        console.error("Failed to fetch room members:", err);
+      }
+    };
+
+    fetchMembers();
+  }, [roomId, currentUserId]);
+
+  // ✅ Monitor call status
+  useEffect(() => {
+    if (!outgoingCallId) return;
+
+    const unsub = onSnapshot(doc(db, "calls", outgoingCallId), (snap) => {
+      const data = snap.data();
+      if (!data) return;
+
+      setCallStatus(data.status);
+
+      if (data.status === "rejected" || data.status === "ended") {
+        setOutgoingCallId(null);
+        setCallStatus(null);
+      }
+    });
+
+    return () => unsub();
+  }, [outgoingCallId, setOutgoingCallId]);
+
+  // ✅ Handle video call click
+  const handleCallClick = async () => {
+    if (!roomId || roomMembers.length === 0) {
+      toast.error(t("cannotStartCall") || "Không thể bắt đầu cuộc gọi");
+      return;
+    }
+
+    try {
+      console.log("📞 Starting call with members:", roomMembers);
+
+      const callDoc = await addDoc(collection(db, "calls"), {
+        senderId: currentUserId,
+        receiverIds: roomMembers,
+        status: "ringing",
+        createdAt: new Date(),
+        offer: null,
+      });
+
+      setOutgoingCallReceiver(roomId);
+      setOutgoingCallId(callDoc.id);
+
+      toast.info(t("callingUser") || "Đang gọi.. .");
+    } catch (err) {
+      console.error("Failed to start call:", err);
+      toast.error(t("callFailed") || "Không thể thực hiện cuộc gọi");
+    }
+  };
 
   // ✅ Load initial messages
   useEffect(() => {
@@ -79,14 +167,11 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
 
       if (msg.roomId === roomIdRef.current) {
         setMessages((prev) => {
-          // Tránh duplicate (check by id hoặc timestamp)
           const exists = prev.find((m) => m.id === msg.id);
           if (exists) return prev;
-
           return [...prev, msg];
         });
 
-        // Auto scroll
         setTimeout(() => scrollToBottom(), 100);
       }
     };
@@ -144,7 +229,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
         fileName?: string;
       }[] = [];
 
-      // Upload files
       if (attachments.length === 1) {
         const uploaded = await uploadCloudinarySingle(attachments[0]);
         fileUrl = uploaded;
@@ -169,7 +253,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
           : undefined,
       };
 
-      // Send via socket
       chatSocket.sendMessage(payload);
 
       setNewMsg("");
@@ -279,34 +362,73 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
       <div className="flex items-center justify-between p-3 bg-green-600 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           {renderAvatar()}
-          <span className="font-semibold truncate max-w-[180px]">
+          <span className="font-semibold truncate max-w-[140px]">
             {roomName}
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {/* ✅ Video Call Button */}
+          <button
+            onClick={handleCallClick}
+            disabled={isRinging || roomMembers.length === 0}
+            className={`p-1.5 rounded transition ${
+              isRinging ? "bg-red-500 animate-pulse" : "hover:bg-green-700"
+            }`}
+            title={
+              isRinging
+                ? t("calling")
+                : roomMembers.length === 0
+                ? t("noMembersToCall")
+                : t("videoCall")
+            }
+          >
+            <FaVideo size={14} />
+          </button>
+
           <button
             onClick={handleExpand}
-            className="hover:bg-green-700 p-1 rounded"
+            className="hover:bg-green-700 p-1.5 rounded"
             title={t("expandToFullChat")}
           >
             <FaExpand size={14} />
           </button>
           <button
             onClick={onMinimize}
-            className="hover:bg-green-700 p-1 rounded"
+            className="hover:bg-green-700 p-1.5 rounded"
             title={isMinimized ? t("maximize") : t("minimize")}
           >
             <FaMinus size={14} />
           </button>
           <button
             onClick={onClose}
-            className="hover:bg-green-700 p-1 rounded"
+            className="hover:bg-green-700 p-1.5 rounded"
             title={t("close")}
           >
             <FaTimes size={14} />
           </button>
         </div>
       </div>
+
+      {/* ✅ Call Status Banner */}
+      {isRinging && (
+        <div className="bg-yellow-100 border-b border-yellow-300 px-3 py-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" />
+            <span className="text-xs text-yellow-800 font-medium">
+              {t("ringing") || "Đang gọi..."}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setOutgoingCallId(null);
+              setCallStatus(null);
+            }}
+            className="text-xs text-red-600 hover:text-red-800 font-medium"
+          >
+            {t("cancel") || "Hủy"}
+          </button>
+        </div>
+      )}
 
       {/* Body - Messages */}
       {!isMinimized && (
@@ -409,7 +531,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
               onClick={handleSend}
               disabled={uploading}
               size="sm"
-              className="h-8"
+              className="h-8 bg-green-600 hover:bg-green-700"
             >
               {uploading ? "..." : t("send")}
             </Button>
