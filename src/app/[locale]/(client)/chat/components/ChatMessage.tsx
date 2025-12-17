@@ -21,10 +21,11 @@ interface ChatMessageProps {
   onEdit: (msg: Message, newContent: string) => void;
   onDelete: (msg: Message) => void;
   onReply: (msg: Message) => void;
+  isInPopup?: boolean;
 }
 
 export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
-  ({ msg, replyMessage, onEdit, onDelete, onReply }, ref) => {
+  ({ msg, replyMessage, onEdit, onDelete, onReply, isInPopup }, ref) => {
     const { user } = useAuthStore();
     const [sender, setSender] = useState<{
       name: string;
@@ -134,8 +135,10 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     const containerClass =
       "flex mb-2 w-full " + (isMine ? "justify-end" : "justify-start");
 
+    const maxBubbleWidth = isInPopup ? "max-w-[85%]" : "max-w-[70%]";
+
     const bubbleClass =
-      "p-2 rounded max-w-[70%] break-words cursor-pointer " +
+      `p-2 rounded ${maxBubbleWidth} break-words cursor-pointer ` +
       (isMine ? "bg-green-500 text-white" : "bg-blue-200 text-black");
 
     // Avatar fallback (chữ cái đầu)
@@ -248,7 +251,9 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                       key={index}
                       src={a.url}
                       alt={a.fileName}
-                      className="w-20 h-20 object-cover rounded cursor-pointer"
+                      className={`object-cover rounded cursor-pointer ${
+                        isInPopup ? "max-w-[200px] max-h-[200px]" : "w-20 h-20"
+                      }`}
                       onClick={() => openModal(a.url)}
                     />
                   ) : (
@@ -267,7 +272,11 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 <img
                   src={msg.imageUrl}
                   alt="img"
-                  className="max-w-full md:max-w-xs h-auto rounded mt-1"
+                  className={`rounded mt-1 object-cover ${
+                    isInPopup
+                      ? "max-w-[200px] max-h-[200px]"
+                      : "max-w-full md:max-w-xs h-auto"
+                  }`}
                 />
               )}
               {!hasAttachments && msg.fileUrl && !msg.imageUrl && (

@@ -9,9 +9,9 @@ type UnreadSummary = any;
 type ChatContextValue = {
   socket: ChatSocket | null;
   isConnected: boolean;
-  messages: any[];
+  messages: any[]; // ✅ Export messages
   unreadSummary: UnreadSummary | null;
-  unreadCount: number; // tổng unread cho badge
+  unreadCount: number;
   sendMessage: (payload: any) => void;
   updateMessage: (messageId: number, content: string) => void;
   deleteMessage: (messageId: number) => void;
@@ -46,7 +46,6 @@ export default function ChatProvider({
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // chưa login thì không connect
     if (!user) {
       setSocket(null);
       setIsConnected(false);
@@ -63,15 +62,15 @@ export default function ChatProvider({
       onMessage: (msg) => {
         setMessages((prev) => [...prev, msg]);
 
+        // ✅ Broadcast event cho ChatBoxManager
         if (msg.senderId !== user.id) {
-          // var newNotification =
+          console.log("📢 Broadcasting new message event");
+          const event = new CustomEvent("newChatMessage", { detail: msg });
+          window.dispatchEvent(event);
         }
       },
       onUnreadSummary: (summary) => {
         setUnreadSummary(summary);
-
-        // Tùy backend: nếu summary có total / totalUnread thì dùng;
-        // nếu không, bạn có thể sửa lại logic này hoặc fetch REST giống code cũ.
         const total = (summary && (summary.count ?? summary.count ?? 0)) || 0;
         setUnreadCount(total);
       },
@@ -80,13 +79,11 @@ export default function ChatProvider({
       },
     });
 
-    // socket.io connect ngay khi createChatSocket được gọi
     setSocket(chatSocket);
     setIsConnected(chatSocket.isConnected());
 
     return () => {
       setIsConnected(false);
-      // ngắt kết nối khi unmount
       chatSocket.socket.disconnect();
     };
   }, [user, conversationId]);
@@ -94,7 +91,7 @@ export default function ChatProvider({
   const value: ChatContextValue = {
     socket,
     isConnected,
-    messages,
+    messages, // ✅ Export
     unreadSummary,
     unreadCount,
     sendMessage: (payload: any) => {

@@ -346,6 +346,9 @@
     "you": "Bạn"
   },
   "chat": {
+    "expandToFullChat": "Mở rộng thành trò chuyện đầy đủ",
+    "close": "Đóng",
+    "minimize": "Thu nhỏ",
     "startNewChat": "Bắt đầu cuộc trò chuyện mới",
     "enterGroupName": "Nhập tên nhóm.. .",
     "characters": "ký tự",

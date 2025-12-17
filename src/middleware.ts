@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // ✅ Lấy search params (query string)
+  const searchParams = request.nextUrl.search;
+
   // Bỏ qua nếu đã có locale
   const pathnameIsMissingLocale = locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
@@ -11,7 +14,20 @@ export function middleware(request: NextRequest) {
 
   if (pathnameIsMissingLocale) {
     const locale = defaultLocale;
-    return NextResponse.redirect(new URL(`/${locale}${pathname}`, request.url));
+
+    // ✅ FIX: Giữ lại query params khi redirect
+    const redirectUrl = new URL(
+      `/${locale}${pathname}${searchParams}`,
+      request.url
+    );
+
+    console.log("🔀 MIDDLEWARE REDIRECT:", {
+      from: request.url,
+      to: redirectUrl.toString(),
+      searchParams,
+    });
+
+    return NextResponse.redirect(redirectUrl);
   }
 }
 
