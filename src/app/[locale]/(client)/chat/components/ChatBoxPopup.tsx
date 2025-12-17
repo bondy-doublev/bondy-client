@@ -261,7 +261,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     }
     const initial = roomName?.charAt(0)?.toUpperCase() || "? ";
     return (
-      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold">
+      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500 text-white font-semibold">
         {initial}
       </div>
     );
@@ -276,7 +276,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 bg-blue-600 text-white rounded-t-lg">
+      <div className="flex items-center justify-between p-3 bg-green-600 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           {renderAvatar()}
           <span className="font-semibold truncate max-w-[180px]">
@@ -286,21 +286,21 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handleExpand}
-            className="hover:bg-blue-700 p-1 rounded"
+            className="hover:bg-green-700 p-1 rounded"
             title={t("expandToFullChat")}
           >
             <FaExpand size={14} />
           </button>
           <button
             onClick={onMinimize}
-            className="hover:bg-blue-700 p-1 rounded"
+            className="hover:bg-green-700 p-1 rounded"
             title={isMinimized ? t("maximize") : t("minimize")}
           >
             <FaMinus size={14} />
           </button>
           <button
             onClick={onClose}
-            className="hover:bg-blue-700 p-1 rounded"
+            className="hover:bg-green-700 p-1 rounded"
             title={t("close")}
           >
             <FaTimes size={14} />

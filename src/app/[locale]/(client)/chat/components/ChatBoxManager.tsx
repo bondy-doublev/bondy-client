@@ -14,16 +14,45 @@ interface ChatBoxState {
   isMinimized: boolean;
 }
 
+const STORAGE_KEY = "chatBoxes";
+
 export const ChatBoxManager: React.FC = () => {
   const { user } = useAuthStore();
   const { socket: chatSocket } = useChat();
-  const [openChatBoxes, setOpenChatBoxes] = useState<ChatBoxState[]>([]);
 
-  // ✅ Use ref to avoid stale closure
+  // ✅ Load from localStorage on mount
+  const [openChatBoxes, setOpenChatBoxes] = useState<ChatBoxState[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed;
+      }
+    } catch (err) {
+      console.error("Failed to load chat boxes from localStorage:", err);
+    }
+    return [];
+  });
+
   const openChatBoxesRef = useRef<ChatBoxState[]>([]);
   const userRef = useRef(user);
 
-  // ✅ Sync refs
+  // ✅ Sync to localStorage whenever openChatBoxes changes
+  useEffect(() => {
+    if (openChatBoxes.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(openChatBoxes));
+      } catch (err) {
+        console.error("Failed to save chat boxes to localStorage:", err);
+      }
+    } else {
+      // Clear localStorage if no boxes
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [openChatBoxes]);
+
   useEffect(() => {
     openChatBoxesRef.current = openChatBoxes;
   }, [openChatBoxes]);
@@ -32,7 +61,6 @@ export const ChatBoxManager: React.FC = () => {
     userRef.current = user;
   }, [user]);
 
-  // ✅ Request notification permission
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
@@ -41,15 +69,27 @@ export const ChatBoxManager: React.FC = () => {
 
   const showBrowserNotification = (senderName: string, message: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(senderName, {
+      // Don't show if page is focused
+      if (document.hasFocus()) return;
+
+      const notification = new Notification(senderName, {
         body: message,
-        icon: "/logo.png",
+        icon: "/logo. png",
         tag: "chat-notification",
       });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      setTimeout(() => notification.close(), 5000);
     }
   };
 
   const playNotificationSound = () => {
+    if (document.hasFocus()) return;
+
     try {
       const audio = new Audio("/sounds/notification.mp3");
       audio.volume = 0.5;
@@ -63,7 +103,6 @@ export const ChatBoxManager: React.FC = () => {
   useEffect(() => {
     const handleOpenChatBox = (event: CustomEvent) => {
       const { roomId, roomName, roomAvatar } = event.detail;
-      console.log("🎯 Manual open chat box event:", { roomId, roomName });
       openChatBox(roomId, roomName, roomAvatar);
     };
 
@@ -78,12 +117,11 @@ export const ChatBoxManager: React.FC = () => {
         handleOpenChatBox as EventListener
       );
     };
-  }, []); // ✅ Empty deps - only setup once
+  }, []);
 
   // ✅ AUTO POPUP khi nhận tin nhắn MỚI từ người khác
   useEffect(() => {
     if (!chatSocket?.socket || !user) {
-      console.log("❌ No socket or user");
       return;
     }
 
@@ -97,57 +135,40 @@ export const ChatBoxManager: React.FC = () => {
         content: msg.content?.substring(0, 50),
       });
 
-      // ❌ Nếu tin nhắn từ CHÍNH MÌNH → Không popup
       if (String(msg.senderId) === String(userRef.current?.id)) {
-        console.log("⏭️ Message from me, skip popup");
         return;
       }
 
-      // ✅ Nếu từ NGƯỜI KHÁC → Auto popup
-      console.log("🎉 Message from others, processing.. .");
-
-      // ✅ Use ref to get latest state
       const exists = openChatBoxesRef.current.find(
         (box) => box.roomId === msg.roomId
       );
 
       if (exists) {
-        console.log("📦 Box exists, is minimized:", exists.isMinimized);
-
-        // Nếu đang minimize → bật lên
         if (exists.isMinimized) {
           setOpenChatBoxes((prev) =>
             prev.map((box) =>
               box.roomId === msg.roomId ? { ...box, isMinimized: false } : box
             )
           );
-          console.log("✅ Maximized existing box");
         }
 
-        // Play sound & notification
         playNotificationSound();
         showBrowserNotification(exists.roomName, msg.content || "New message");
         return;
       }
 
-      console.log("🆕 Creating new chat box for room:", msg.roomId);
-
-      // Fetch room info để lấy tên + avatar
       try {
         const roomInfo = await chatService.getRoomInformation(msg.roomId);
-        console.log("📋 Room info fetched:", roomInfo);
 
         let displayName = roomInfo.name || "Chat";
         let displayAvatar = roomInfo.avatar;
 
-        // Nếu là chat 1-1, lấy thông tin người gửi
         if (!roomInfo.isGroup && roomInfo.members) {
           const sender = roomInfo.members.find(
             (m: any) => m.userId === msg.senderId
           );
 
           if (sender) {
-            console.log("👤 Found sender in members:", sender);
 
             try {
               const profile = await userService.getBasicProfile(sender.userId);
@@ -155,24 +176,14 @@ export const ChatBoxManager: React.FC = () => {
                 profile.data.fullName || profile.data.username || displayName;
               displayAvatar = profile.data.avatarUrl || displayAvatar;
 
-              console.log("✅ Got sender profile:", {
-                displayName,
-                displayAvatar,
-              });
             } catch (err) {
               console.error("❌ Failed to get sender profile:", err);
             }
           }
         }
 
-        // ✅ Auto open chat box
-        console.log("🚀 Opening chat box:", {
-          roomId: msg.roomId,
-          displayName,
-        });
         openChatBox(msg.roomId, displayName, displayAvatar);
 
-        // Play sound & notification
         playNotificationSound();
         showBrowserNotification(displayName, msg.content || "New message");
       } catch (error) {
@@ -180,45 +191,35 @@ export const ChatBoxManager: React.FC = () => {
       }
     };
 
-    console.log("👂 Registering newMessage listener");
     s.on("newMessage", handleNewMessage);
 
     return () => {
-      console.log("🔇 Removing newMessage listener");
       s.off("newMessage", handleNewMessage);
     };
-  }, [chatSocket, user]); // ✅ Only re-register when socket/user changes
+  }, [chatSocket, user]);
 
   const openChatBox = (
     roomId: string,
     roomName: string,
     roomAvatar?: string
   ) => {
-    console.log("📦 openChatBox called:", { roomId, roomName, roomAvatar });
 
     setOpenChatBoxes((prev) => {
-      console.log("Current boxes count:", prev.length);
 
-      // Nếu đã tồn tại, maximize it
       const existing = prev.find((box) => box.roomId === roomId);
       if (existing) {
-        console.log("Box already exists, maximizing");
         return prev.map((box) =>
           box.roomId === roomId ? { ...box, isMinimized: false } : box
         );
       }
 
-      // ✅ Giới hạn tối đa 3 chat boxes
       const newBoxes = [
         ...prev,
         { roomId, roomName, roomAvatar, isMinimized: false },
       ];
 
-      console.log("New boxes count:", newBoxes.length);
-
       if (newBoxes.length > 3) {
-        console.log("Removing oldest box");
-        return newBoxes.slice(1); // Xóa box cũ nhất
+        return newBoxes.slice(1);
       }
 
       return newBoxes;
@@ -226,12 +227,10 @@ export const ChatBoxManager: React.FC = () => {
   };
 
   const closeChatBox = (roomId: string) => {
-    console.log("❌ Closing chat box:", roomId);
     setOpenChatBoxes((prev) => prev.filter((box) => box.roomId !== roomId));
   };
 
   const minimizeChatBox = (roomId: string) => {
-    console.log("➖ Toggling minimize:", roomId);
     setOpenChatBoxes((prev) =>
       prev.map((box) =>
         box.roomId === roomId ? { ...box, isMinimized: !box.isMinimized } : box
@@ -240,11 +239,8 @@ export const ChatBoxManager: React.FC = () => {
   };
 
   if (!user) {
-    console.log("❌ No user, not rendering");
     return null;
   }
-
-  console.log("🎨 Rendering", openChatBoxes.length, "chat boxes");
 
   return (
     <>
