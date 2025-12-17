@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { chatService, ChatRoom, Message } from "@/services/chatService";
 import { useAuthStore } from "@/store/authStore";
 import { friendService } from "@/services/friendService";
 import { userService } from "@/services/userService";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { Sidebar } from "./components/Sidebar";
 import { ChatArea } from "./components/ChatArea";
@@ -19,47 +20,46 @@ import { toast } from "react-toastify";
 export default function ChatPage() {
   const { user } = useAuthStore();
   const { socket: chatSocket } = useChat();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const t = useTranslations("chat");
 
-  // --- init tab and roomId from URL if present
-  const getUrlParams = () => {
-    const p = new URLSearchParams(window.location.search);
-    return {
-      tab: (p.get("tab") as "personal" | "group") || "personal",
-      roomId: p.get("roomId") || null,
-    };
-  };
+  // ✅ Lấy params từ URL với fallback
+  const tabFromUrl =
+    (searchParams.get("tab") as "personal" | "group") || "personal";
+  const roomIdFromUrl = searchParams.get("roomId");
 
-  const initial =
-    typeof window !== "undefined"
-      ? getUrlParams()
-      : { tab: "personal", roomId: null };
-
-  const [tab, setTab] = useState<"personal" | "group">(initial.tab);
+  // State
+  const [tab, setTab] = useState<"personal" | "group">(tabFromUrl);
   const [conversations, setConversations] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const messageContainerRef = useRef<HTMLDivElement>(null);
   const [newMsg, setNewMsg] = useState("");
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
   const [friends, setFriends] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Refs
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const tabRef = useRef(tab);
   const selectedRoomRef = useRef<ChatRoom | null>(selectedRoom);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isUpdatingUrlRef = useRef(false);
+  const pendingRoomIdRef = useRef<string | null>(roomIdFromUrl);
+
+  // Constants
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const hasRoom = !!selectedRoom?.id;
   const shouldShowSidebarMobile = isMobile && !hasRoom && isSidebarOpen;
-  const t = useTranslations("chat");
 
-  // store desired roomId from URL on first load so we can open it after conversations fetched
-  const initialRoomIdRef = useRef<string | null>(initial.roomId);
-
-  // cập nhật ref
+  // ✅ Sync refs
   useEffect(() => {
     selectedRoomRef.current = selectedRoom;
   }, [selectedRoom]);
@@ -68,33 +68,46 @@ export default function ChatPage() {
     tabRef.current = tab;
   }, [tab]);
 
-  useEffect(() => {
-    const openHandler = () => setIsSidebarOpen(true);
-    window.addEventListener("openSidebar", openHandler);
-    return () => window.removeEventListener("openSidebar", openHandler);
-  }, []);
+  // ✅ Helper:  Build URL with params
+  const buildUrl = (newTab?: string, newRoomId?: string | null) => {
+    const params = new URLSearchParams();
 
-  // --- helper: update URL (pushState)
-  const updateUrl = (
-    newTab?: "personal" | "group",
-    roomId?: string | null,
-    replace = false
-  ) => {
-    const url = new URL(window.location.href);
-    const params = url.searchParams;
+    const finalTab = newTab || tab;
+    const finalRoomId =
+      newRoomId === undefined ? selectedRoom?.id || null : newRoomId;
 
-    if (newTab) params.set("tab", newTab);
-    else if (!params.has("tab")) params.set("tab", tab);
+    params.set("tab", finalTab);
+    if (finalRoomId) {
+      params.set("roomId", finalRoomId);
+    }
 
-    if (roomId) params.set("roomId", roomId);
-    else params.delete("roomId");
-
-    const newUrl = `${url.pathname}?${params.toString()}`;
-    if (replace) window.history.replaceState({}, "", newUrl);
-    else window.history.pushState({}, "", newUrl);
+    return `${pathname}?${params.toString()}`;
   };
 
-  // --- Load friends
+  // ✅ Update URL (with debounce protection)
+  const updateUrl = useCallback(
+    (newTab?: string, newRoomId?: string | null, replace = false) => {
+      if (isUpdatingUrlRef.current) return;
+
+      isUpdatingUrlRef.current = true;
+      const url = buildUrl(newTab, newRoomId);
+
+      console.log("🔗 UPDATE URL:", { newTab, newRoomId, url, replace });
+
+      if (replace) {
+        router.replace(url, { scroll: false });
+      } else {
+        router.push(url, { scroll: false });
+      }
+
+      setTimeout(() => {
+        isUpdatingUrlRef.current = false;
+      }, 100);
+    },
+    [router, pathname, tab, selectedRoom, buildUrl]
+  );
+
+  // ✅ Load friends
   const handleGetFriends = async () => {
     if (!user?.id) return;
     try {
@@ -112,140 +125,96 @@ export default function ChatPage() {
     handleGetFriends();
   }, [user?.id]);
 
-  // --- Load conversations
-  const fetchConversations = async (currentTab: "personal" | "group") => {
+  // ✅ Fetch conversations với preserve selected room
+  const fetchConversations = async (
+    currentTab: "personal" | "group",
+    options: { preserveSelected?: boolean; silent?: boolean } = {}
+  ) => {
     if (!user?.id) return;
+
+    const { preserveSelected = false, silent = false } = options;
+
+    if (!silent)
+      console.log("📋 FETCH CONVERSATIONS:", { currentTab, preserveSelected });
+
     try {
+      let rooms: ChatRoom[] = [];
+
       if (currentTab === "personal") {
-        const rooms = await chatService.getPrivateRooms(user.id);
+        rooms = await chatService.getPrivateRooms(user.id);
         const roomsWithNames = await Promise.all(
           rooms.map(async (room) => {
             const member = (room as any).members?.find(
               (m: any) => m.id !== user.id
             );
             let displayName = t("unknown");
+            let avatarUrl = null;
+
             if (member) {
               try {
                 const profile = await userService.getBasicProfile(member.id);
                 displayName =
-                  profile.data.fullName || profile.username || t("unknown");
+                  profile.data.fullName ||
+                  profile.data.username ||
+                  t("unknown");
+                avatarUrl = profile.data.avatarUrl;
               } catch {}
             }
-            return { ...room, displayName };
+            return { ...room, displayName, avatarUrl };
           })
         );
-        setConversations(roomsWithNames);
+        rooms = roomsWithNames;
       } else {
-        const rooms = await chatService.getPublicRooms(user.id);
-        setConversations(rooms);
+        rooms = await chatService.getPublicRooms(user.id);
       }
+
+      setConversations(rooms);
+
+      // ✅ Preserve selected room nếu cần
+      if (preserveSelected && selectedRoom) {
+        const stillExists = rooms.find((r) => r.id === selectedRoom.id);
+        if (stillExists) {
+          setSelectedRoom(stillExists);
+          console.log("✅ Preserved selected room:", stillExists.id);
+        } else {
+          console.log("⚠️ Selected room no longer exists");
+          setSelectedRoom(null);
+          setMessages([]);
+          updateUrl(currentTab, null, true);
+        }
+      }
+
+      // ✅ Auto-open pending room
+      if (pendingRoomIdRef.current && rooms.length > 0) {
+        const roomToOpen = rooms.find((r) => r.id === pendingRoomIdRef.current);
+        if (roomToOpen) {
+          console.log("🚀 Auto-opening pending room:", roomToOpen.id);
+          await loadRoomMessages(roomToOpen, true, false);
+          pendingRoomIdRef.current = null;
+        }
+      }
+
+      if (!silent) console.log("✅ Conversations loaded:", rooms.length);
     } catch (err) {
       console.error(t("errorLoadingConversations"), err);
     }
   };
 
-  // fetch conversations whenever tab or user changes
-  useEffect(() => {
-    fetchConversations(tabRef.current);
-    // Also update URL tab (replace on first load to avoid polluting history)
-    updateUrl(tabRef.current, selectedRoom?.id || null, true);
-  }, [tab, user?.id]);
+  // ✅ Load room messages
+  const loadRoomMessages = async (
+    room: ChatRoom,
+    reset = true,
+    shouldUpdateUrl = true
+  ) => {
+    console.log("💬 LOAD ROOM MESSAGES:", {
+      roomId: room.id,
+      roomName: room.name || (room as any).displayName,
+      reset,
+      shouldUpdateUrl,
+    });
 
-  // --- handle popstate (back/forward)
-  useEffect(() => {
-    const onPopState = () => {
-      const p = new URLSearchParams(window.location.search);
-      const urlTab = (p.get("tab") as "personal" | "group") || "personal";
-      const urlRoomId = p.get("roomId") || null;
-
-      // apply tab
-      setTab(urlTab);
-
-      // if there's a roomId and conversations already loaded, open it; else remember to open after conversations load
-      if (urlRoomId) {
-        const room = conversations.find((r) => r.id === urlRoomId);
-        if (room) {
-          loadRoomMessages(room);
-        } else {
-          initialRoomIdRef.current = urlRoomId;
-        }
-      } else {
-        // no room in URL -> close selectedRoom
-        setSelectedRoom(null);
-        setMessages([]);
-      }
-    };
-
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [conversations]);
-
-  // --- Socket events (dùng socket từ ChatProvider)
-  useEffect(() => {
-    if (!user || !chatSocket) return;
-    const s = chatSocket.socket;
-
-    const handleNewMessage = (msg: Message) => {
-      if (selectedRoomRef.current?.id === msg.roomId) {
-        setMessages((prev) => [...prev, msg]);
-
-        // Auto scroll to bottom
-        setTimeout(() => {
-          const container = messageContainerRef.current;
-          if (container) {
-            const isNearBottom =
-              container.scrollHeight -
-                container.scrollTop -
-                container.clientHeight <
-              150;
-            if (isNearBottom) {
-              container.scrollTop = container.scrollHeight;
-            }
-          }
-        }, 100);
-      }
-      fetchConversations(tabRef.current);
-    };
-
-    const handleEdited = (msg: Message) => {
-      if (selectedRoomRef.current?.id === msg.roomId) {
-        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
-      }
-    };
-
-    const handleDeleted = (msg: Message) => {
-      if (selectedRoomRef.current?.id === msg.roomId) {
-        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
-      }
-    };
-
-    s.on("newMessage", handleNewMessage);
-    s.on("messageEdited", handleEdited);
-    s.on("messageDeleted", handleDeleted);
-
-    return () => {
-      s.off("newMessage", handleNewMessage);
-      s.off("messageEdited", handleEdited);
-      s.off("messageDeleted", handleDeleted);
-    };
-  }, [user, chatSocket]);
-
-  // --- reset messages only when tab truly changes by user (not on reload)
-  const prevTabRef = useRef(tab);
-  useEffect(() => {
-    if (prevTabRef.current !== tab) {
-      // tab changed by user -> reset selection
-      setMessages([]);
-      setSelectedRoom(null);
-      // update url (push new tab and clear roomId)
-      updateUrl(tab, null);
-    }
-    prevTabRef.current = tab;
-  }, [tab]);
-
-  // --- Load room messages + pagination
-  const loadRoomMessages = async (room: ChatRoom, reset = true) => {
     if (selectedRoom?.id === room.id && reset) {
+      console.log("⏭️ Room already selected");
       return;
     }
 
@@ -271,7 +240,7 @@ export default function ChatPage() {
         const scrollHeightBefore = container.scrollHeight;
         const scrollTopBefore = container.scrollTop;
 
-        setMessages((prev) => [...msgs, ...prev]);
+        setMessages((prev) => [...msgs.reverse(), ...prev]);
         setPage((prev) => prev + 1);
         setHasMore(msgs.length === 10);
 
@@ -293,55 +262,144 @@ export default function ChatPage() {
         });
       }
 
-      // update URL (push roomId) when a room is opened
-      updateUrl(tab, room.id);
+      // ✅ Update URL nếu cần
+      if (shouldUpdateUrl) {
+        updateUrl(tab, room.id);
+      }
+
+      console.log("✅ Room messages loaded");
     } catch (err) {
       console.error(t("errorLoadingMessages"), err);
     }
   };
 
-  // --- Infinity scroll
+  // ✅ Initial load
   useEffect(() => {
-    const container = messageContainerRef.current;
-    if (!container) {
-      // console.log(t("noContainerRef"));
+    if (!user?.id || isInitialized) return;
+
+    console.log("🎬 INITIAL LOAD:", { tab: tabFromUrl, roomId: roomIdFromUrl });
+
+    setTab(tabFromUrl);
+    pendingRoomIdRef.current = roomIdFromUrl;
+
+    fetchConversations(tabFromUrl, { preserveSelected: false }).then(() => {
+      setIsInitialized(true);
+    });
+  }, [user?.id]);
+
+  // ✅ Sync URL params changes (navigation from elsewhere)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const urlTab =
+      (searchParams.get("tab") as "personal" | "group") || "personal";
+    const urlRoomId = searchParams.get("roomId");
+
+    console.log("🔄 URL PARAMS CHANGED:", { urlTab, urlRoomId });
+
+    // Tab changed
+    if (urlTab !== tab) {
+      console.log("📑 Tab changed via URL");
+      setTab(urlTab);
+      setSelectedRoom(null);
+      setMessages([]);
+      pendingRoomIdRef.current = urlRoomId;
+      fetchConversations(urlTab, { preserveSelected: false });
       return;
     }
+
+    // Room changed
+    if (urlRoomId !== selectedRoom?.id) {
+      if (urlRoomId) {
+        console.log("🏠 Room changed via URL");
+        const room = conversations.find((r) => r.id === urlRoomId);
+        if (room) {
+          loadRoomMessages(room, true, false);
+        } else {
+          pendingRoomIdRef.current = urlRoomId;
+          fetchConversations(urlTab, { preserveSelected: false });
+        }
+      } else {
+        console.log("🚪 Room closed via URL");
+        setSelectedRoom(null);
+        setMessages([]);
+      }
+    }
+  }, [searchParams, isInitialized]);
+
+  // ✅ Socket events
+  useEffect(() => {
+    if (!user || !chatSocket) return;
+    const s = chatSocket.socket;
+
+    const handleNewMessage = (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => [...prev, msg]);
+
+        setTimeout(() => {
+          const container = messageContainerRef.current;
+          if (container) {
+            const isNearBottom =
+              container.scrollHeight -
+                container.scrollTop -
+                container.clientHeight <
+              150;
+            if (isNearBottom) {
+              container.scrollTop = container.scrollHeight;
+            }
+          }
+        }, 100);
+      }
+      fetchConversations(tabRef.current, {
+        preserveSelected: true,
+        silent: true,
+      });
+    };
+
+    const handleEdited = (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    };
+
+    const handleDeleted = (msg: Message) => {
+      if (selectedRoomRef.current?.id === msg.roomId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+      }
+    };
+
+    s.on("newMessage", handleNewMessage);
+    s.on("messageEdited", handleEdited);
+    s.on("messageDeleted", handleDeleted);
+
+    return () => {
+      s.off("newMessage", handleNewMessage);
+      s.off("messageEdited", handleEdited);
+      s.off("messageDeleted", handleDeleted);
+    };
+  }, [user, chatSocket]);
+
+  // ✅ Infinity scroll
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
       const scrollTop = container.scrollTop;
 
-      console.log({
-        scrollTop,
-        hasMore,
-        isLoadingMore,
-        selectedRoom: selectedRoom?.id,
-        page,
-      });
-
       if (scrollTop < 50 && hasMore && !isLoadingMore && selectedRoom) {
-        // console.log(t("triggeringLoadMore"));
         setIsLoadingMore(true);
-
-        loadRoomMessages(selectedRoom, false).finally(() => {
-          setTimeout(() => {
-            // console.log(t("loadMoreCompleted"));
-            setIsLoadingMore(false);
-          }, 500);
+        loadRoomMessages(selectedRoom, false, false).finally(() => {
+          setTimeout(() => setIsLoadingMore(false), 500);
         });
       }
     };
 
     container.addEventListener("scroll", handleScroll);
-    // console.log("Scroll listener attached");
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-      // console.log("Scroll listener removed");
-    };
+    return () => container.removeEventListener("scroll", handleScroll);
   }, [selectedRoom, hasMore, isLoadingMore, page]);
 
-  // --- Send (unchanged)
+  // ✅ Send message
   const handleSend = async () => {
     if (!selectedRoom || !chatSocket || !user) return;
     if (!newMsg.trim() && attachments.length === 0) return;
@@ -383,13 +441,14 @@ export default function ChatPage() {
       setNewMsg("");
       setAttachments([]);
       setReplyingMessage(null);
-      fetchConversations(tabRef.current);
+      fetchConversations(tabRef.current, {
+        preserveSelected: true,
+        silent: true,
+      });
 
       setTimeout(() => {
         const container = messageContainerRef.current;
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
+        if (container) container.scrollTop = container.scrollHeight;
       }, 100);
     } catch (err) {
       console.error(err);
@@ -397,7 +456,7 @@ export default function ChatPage() {
     }
   };
 
-  // --- Edit/Delete/Reply (unchanged)
+  // Edit/Delete/Reply handlers
   const handleEditMessage = async (msg: Message, newContent: string) => {
     if (!chatSocket || !user) return;
     try {
@@ -435,10 +494,10 @@ export default function ChatPage() {
   };
 
   const reloadConversations = async () => {
-    await fetchConversations(tabRef.current);
+    await fetchConversations(tabRef.current, { preserveSelected: true });
   };
 
-  // --- Create room (unchanged)
+  // Create room
   const handleCreateRoom = async (
     groupName?: string,
     personalFriendId?: string
@@ -473,26 +532,16 @@ export default function ChatPage() {
     }
   };
 
+  // Sidebar handler
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(true);
-    }
+    const openHandler = () => setIsSidebarOpen(true);
+    window.addEventListener("openSidebar", openHandler);
+    return () => window.removeEventListener("openSidebar", openHandler);
   }, []);
 
-  // when conversations updated, if URL had a roomId to open -> open it
   useEffect(() => {
-    if (conversations.length === 0) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get("roomId") || initialRoomIdRef.current;
-    if (roomId) {
-      const room = conversations.find((r) => r.id === roomId);
-      if (room) {
-        loadRoomMessages(room);
-        // clear initial ref so we don't re-open repeatedly
-        initialRoomIdRef.current = null;
-      }
-    }
-  }, [conversations]);
+    if (isMobile) setIsSidebarOpen(true);
+  }, [isMobile]);
 
   return (
     <div className="flex h-[90vh] flex-col md:flex-row">
@@ -503,7 +552,6 @@ export default function ChatPage() {
         />
       )}
 
-      {/* SIDEBAR MOBILE (overlay) */}
       {isMobile && !hasRoom && isSidebarOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Sidebar
@@ -511,7 +559,11 @@ export default function ChatPage() {
             tab={tab}
             setTab={(v) => {
               setTab(v);
+              setSelectedRoom(null);
+              setMessages([]);
+              pendingRoomIdRef.current = null;
               updateUrl(v, null);
+              fetchConversations(v, { preserveSelected: false });
             }}
             currentUserId={user?.id}
             conversations={conversations}
@@ -524,20 +576,21 @@ export default function ChatPage() {
           />
         </div>
       ) : (
-        /* SIDEBAR DESKTOP */
         <Sidebar
           className="hidden md:block w-[300px]"
           tab={tab}
           setTab={(v) => {
             setTab(v);
+            setSelectedRoom(null);
+            setMessages([]);
+            pendingRoomIdRef.current = null;
             updateUrl(v, null);
+            fetchConversations(v, { preserveSelected: false });
           }}
           currentUserId={user?.id}
           conversations={conversations}
           selectedRoomId={selectedRoom?.id || null}
-          onSelectRoom={(room) => {
-            loadRoomMessages(room);
-          }}
+          onSelectRoom={(room) => loadRoomMessages(room)}
           onOpenDialog={() => setOpenDialog(true)}
         />
       )}
@@ -545,12 +598,12 @@ export default function ChatPage() {
       <ChatArea
         isGroup={tab === "group"}
         selectedRoom={selectedRoom?.id || null}
-        currentUserId={user?.id}
+        currentUserId={user?.id || 0}
         messages={messages}
         newMsg={newMsg}
         setNewMsg={setNewMsg}
         onSend={handleSend}
-        messageEndRef={useRef<HTMLDivElement>(null)}
+        messageEndRef={useRef<HTMLDivElement>(null)} 
         messageContainerRef={messageContainerRef}
         attachments={attachments}
         setAttachments={setAttachments}

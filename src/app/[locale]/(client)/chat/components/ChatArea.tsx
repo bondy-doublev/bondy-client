@@ -29,7 +29,7 @@ interface ChatAreaProps {
   newMsg: string;
   setNewMsg: (msg: string) => void;
   onSend: () => Promise<void>;
-  messageEndRef: React.RefObject<HTMLDivElement>;
+  messageEndRef: React.RefObject<HTMLDivElement> | null;
   messageContainerRef: React.RefObject<HTMLDivElement>;
   attachments: File[];
   setAttachments: (files: File[]) => void;
@@ -123,8 +123,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         // Loại bỏ chính user
         const otherMembers = room.members
-          .map((m) => m.userId) // dùng userId
-          .filter((id) => id !== currentUserId);
+          .map((m: any) => m.userId) // dùng userId
+          .filter((id: number) => id !== currentUserId);
 
         setRoomMembers(otherMembers);
       } catch (err) {

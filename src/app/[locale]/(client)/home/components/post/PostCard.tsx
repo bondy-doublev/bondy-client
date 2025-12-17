@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation";
 import { useChat } from "@/app/providers/ChatProvider";
 import { chatService } from "@/services/chatService";
 import { postService } from "@/services/postService"; // ✅ share = createPost
+import { openChatBoxPopup } from "@/utils/chatHelper";
+import { userService } from "@/services/userService";
 
 type Props = {
   post: Post;
@@ -152,7 +154,7 @@ export default function PostCard({
     setShareCount((prev) => prev + 1);
   };
 
-  // ✅ Share như tin nhắn (tối ưu: get rooms 1 lần)
+  // ✅ Share như tin nhắn với tên + avatar đúng
   const handleSendAsMessage = async ({
     message,
     friendIds,
@@ -170,22 +172,37 @@ export default function PostCard({
       friendIds.map(async (friendId) => {
         try {
           const existing = rooms.find((r) =>
-            r.members?.some((m: any) => m.id === friendId)
+            r?.members?.some((m: any) => m.id === friendId)
           );
 
           let roomId: string;
+          let friendName = "Friend";
+          let friendAvatar: string | undefined;
 
           if (existing) {
             roomId = existing.id;
+
+            // ✅ Lấy tên + avatar từ existing room members
+            const friendMember = existing?.members?.find(
+              (m: any) => m.id === friendId
+            );
+            if (friendMember) {
+              friendName =
+                friendMember.user?.fullName ||
+                friendMember.user?.username ||
+                "Friend";
+              friendAvatar = friendMember.user?.avatarUrl;
+            }
           } else {
             const room = await chatService.createRoom("Chat cá nhân", false, [
               user.id as any,
               friendId as any,
             ]);
             roomId = room.id;
-            rooms.push(room); // ✅ cache luôn để friend khác khỏi tạo trùng (nếu có)
+            rooms.push(room);
           }
 
+          // Send message
           sendMessage({
             senderId: user.id,
             roomId,
@@ -199,6 +216,7 @@ export default function PostCard({
               authorAvatar: post?.owner?.avatarUrl,
             },
           });
+
         } catch (err) {
           console.error("Send share as message failed:", err);
         }

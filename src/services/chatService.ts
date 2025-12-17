@@ -11,7 +11,7 @@ export type ChatRoom = {
 export type Message = {
   id: string;
   roomId: string;
-  senderId: string;
+  senderId: string | number;
   content?: string;
   fileUrl?: string;
   imageUrl?: string;

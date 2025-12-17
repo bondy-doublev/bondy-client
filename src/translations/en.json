@@ -346,6 +346,9 @@
     "you": "You"
   },
   "chat": {
+    "expandToFullChat": "Expand to full chat",
+    "close": "Close",
+    "minimize": "Minimize",
     "startNewChat": "Start a new chat",
     "enterGroupName": "Enter group name.. .",
     "characters": "characters",
