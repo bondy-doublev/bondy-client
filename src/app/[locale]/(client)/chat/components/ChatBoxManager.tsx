@@ -74,7 +74,7 @@ export const ChatBoxManager: React.FC = () => {
 
       const notification = new Notification(senderName, {
         body: message,
-        icon: "/logo. png",
+        icon: "/logo.png",
         tag: "chat-notification",
       });
 
@@ -91,7 +91,7 @@ export const ChatBoxManager: React.FC = () => {
     if (document.hasFocus()) return;
 
     try {
-      const audio = new Audio("/sounds/notification.mp3");
+      const audio = new Audio("/audios/notification.mp3");
       audio.volume = 0.5;
       audio.play().catch((err) => console.log("Cannot play sound:", err));
     } catch (err) {
@@ -128,12 +128,7 @@ export const ChatBoxManager: React.FC = () => {
     const s = chatSocket.socket;
 
     const handleNewMessage = async (msg: any) => {
-      console.log("📨 [ChatBoxManager] New message received:", {
-        roomId: msg.roomId,
-        senderId: msg.senderId,
-        currentUserId: userRef.current?.id,
-        content: msg.content?.substring(0, 50),
-      });
+      playNotificationSound();
 
       if (String(msg.senderId) === String(userRef.current?.id)) {
         return;
@@ -152,7 +147,6 @@ export const ChatBoxManager: React.FC = () => {
           );
         }
 
-        playNotificationSound();
         showBrowserNotification(exists.roomName, msg.content || "New message");
         return;
       }
@@ -169,13 +163,11 @@ export const ChatBoxManager: React.FC = () => {
           );
 
           if (sender) {
-
             try {
               const profile = await userService.getBasicProfile(sender.userId);
               displayName =
                 profile.data.fullName || profile.data.username || displayName;
               displayAvatar = profile.data.avatarUrl || displayAvatar;
-
             } catch (err) {
               console.error("❌ Failed to get sender profile:", err);
             }
@@ -203,9 +195,7 @@ export const ChatBoxManager: React.FC = () => {
     roomName: string,
     roomAvatar?: string
   ) => {
-
     setOpenChatBoxes((prev) => {
-
       const existing = prev.find((box) => box.roomId === roomId);
       if (existing) {
         return prev.map((box) =>
