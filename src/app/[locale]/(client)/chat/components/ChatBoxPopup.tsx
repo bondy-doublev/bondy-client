@@ -352,7 +352,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
 
   return (
     <div
-      className={`fixed bottom-0 right-4 bg-white shadow-2xl rounded-t-lg border border-gray-300 flex flex-col transition-all duration-300 z-[9999]`}
+      className={`bg-white shadow-2xl rounded-t-lg border border-gray-300 flex flex-col transition-all duration-300 z-[9999]`}
       style={{
         width: "350px",
         height: isMinimized ? "50px" : "500px",

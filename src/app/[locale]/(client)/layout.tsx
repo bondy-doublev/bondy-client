@@ -4,6 +4,7 @@ import AppSidebar from "@/app/layout/default/Sidebar";
 import AppNavbar from "@/app/layout/default/Navbar";
 import GlobalVideoCall from "./chat/components/GlobalVideoCall";
 import { ChatBoxManager } from "./chat/components/ChatBoxManager";
+
 export default function RootLayout({
   children,
 }: {
@@ -18,10 +19,11 @@ export default function RootLayout({
           <main className="flex-1 overflow-y-auto md:ml-[20%] bg-gray-50">
             {children}
             <GlobalVideoCall />
-            <ChatBoxManager />
           </main>
         </div>
       </div>
+
+      <ChatBoxManager />
     </div>
   );
 }
