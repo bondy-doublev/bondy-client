@@ -346,6 +346,7 @@
     "you": "You"
   },
   "chat": {
+    "videoCall": "Video Call",
     "expandToFullChat": "Expand to full chat",
     "close": "Close",
     "minimize": "Minimize",

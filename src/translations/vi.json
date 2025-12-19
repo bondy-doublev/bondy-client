@@ -346,6 +346,7 @@
     "you": "Bạn"
   },
   "chat": {
+    "videoCall": "Cuộc gọi video",
     "expandToFullChat": "Mở rộng thành trò chuyện đầy đủ",
     "close": "Đóng",
     "minimize": "Thu nhỏ",
