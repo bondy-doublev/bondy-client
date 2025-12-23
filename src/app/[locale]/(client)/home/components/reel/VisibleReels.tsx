@@ -3,7 +3,6 @@
 import { ReelResponse } from "@/types/response";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { useMyFriends } from "@/app/hooks/useMyFriends";
 import { reelService } from "@/services/reelService";
 import ReelCreateModal from "./ReelCreateModal";
 import ReelViewModal from "./ReelViewModal"; // Import Modal mới
@@ -24,10 +23,11 @@ interface ReelDataForEdit {
   };
 }
 
+export type ReelAction = "viewed" | "read";
+
 export default function VisibleReels() {
   const { user } = useAuthStore();
   const userId = user?.id;
-  const { friendUsers } = useMyFriends(userId || 0, { getAll: true });
 
   const [reels, setReels] = useState<ReelResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,8 +43,6 @@ export default function VisibleReels() {
   const [reelToEdit, setReelToEdit] = useState<ReelDataForEdit | null>(null);
 
   // map: userId => hasNewReel
-  const [userHasReel, setUserHasReel] = useState<Record<number, boolean>>({});
-
   const countReels = (uid: number) => reelsOfUser(uid).length;
 
   const fetchReels = async () => {
@@ -52,32 +50,9 @@ export default function VisibleReels() {
 
     setLoading(true);
     try {
-      let all: ReelResponse[] = [];
-      const users = [user, ...friendUsers];
+      const fetchReels = await reelService.getVisible();
 
-      const hasUnseenMap: Record<number, boolean> = {};
-
-      for (const u of users) {
-        const list = await reelService.getVisible(userId, u.id);
-        if (Array.isArray(list) && list.length > 0) {
-          all = [...all, ...list];
-          // Chỉ đánh dấu có vòng xanh nếu còn reel chưa đọc
-          const hasUnseen = list.some(
-            (r) => !r.readUsers.some((ru) => ru.id === userId)
-          );
-          hasUnseenMap[u.id] = hasUnseen;
-        } else {
-          hasUnseenMap[u.id] = false;
-        }
-      }
-
-      all.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      setReels(all);
-      setUserHasReel(hasUnseenMap); // đổi tên thành hợp lý
+      setReels(fetchReels || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -87,7 +62,7 @@ export default function VisibleReels() {
 
   useEffect(() => {
     fetchReels();
-  }, [userId, friendUsers.length]);
+  }, [userId]);
 
   // get reels của 1 user
   const reelsOfUser = (uid: number) => reels.filter((r) => r.owner.id === uid);
@@ -111,6 +86,27 @@ export default function VisibleReels() {
     setReelToEdit(null);
   };
 
+  const isReadAll = (ownerId: number) => {
+    const ownerReels = reels.filter((r) => r.owner.id === ownerId);
+    if (ownerReels.length === 0) return true;
+    return ownerReels.every((r) => r.isRead === true);
+  };
+
+  const markViewedOrRead = (reelId: number, action: ReelAction) => {
+    setReels((prev) =>
+      prev.map((r) => {
+        if (r.id !== reelId) return r;
+
+        if (action === "viewed") {
+          return { ...r, viewCount: (r.viewCount ?? 0) + 1 };
+        }
+
+        // action === "read"
+        return { ...r, isRead: true };
+      })
+    );
+  };
+
   return (
     <div className="p-4 bg-white rounded-xl shadow space-y-3">
       <div className="flex justify-between items-center">
@@ -125,8 +121,34 @@ export default function VisibleReels() {
 
       {/* Avatars horizontal scroll */}
       <div className="flex gap-3 overflow-x-auto py-2 scroll-custom">
-        {[user, ...friendUsers]
-          .sort((a, b) => {
+        {(() => {
+          // 1) Lấy unique users từ reels.owner + user hiện tại
+          const map = new Map<number, any>();
+
+          if (user?.id) {
+            map.set(user.id, {
+              id: user.id,
+              fullName: user.fullName,
+              avatarUrl: user.avatarUrl,
+            });
+          }
+
+          for (const r of reels) {
+            const o = r.owner;
+            if (!o?.id) continue;
+            if (!map.has(o.id)) {
+              map.set(o.id, {
+                id: o.id,
+                fullName: o.fullName,
+                avatarUrl: o.avatarUrl,
+              });
+            }
+          }
+
+          const users = Array.from(map.values());
+
+          // 2) Sort theo đúng logic bạn đang dùng
+          users.sort((a, b) => {
             const aCount = countReels(a?.id || 0);
             const bCount = countReels(b?.id || 0);
 
@@ -147,28 +169,31 @@ export default function VisibleReels() {
 
             // Cả hai đều không có reel → giữ nguyên
             return 0;
-          })
-          .map((u) => {
+          });
+
+          // 3) Render
+          return users.map((u) => {
             const hasReel = reelsOfUser(u?.id || 0).length > 0;
 
             return (
               <div
                 key={u.id}
-                className={`flex flex-col items-center shrink-0 
-            ${hasReel ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
-          `}
-                onClick={() => hasReel && setSelectedUserIdForView(u?.id || 0)}
+                className={`flex flex-col items-center shrink-0 ${
+                  hasReel ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                }`}
+                onClick={() => {
+                  if (!hasReel) return;
+                  setSelectedUserIdForView(u?.id || 0);
+                }}
               >
                 <img
                   src={u?.avatarUrl || "/images/fallback/user.png"}
-                  alt={u?.fullName}
-                  className={`w-16 h-16 rounded-full p-1
-              ${
-                userHasReel[u?.id || 0]
-                  ? "border-2 border-green-500"
-                  : "border border-gray-200"
-              }
-            `}
+                  alt={u?.fullName || "User"}
+                  className={`w-16 h-16 rounded-full p-1 ${
+                    hasReel && !isReadAll(u.id)
+                      ? "border-2 border-green-500"
+                      : "border border-gray-200"
+                  }`}
                 />
                 <span className="text-xs mt-1">
                   {u?.id === userId
@@ -177,7 +202,8 @@ export default function VisibleReels() {
                 </span>
               </div>
             );
-          })}
+          });
+        })()}
       </div>
 
       {loading && <div className="text-gray-500">{t("loadingMore")}</div>}
@@ -200,6 +226,7 @@ export default function VisibleReels() {
           onClose={() => setSelectedUserIdForView(null)}
           onOpenEdit={handleOpenEdit}
           initialReels={reelsOfUser(selectedUserIdForView)}
+          onMarkViewdOrRead={markViewedOrRead}
         />
       )}
 
@@ -215,7 +242,6 @@ export default function VisibleReels() {
             handleCloseEdit();
           }}
           onDeleted={fetchReels}
-          friends={friendUsers}
         />
       )}
     </div>
