@@ -143,4 +143,11 @@ export const chatService = {
     );
     return res.data.files;
   },
+
+  async getPersonalRoom(user1Id: number, user2Id: number): Promise<ChatRoom> {
+    const res: AxiosResponse = await api.get(
+      `/chat/personal-room/${user1Id}/${user2Id}`
+    );
+    return res.data;
+  },
 };
