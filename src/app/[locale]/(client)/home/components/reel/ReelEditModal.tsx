@@ -26,6 +26,7 @@ import {
 import User from "@/models/User";
 import { useTranslations } from "use-intl";
 import { Toast } from "@/lib/toast";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 
 interface ReelEditModalProps {
   reel: {
@@ -44,7 +45,6 @@ interface ReelEditModalProps {
   onClose: () => void;
   onUpdated?: () => void;
   onDeleted?: () => void;
-  friends?: User[];
 }
 
 export default function ReelEditModal({
@@ -54,7 +54,6 @@ export default function ReelEditModal({
   onClose,
   onUpdated,
   onDeleted,
-  friends = [],
 }: ReelEditModalProps) {
   const [visibility, setVisibility] = useState<ReelVisibility>(
     reel.visibilityType
@@ -72,12 +71,19 @@ export default function ReelEditModal({
 
   const isOwner = reel.owner.id === currentUserId;
 
+  const { friendUsers } = useMyFriends(currentUserId, {
+    getAll: true,
+    enabled: true,
+  });
+
   // Filter friends based on search
   const filteredFriends = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
-    if (!keyword) return friends;
-    return friends.filter((f) => f.fullName?.toLowerCase().includes(keyword));
-  }, [friends, searchQuery]);
+    if (!keyword) return friendUsers;
+    return friendUsers.filter((f) =>
+      f.fullName?.toLowerCase().includes(keyword)
+    );
+  }, [friendUsers, searchQuery]);
 
   // Infinite scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {

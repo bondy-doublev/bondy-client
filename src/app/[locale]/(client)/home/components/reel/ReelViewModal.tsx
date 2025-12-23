@@ -10,6 +10,7 @@ import {
 import { X, Settings, Eye, Globe, Users, Lock, LockIcon } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { reelService } from "@/services/reelService";
+import { ReelAction } from "@/app/[locale]/(client)/home/components/reel/VisibleReels";
 
 interface ReelResponse {
   id: number;
@@ -27,6 +28,7 @@ interface ReelViewModalProps {
   onClose: () => void;
   initialReels: any[];
   onOpenEdit: (reel: any) => void;
+  onMarkViewdOrRead: (reelId: number, action: ReelAction) => void;
 }
 
 export default function ReelViewModal({
@@ -35,6 +37,7 @@ export default function ReelViewModal({
   onClose,
   initialReels = [],
   onOpenEdit,
+  onMarkViewdOrRead,
 }: ReelViewModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -117,13 +120,22 @@ export default function ReelViewModal({
   useEffect(() => {
     if (!open || !currentReel) return;
 
-    reelService.markViewed(currentReel?.id, currentUserId).catch((err) => {
-      console.error("Failed to mark reel viewed", err);
-    });
-    reelService.markRead(currentReel?.id, currentUserId).catch((err) => {
-      console.error("Failed to mark reel read", err);
-    });
-  }, [currentIndex, currentReel, currentUserId, open]);
+    (async () => {
+      try {
+        await reelService.markViewed(currentReel.id, currentUserId);
+        onMarkViewdOrRead(currentReel.id, "viewed");
+      } catch (error) {
+        console.error("Failed to mark reel viewed", error);
+      }
+
+      try {
+        await reelService.markRead(currentReel.id, currentUserId);
+        onMarkViewdOrRead(currentReel.id, "read");
+      } catch (error) {
+        console.error("Failed to mark reel read", error);
+      }
+    })();
+  }, [open, currentReel?.id, currentIndex, currentUserId]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

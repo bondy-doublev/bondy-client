@@ -61,16 +61,29 @@ export const reelService = {
   },
 
   // ---------------- GET VISIBLE REELS ----------------
-  async getVisible(
-    viewerId: number,
-    ownerId?: number
-  ): Promise<ReelResponse[] | null> {
+  // async getVisible(
+  //   viewerId: number,
+  //   ownerId?: number
+  // ): Promise<ReelResponse[] | null> {
+  //   try {
+  //     const res = await api.get<AppApiResponse<ReelResponse[]>>(
+  //       `${BASE}/visible`,
+  //       {
+  //         params: { viewerId, ownerId },
+  //       }
+  //     );
+  //     return res.data.data || res.data;
+  //   } catch (error: any) {
+  //     console.error("Get Visible Reels Error:", error);
+  //     Toast.error(error?.response?.data?.message || "Failed to load reels");
+  //     return null;
+  //   }
+  // },
+
+  async getVisible(): Promise<ReelResponse[] | null> {
     try {
       const res = await api.get<AppApiResponse<ReelResponse[]>>(
-        `${BASE}/visible`,
-        {
-          params: { viewerId, ownerId },
-        }
+        `${BASE}/visible`
       );
       return res.data.data || res.data;
     } catch (error: any) {
