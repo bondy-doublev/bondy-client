@@ -27,13 +27,13 @@ import {
 import User from "@/models/User";
 import { useTranslations } from "use-intl";
 import { Toast } from "@/lib/toast";
+import { useMyFriends } from "@/app/hooks/useMyFriends";
 
 interface ReelCreateModalProps {
-  userId:  number;
+  userId: number;
   open: boolean;
   onClose: () => void;
   onCreated?: () => void;
-  friends?: User[];
 }
 
 export default function ReelCreateModal({
@@ -41,7 +41,6 @@ export default function ReelCreateModal({
   open,
   onClose,
   onCreated,
-  friends = [],
 }: ReelCreateModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
@@ -56,14 +55,16 @@ export default function ReelCreateModal({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const t = useTranslations("reel");
 
+  const { friendUsers } = useMyFriends(userId, { getAll: true, enabled: true });
+
   // Filter friends based on search
   const filteredFriends = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
-    if (!keyword) return friends;
-    return friends.filter((f) =>
-      f.fullName?. toLowerCase().includes(keyword)
+    if (!keyword) return friendUsers;
+    return friendUsers.filter((f) =>
+      f.fullName?.toLowerCase().includes(keyword)
     );
-  }, [friends, searchQuery]);
+  }, [friendUsers, searchQuery]);
 
   // Reset state khi đóng modal
   const handleClose = () => {
@@ -95,7 +96,7 @@ export default function ReelCreateModal({
       setIsUploading(true);
       const videoUrl = await uploadCloudinaryVideoSingle(file);
 
-      const payload:  CreateReelRequest = {
+      const payload: CreateReelRequest = {
         userId,
         videoUrl,
         visibilityType: visibility,
@@ -165,7 +166,7 @@ export default function ReelCreateModal({
               {t("chooseVideo")}
             </label>
 
-            {! videoPreview ?  (
+            {!videoPreview ? (
               <label className="cursor-pointer block">
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50">
                   <div className="flex flex-col items-center gap-2">
@@ -209,7 +210,7 @@ export default function ReelCreateModal({
                   <Video className="w-4 h-4" />
                   <span className="truncate flex-1">{file?.name}</span>
                   <span className="text-gray-400">
-                    {(file! .size / (1024 * 1024)).toFixed(2)} MB
+                    {(file!.size / (1024 * 1024)).toFixed(2)} MB
                   </span>
                 </div>
               </div>
@@ -228,7 +229,7 @@ export default function ReelCreateModal({
                 onClick={() => setVisibility(ReelVisibility.PUBLIC)}
                 disabled={isUploading}
                 className={`flex flex-col items-center gap-1. 5 p-3 rounded-lg border-2 transition-all ${
-                  visibility === ReelVisibility. PUBLIC
+                  visibility === ReelVisibility.PUBLIC
                     ? "bg-green-50 border-green-600 text-green-700"
                     : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                 }`}
@@ -239,7 +240,7 @@ export default function ReelCreateModal({
 
               <button
                 type="button"
-                onClick={() => setVisibility(ReelVisibility. PRIVATE)}
+                onClick={() => setVisibility(ReelVisibility.PRIVATE)}
                 disabled={isUploading}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all ${
                   visibility === ReelVisibility.PRIVATE
@@ -258,7 +259,7 @@ export default function ReelCreateModal({
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all ${
                   visibility === ReelVisibility.CUSTOM
                     ? "bg-green-50 border-green-600 text-green-700"
-                    :  "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                 }`}
               >
                 <Users className="w-5 h-5" />
@@ -274,7 +275,7 @@ export default function ReelCreateModal({
               {customAllowedUsers.length > 0 && (
                 <div className="flex items-center justify-between py-2 px-3 bg-green-50 rounded-lg">
                   <span className="text-sm font-medium text-green-800">
-                    {t("selected")}: {customAllowedUsers. length}
+                    {t("selected")}: {customAllowedUsers.length}
                   </span>
                   <button
                     onClick={() => setCustomAllowedUsers([])}
@@ -318,7 +319,7 @@ export default function ReelCreateModal({
                   <div className="p-8 text-center">
                     <Search className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-gray-500">
-                      {searchQuery ?  t("noFriendsFound") : t("noFriends")}
+                      {searchQuery ? t("noFriendsFound") : t("noFriends")}
                     </p>
                   </div>
                 ) : (
@@ -344,7 +345,7 @@ export default function ReelCreateModal({
                           <div className="relative flex-shrink-0">
                             {f.avatarUrl ? (
                               <img
-                                src={f. avatarUrl}
+                                src={f.avatarUrl}
                                 alt={f.fullName}
                                 className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                               />
@@ -366,7 +367,7 @@ export default function ReelCreateModal({
                           <div
                             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                               isSelected
-                                ?  "bg-green-600 border-green-600"
+                                ? "bg-green-600 border-green-600"
                                 : "border-gray-300"
                             }`}
                           >
@@ -429,9 +430,7 @@ export default function ReelCreateModal({
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder={t("customHours")}
             />
-            <p className="text-xs text-gray-500">
-              {t("ttlDescription")}
-            </p>
+            <p className="text-xs text-gray-500">{t("ttlDescription")}</p>
           </div>
         </div>
 
@@ -448,7 +447,7 @@ export default function ReelCreateModal({
             onClick={handleCreateReel}
             disabled={isUploading || !file}
             className={`px-6 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
-              isUploading || ! file
+              isUploading || !file
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700 text-white"
             }`}

@@ -22,6 +22,7 @@ import { moderationService } from "@/services/reportService";
 import { TargetType } from "@/models/Report";
 import { useRouter } from "next/navigation";
 import ReelCreateModal from "@/app/[locale]/(client)/home/components/reel/ReelCreateModal";
+import { chatService } from "@/services/chatService";
 
 export default function WallHeader({ wallUser }: { wallUser: User }) {
   const t = useTranslations("wall");
@@ -63,8 +64,14 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
 
   const isOwner = user?.id === wallUser.id;
 
-  const handleMessage = () => {
-    console.log("Open chat with", wallUser.id);
+  const handleMessage = async () => {
+    const room = await chatService.getPersonalRoom(user!.id, wallUser.id);
+    const params = new URLSearchParams();
+
+    params.set("tab", "personal");
+    params.set("roomId", room.id);
+
+    router.push(`/chat?${params.toString()}`);
   };
 
   const handleSubmitReport = async (reason: string) => {
@@ -182,7 +189,6 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
           open={openCreateReel}
           onClose={() => setOpenCreateReel(false)}
           onCreated={() => {}}
-          friends={[]}
         />
       )}
     </div>

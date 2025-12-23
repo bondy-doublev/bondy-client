@@ -189,7 +189,6 @@ export default function VisibleReels() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           onCreated={fetchReels}
-          friends={friendUsers}
         />
       )}
 
