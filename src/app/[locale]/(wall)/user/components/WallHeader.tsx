@@ -23,6 +23,7 @@ import { TargetType } from "@/models/Report";
 import { useRouter } from "next/navigation";
 import ReelCreateModal from "@/app/[locale]/(client)/home/components/reel/ReelCreateModal";
 import { chatService } from "@/services/chatService";
+import Loader from "@/app/components/ui/loader/Loader";
 
 export default function WallHeader({ wallUser }: { wallUser: User }) {
   const t = useTranslations("wall");
@@ -82,6 +83,13 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
     });
   };
 
+  if (user === null)
+    return (
+      <div>
+        <Loader loading={user === null} type="success"></Loader>
+      </div>
+    );
+
   return (
     <div className="md:px-4 w-full">
       <div className="flex flex-col w-full items-center bg-white rounded-xl shadow-sm p-6">
@@ -137,9 +145,9 @@ export default function WallHeader({ wallUser }: { wallUser: User }) {
               >
                 <GoPlus /> {t("addStory")}
               </Button>
-              <Button className="border-none" variant="outline">
+              {/* <Button className="border-none" variant="outline">
                 <IoIosMore />
-              </Button>
+              </Button> */}
             </div>
           ) : (
             <div className="flex items-center gap-2">
