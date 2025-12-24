@@ -12,8 +12,11 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
+import { useTranslations } from "next-intl";
 
 export default function UserDropdown() {
+  const t = useTranslations("navbar");
+
   const router = useRouter();
   const { user, setUser, setTokens } = useAuthStore();
 
@@ -31,7 +34,7 @@ export default function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border border-gray-300 flex items-center justify-center bg-gray-100">
+        <div className="flex items-center justify-center w-8 h-8 overflow-hidden bg-gray-100 border border-gray-300 rounded-full cursor-pointer">
           {user !== null ? (
             user.avatarUrl ? (
               <Image
@@ -60,27 +63,24 @@ export default function UserDropdown() {
           <>
             <div
               onClick={() => router.push("/user/" + user.id)}
-              className="px-3 py-2 border-b border-gray-200 text-sm font-medium cursor-pointer hover:bg-gray-100 hover:rounded-md"
+              className="px-3 py-2 text-sm font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:rounded-md"
             >
               {user?.firstName} {user?.lastName}
             </div>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">Settings</Link>
-            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-red-500 cursor-pointer"
             >
-              Logout
+              {t("logout")}
             </DropdownMenuItem>
           </>
         ) : (
           <>
             <DropdownMenuItem asChild>
-              <Link href="/signin">Sign In</Link>
+              <Link href="/signin">{t("signIn")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/signup">{t("signUp")}</Link>
             </DropdownMenuItem>
           </>
         )}
