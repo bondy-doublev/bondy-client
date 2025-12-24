@@ -132,7 +132,7 @@ export const userService = {
         params,
       });
 
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw new Error("Failed to search users");
     }

@@ -98,7 +98,11 @@
     "newarrivals": "New Arrivals",
     "authors": "Authors",
     "blogs": "Blogs",
-    "contact": "Contact"
+    "contact": "Contact",
+    "results": "Results",
+    "noResults": "No results",
+    "searching": "Searching...",
+    "clear": "Clear"
   },
   "footer": {
     "slogan": "“Connecting knowledge, shaping the future.”",

@@ -98,7 +98,11 @@
     "newarrivals": "Mới về",
     "authors": "Tác giả",
     "blogs": "Blog",
-    "contact": "Liên hệ"
+    "contact": "Liên hệ",
+    "results": "Kết quả",
+    "noResults": "Không có kết quả phù hợp",
+    "searching": "Đang tìm kiếm...",
+    "clear": "Dọn dẹp"
   },
   "footer": {
     "slogan": "“Gắn kết tri thức, chạm tới tương lai.”",
