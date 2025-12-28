@@ -12,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <div>
-      <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex flex-col h-screen overflow-hidden">
         <AppNavbar />
         <div className="flex flex-1 overflow-hidden">
           <AppSidebar />
