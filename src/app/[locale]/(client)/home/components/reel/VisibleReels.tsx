@@ -9,6 +9,7 @@ import ReelViewModal from "./ReelViewModal"; // Import Modal mới
 import { ReelVisibility } from "@/enums"; // Import enum
 import ReelEditModal from "./ReelEditModal";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 // Tạo type mới cho Reel để phù hợp với ReelEditModal
 interface ReelDataForEdit {
@@ -187,7 +188,9 @@ export default function VisibleReels() {
                 }}
               >
                 <img
-                  src={u?.avatarUrl || "/images/fallback/user.png"}
+                  src={
+                    resolveFileUrl(u?.avatarUrl) || "/images/fallback/user.png"
+                  }
                   alt={u?.fullName || "User"}
                   className={`w-16 h-16 rounded-full p-1 ${
                     hasReel && !isReadAll(u.id)

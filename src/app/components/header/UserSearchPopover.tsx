@@ -14,6 +14,7 @@ import {
 
 // đổi đúng service của bạn
 import { userService } from "@/services/userService";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 type SearchedUser = {
   id: number;
@@ -186,7 +187,10 @@ export default function UserSearchPopover() {
               >
                 <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0">
                   <Image
-                    src={u.avatarUrl || "/images/default-avatar.png"}
+                    src={
+                      resolveFileUrl(u.avatarUrl) ||
+                      "/images/default-avatar.png"
+                    }
                     alt={u.fullName}
                     fill
                     className="object-cover"

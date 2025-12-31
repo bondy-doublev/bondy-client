@@ -14,6 +14,7 @@ import Modal from "react-modal";
 import { useTranslations } from "use-intl";
 import { UniversalConfirmDialog } from "@/components/common/ConfirmModal";
 import { SharedPostCard } from "./SharedPostCard";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ChatMessageProps {
   msg: Message;
@@ -146,7 +147,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       if (sender.avatarUrl) {
         return (
           <img
-            src={sender.avatarUrl}
+            src={resolveFileUrl(sender.avatarUrl)}
             alt={sender.name}
             className="w-8 h-8 rounded-full object-cover"
           />
@@ -249,7 +250,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                   a.type === "image" ? (
                     <img
                       key={index}
-                      src={a.url}
+                      src={resolveFileUrl(a.url)}
                       alt={a.fileName}
                       className={`object-cover rounded cursor-pointer ${
                         isInPopup ? "max-w-[200px] max-h-[200px]" : "w-20 h-20"
@@ -270,7 +271,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 )}
               {!hasAttachments && msg.imageUrl && (
                 <img
-                  src={msg.imageUrl}
+                  src={resolveFileUrl(msg.imageUrl)}
                   alt="img"
                   className={`rounded mt-1 object-cover ${
                     isInPopup
@@ -369,7 +370,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
           }}
         >
           <img
-            src={modalImg}
+            src={resolveFileUrl(modalImg)}
             alt="Zoom"
             className="max-h-[80vh] max-w-[90vw] rounded"
           />

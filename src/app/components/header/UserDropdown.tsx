@@ -13,6 +13,7 @@ import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { useTranslations } from "next-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 export default function UserDropdown() {
   const t = useTranslations("navbar");
@@ -40,7 +41,7 @@ export default function UserDropdown() {
               <Image
                 width={32}
                 height={32}
-                src={user.avatarUrl}
+                src={resolveFileUrl(user.avatarUrl)}
                 alt="Avatar"
                 className="object-cover"
               />

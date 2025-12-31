@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  bondy-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bondy-client
+    restart: always
+    ports:
+      - "3000:3000"

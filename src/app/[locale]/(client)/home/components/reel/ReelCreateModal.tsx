@@ -28,6 +28,7 @@ import User from "@/models/User";
 import { useTranslations } from "use-intl";
 import { Toast } from "@/lib/toast";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ReelCreateModalProps {
   userId: number;
@@ -192,7 +193,7 @@ export default function ReelCreateModal({
             ) : (
               <div className="relative">
                 <video
-                  src={videoPreview}
+                  src={resolveFileUrl(videoPreview)}
                   controls
                   className="w-full rounded-lg border shadow-sm max-h-[300px] object-contain bg-black"
                 />
@@ -345,7 +346,7 @@ export default function ReelCreateModal({
                           <div className="relative flex-shrink-0">
                             {f.avatarUrl ? (
                               <img
-                                src={f.avatarUrl}
+                                src={resolveFileUrl(f.avatarUrl)}
                                 alt={f.fullName}
                                 className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                               />
