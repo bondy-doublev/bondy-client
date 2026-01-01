@@ -556,6 +556,7 @@ export default function PostComposerModal({
                           fill
                           sizes="100vw"
                           className="object-cover"
+                          unoptimized
                         />
                       ) : (
                         <video

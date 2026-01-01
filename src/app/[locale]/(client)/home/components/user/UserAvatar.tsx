@@ -21,6 +21,7 @@ export default function UserAvatar({
           alt="avatar"
           fill
           className="object-cover"
+          unoptimized
         />
       </div>
     </Link>

@@ -54,6 +54,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "bondy.io.vn", // 👈 thêm cái này
       },
+      {
+        protocol: "http", // hoặc 'http' tùy vào server 8080 của bạn
+        hostname: "localhost",
+        port: "8080",
+      },
     ],
   },
 };

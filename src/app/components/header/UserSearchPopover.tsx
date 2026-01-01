@@ -194,6 +194,7 @@ export default function UserSearchPopover() {
                     alt={u.fullName}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
 

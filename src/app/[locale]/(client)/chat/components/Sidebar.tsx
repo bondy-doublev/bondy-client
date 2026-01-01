@@ -214,6 +214,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                           width={48}
                           height={48}
                           className="rounded-full object-cover ring-2 ring-white"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-md">

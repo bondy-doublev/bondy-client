@@ -146,6 +146,7 @@ export default function MediaModal({
             height={900}
             className="rounded-lg shadow-lg object-contain w-auto h-auto max-w-[95vw] max-h-[90vh]"
             sizes="(max-width: 768px) 100vw, 95vw"
+            unoptimized
           />
         )}
       </div>

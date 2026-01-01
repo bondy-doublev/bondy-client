@@ -44,6 +44,7 @@ export default function UserDropdown() {
                 src={resolveFileUrl(user.avatarUrl)}
                 alt="Avatar"
                 className="object-cover"
+                unoptimized
               />
             ) : (
               <DefaultAvatar firstName={user?.firstName} />
@@ -54,6 +55,7 @@ export default function UserDropdown() {
               height={32}
               src="/images/fallback/user.png"
               alt="Default Avatar"
+              unoptimized
             />
           )}
         </div>

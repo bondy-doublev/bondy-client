@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { Toast } from "@/lib/toast";
 import { removeAccessToken, setAccessToken } from "@/utils/token";
 import axios, { AxiosResponse } from "axios";
 
@@ -21,9 +22,12 @@ export const authService = {
         access_token: accessToken,
       });
 
+      console.log(response);
+
       return response.data; // trả về AuthResponse
     } catch (error: any) {
-      throw error;
+      console.log("Login err: ", error);
+      Toast.error(error);
     }
   },
 
