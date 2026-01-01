@@ -27,6 +27,7 @@ import User from "@/models/User";
 import { useTranslations } from "use-intl";
 import { Toast } from "@/lib/toast";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ReelEditModalProps {
   reel: {
@@ -185,7 +186,7 @@ export default function ReelEditModal({
             <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
               {reel.owner.avatarUrl ? (
                 <img
-                  src={reel.owner.avatarUrl}
+                  src={resolveFileUrl(reel.owner.avatarUrl)}
                   alt={reel.owner.fullName}
                   className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
                 />
@@ -208,7 +209,7 @@ export default function ReelEditModal({
             {/* Video Preview */}
             <div className="relative rounded-lg overflow-hidden bg-black shadow-lg">
               <video
-                src={reel.videoUrl}
+                src={resolveFileUrl(reel.videoUrl)}
                 controls
                 className="w-full max-h-[300px] object-contain"
               />
@@ -348,7 +349,7 @@ export default function ReelEditModal({
                                 <div className="relative flex-shrink-0">
                                   {f.avatarUrl ? (
                                     <img
-                                      src={f.avatarUrl}
+                                      src={resolveFileUrl(f.avatarUrl)}
                                       alt={f.fullName}
                                       className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                                     />

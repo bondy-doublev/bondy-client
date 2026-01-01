@@ -13,6 +13,7 @@ import { userService } from "@/services/userService";
 import { uploadCloudinarySingle } from "@/services/uploadService";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface Member {
   id: number;
@@ -150,7 +151,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <img
-                    src={groupAvatar || "/default-group.png"}
+                    src={resolveFileUrl(groupAvatar) || "/default-group.png"}
                     alt="Group Avatar"
                     className="w-32 h-32 rounded-full object-cover border-4 border-emerald-500 shadow-xl"
                   />
@@ -220,7 +221,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                     >
                       {m.avatar ? (
                         <img
-                          src={m.avatar}
+                          src={resolveFileUrl(m.avatar)}
                           alt={m.name}
                           className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-md"
                         />
@@ -263,7 +264,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                       className="relative group overflow-hidden rounded-lg border-2 border-emerald-300 hover:border-emerald-500 transition-all shadow-md hover:shadow-xl"
                     >
                       <img
-                        src={url}
+                        src={resolveFileUrl(url)}
                         alt={`${t("media")} ${i + 1}`}
                         className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
                       />

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 type ModalItem = {
   url: string;
@@ -195,7 +196,7 @@ export default function MediaSidebar({
                 {isVideo ? (
                   <>
                     <video
-                      src={media.url}
+                      src={resolveFileUrl(media.url)}
                       className="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition"
                       preload="metadata"
                     />
@@ -208,7 +209,7 @@ export default function MediaSidebar({
                 ) : (
                   <Image
                     unoptimized
-                    src={media.url}
+                    src={resolveFileUrl(media.url)}
                     alt="media"
                     fill
                     className="object-cover hover:brightness-90 transition"

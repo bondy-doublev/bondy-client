@@ -24,6 +24,7 @@ import {
 import { toast } from "react-toastify";
 import { addDoc, collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/configs/firebase";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ChatBoxPopupProps {
   roomId: string;
@@ -336,7 +337,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     if (roomAvatar) {
       return (
         <img
-          src={roomAvatar}
+          src={resolveFileUrl(roomAvatar)}
           alt={roomName}
           className="w-8 h-8 rounded-full object-cover"
         />

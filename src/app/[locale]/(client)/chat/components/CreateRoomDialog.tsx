@@ -14,6 +14,7 @@ import { X, Search, Users, MessageCircle, User, Check } from "lucide-react";
 import { useTranslations } from "use-intl";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/store/authStore";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface Friend {
   id: string;
@@ -309,7 +310,7 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
                         <div className="relative flex-shrink-0">
                           {f.avatarUrl ? (
                             <img
-                              src={f.avatarUrl}
+                              src={resolveFileUrl(f.avatarUrl)}
                               alt={displayName}
                               className="w-11 h-11 rounded-full object-cover ring-2 ring-white shadow-sm"
                             />

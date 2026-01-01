@@ -65,11 +65,16 @@ export default function ProfileForm({
         await userService.updateAvatar(avatarFile);
       }
 
+      const dobValue =
+        typeof formData.dob === "string"
+          ? formData.dob.split("T")[0]
+          : formData.dob;
+
       await userService.updateProfile({
         firstName: formData.firstName,
         middleName: formData.middleName,
         lastName: formData.lastName,
-        dob: formData.dob,
+        dob: dobValue, // 👈 FIX
         gender: formData.gender,
       });
 

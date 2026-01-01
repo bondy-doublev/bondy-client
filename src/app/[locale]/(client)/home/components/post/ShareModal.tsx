@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { X, Globe, Lock, Users, MessageCircle, Search } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 type ShareMode = "feed" | "message";
 
@@ -297,7 +298,7 @@ export default function ShareModal({
                           {f.avatarUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={f.avatarUrl}
+                              src={resolveFileUrl(f.avatarUrl)}
                               alt={f.fullName}
                               className="w-full h-full object-cover"
                             />

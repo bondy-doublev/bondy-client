@@ -238,6 +238,7 @@ export default function Navbar() {
             alt="Logo"
             className="w-8 h-8 rounded cursor-pointer"
             onClick={() => router.push("/")}
+            unoptimized
           />
           <h2
             className="text-xl font-semibold cursor-pointer"

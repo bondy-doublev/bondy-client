@@ -21,6 +21,7 @@ import { UserBasic } from "@/models/User";
 import { Button } from "@/components/ui/button";
 import { postService } from "@/services/postService";
 import TagModal from "@/app/[locale]/(client)/home/components/composer/TagModal";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 type Props = {
   t: (key: string) => string;
@@ -292,13 +293,13 @@ export default function EditPostModal({
                       />
                       {m.type === "IMAGE" ? (
                         <img
-                          src={m.url}
+                          src={resolveFileUrl(m.url)}
                           alt="media"
                           className="w-full h-28 object-cover"
                         />
                       ) : (
                         <video
-                          src={m.url}
+                          src={resolveFileUrl(m.url)}
                           className="w-full h-28 object-cover"
                           muted
                         />
@@ -353,13 +354,13 @@ export default function EditPostModal({
                         <div className="absolute inset-0 transition bg-black/0 group-hover:bg-black/10" />
                         {isVideo ? (
                           <video
-                            src={url}
+                            src={resolveFileUrl(url)}
                             className="w-full h-28 object-cover"
                             muted
                           />
                         ) : (
                           <img
-                            src={url}
+                            src={resolveFileUrl(url)}
                             alt={f.name}
                             className="w-full h-28 object-cover"
                           />

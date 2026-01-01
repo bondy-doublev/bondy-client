@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveFileUrl } from "@/utils/fileUrl";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState, useRef } from "react";
@@ -131,7 +132,7 @@ export default function MediaModal({
       <div className="relative" onClick={handleContentClick}>
         {current.type === "video" ? (
           <video
-            src={current.url}
+            src={resolveFileUrl(current.url)}
             controls
             autoPlay
             playsInline
@@ -139,12 +140,13 @@ export default function MediaModal({
           />
         ) : (
           <Image
-            src={current.url}
+            src={resolveFileUrl(current.url)}
             alt="media"
             width={1200}
             height={900}
             className="rounded-lg shadow-lg object-contain w-auto h-auto max-w-[95vw] max-h-[90vh]"
             sizes="(max-width: 768px) 100vw, 95vw"
+            unoptimized
           />
         )}
       </div>

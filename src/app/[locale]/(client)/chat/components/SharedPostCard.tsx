@@ -3,6 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "use-intl";
 import { HiShare } from "react-icons/hi";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface SharedPostCardProps {
   sharedPost: {
@@ -48,7 +49,7 @@ export function SharedPostCard({ sharedPost, isMine }: SharedPostCardProps) {
       {sharedPost.image && (
         <div className="w-full aspect-video bg-gray-100 relative overflow-hidden">
           <img
-            src={sharedPost.image}
+            src={resolveFileUrl(sharedPost.image)}
             alt={sharedPost.title}
             className="w-full h-full object-cover"
           />
@@ -67,7 +68,7 @@ export function SharedPostCard({ sharedPost, isMine }: SharedPostCardProps) {
           <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
             {sharedPost.authorAvatar ? (
               <img
-                src={sharedPost.authorAvatar}
+                src={resolveFileUrl(sharedPost.authorAvatar)}
                 alt={sharedPost.authorName}
                 className="w-full h-full object-cover"
               />
