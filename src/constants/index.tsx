@@ -11,17 +11,6 @@ import {
 
 export const SIDEBAR_ITEMS = [
   { id: "home", href: "/", label: "Trang chủ", icon: <Home /> },
-  { id: "search", href: "/search", label: "Tìm kiếm", icon: <Search /> },
-  { id: "explore", href: "/explore", label: "Khám phá", icon: <Compass /> },
   { id: "reels", href: "/reels", label: "Reels", icon: <Video /> },
-
-  {
-    id: "notifications",
-    href: "/notifications",
-    label: "Thông báo",
-    icon: <Heart />,
-    badge: 1,
-  },
-  { id: "more", href: "/more", label: "Xem thêm", icon: <Menu /> },
-  { id: "meta", href: "/meta", label: "Củng của Meta", icon: <Grid /> },
+  { id: "chat", href: "/chat", label: "Chat", icon: <Send /> },
 ];

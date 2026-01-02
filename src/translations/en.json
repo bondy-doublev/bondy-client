@@ -108,6 +108,8 @@
     "instagramTitle": "From Our Instagram"
   },
   "sidebar": {
+    "friends": "Friends",
+    "chat": "Messages",
     "home": "Home",
     "search": "Search",
     "explore": "Explore",
@@ -346,6 +348,8 @@
     "you": "You"
   },
   "chat": {
+    "callingUser": "Calling",
+    "ringing": "Ringing",
     "videoCall": "Video Call",
     "expandToFullChat": "Expand to full chat",
     "close": "Close",

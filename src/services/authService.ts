@@ -18,7 +18,7 @@ export const authService = {
       setAccessToken(accessToken);
 
       await axios.post("/api/login", {
-        access_token: accessToken,
+        accessToken: accessToken,
       });
 
       return response.data; // trả về AuthResponse
@@ -44,7 +44,7 @@ export const authService = {
       setAccessToken(accessToken);
 
       await axios.post("/api/login", {
-        access_token: accessToken,
+        accessToken: accessToken,
       });
 
       return response.data;

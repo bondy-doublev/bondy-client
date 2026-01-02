@@ -34,19 +34,12 @@ export default async function RootLayout({
       className="min-h-screen bg-gray-50 "
     >
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ToastContainer />
-            <NotificationProvider>
-              <ChatProvider>{children}</ChatProvider>
-            </NotificationProvider>
-          </NextIntlClientProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ToastContainer />
+          <NotificationProvider>
+            <ChatProvider>{children}</ChatProvider>
+          </NotificationProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

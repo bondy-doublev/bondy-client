@@ -43,8 +43,6 @@ export default function Navbar() {
       icon: MessageCircle,
       badge: unreadCount, // 👈 dùng unreadCount
     },
-    { path: "/videos", icon: Video },
-    { path: "/groups", icon: Users2 },
   ];
 
   return (
@@ -118,7 +116,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-4 flex-1 justify-end">
           <div className="hidden xl:flex items-center space-x-4">
             <LanguageSwitcher />
-            <ModeToggle />
+            {/* <ModeToggle /> */}
             <NotificationDropdown />
             <UserDropdown />
           </div>

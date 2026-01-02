@@ -29,7 +29,6 @@ export const wallService = {
       return res.data.content as Post[];
     } catch (error: any) {
       console.error("Error:", error);
-      Toast.error(error);
       return [];
     }
   },
@@ -56,7 +55,6 @@ export const wallService = {
       return res.data as MediaAttachment[];
     } catch (error: any) {
       console.error("Error:", error);
-      Toast.error(error);
       return [];
     }
   },
