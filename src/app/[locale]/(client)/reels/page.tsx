@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   Volume2,
   VolumeX,
+  Play,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { Reel } from "@/models/Reel";
@@ -27,6 +28,9 @@ export default function ReelsPage() {
   // 🔊 mặc định BẬT tiếng
   const [muted, setMuted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // ⏯ pause/play state
+  const [pausedIndex, setPausedIndex] = useState<number | null>(null);
 
   // ✅ lưu reel đã mark để không gọi lại
   const viewedReelsRef = useRef<Set<number>>(new Set());
@@ -74,15 +78,14 @@ export default function ReelsPage() {
 
           if (entry.isIntersecting) {
             setActiveIndex(index);
+            setPausedIndex(null);
 
             video.currentTime = 0;
             video.muted = muted;
             video.play().catch(() => {});
 
-            // ✅ MARK VIEWED + READ (1 lần)
             if (user?.id && !viewedReelsRef.current.has(reel.id)) {
               viewedReelsRef.current.add(reel.id);
-
               reelService.markViewed(reel.id, user.id);
               reelService.markRead(reel.id, user.id);
             }
@@ -91,10 +94,7 @@ export default function ReelsPage() {
           }
         });
       },
-      {
-        root: containerRef.current,
-        threshold: 0.6,
-      }
+      { root: containerRef.current, threshold: 0.6 }
     );
 
     videoRefs.current.forEach((v) => v && observer.observe(v));
@@ -124,34 +124,66 @@ export default function ReelsPage() {
 
   const toggleMute = () => {
     setMuted((m) => !m);
-    videoRefs.current.forEach((v) => {
-      if (v) v.muted = !muted;
-    });
+    videoRefs.current.forEach((v) => v && (v.muted = !muted));
+  };
+
+  /* ================= TOGGLE PLAY ================= */
+
+  const togglePlay = (idx: number) => {
+    const video = videoRefs.current[idx];
+    if (!video) return;
+
+    if (video.paused) {
+      video.play().catch(() => {});
+      setPausedIndex(null);
+    } else {
+      video.pause();
+      setPausedIndex(idx);
+    }
   };
 
   /* ================= RENDER ================= */
 
   return (
-    <div className="h-[100vh] bg-[rgba(0,0,0,0.8)]">
+    <div className="h-[100vh] bg-black/90 z-[60]">
       <div
         ref={containerRef}
         className="h-full max-w-[430px] mx-auto overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {reels.map((reel, idx) => (
           <div
             key={reel.id}
-            className="relative h-[calc(100vh-40px)] snap-start flex items-center justify-center"
+            className="relative h-[calc(100vh-40px)] snap-start overflow-hidden"
+            onClick={() => togglePlay(idx)}
           >
-            {/* VIDEO */}
+            {/* BLUR BACKGROUND */}
+            <video
+              src={resolveFileUrl(reel.videoUrl)}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"
+            />
+
+            {/* MAIN VIDEO */}
             <video
               ref={(el) => (videoRefs.current[idx] = el)}
               src={resolveFileUrl(reel.videoUrl)}
               playsInline
               loop
               muted={muted}
-              className="w-full h-full object-cover"
+              className="relative z-10 w-full h-full object-contain"
             />
+
+            {/* PAUSE ICON */}
+            {pausedIndex === idx && (
+              <div className="absolute inset-0 flex items-center justify-center z-20">
+                <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
+                  <Play className="text-white ml-1" size={32} />
+                </div>
+              </div>
+            )}
 
             {/* TOP BAR */}
             <div className="absolute top-3 left-4 right-4 flex justify-between z-20">
@@ -167,7 +199,6 @@ export default function ReelsPage() {
                   {reel.owner.fullName}
                 </span>
               </div>
-
               <button className="text-white p-2">
                 <MoreHorizontal />
               </button>
@@ -175,7 +206,12 @@ export default function ReelsPage() {
 
             {/* ACTIONS */}
             <div className="absolute right-3 bottom-24 flex flex-col gap-4 z-20">
-              <button onClick={toggleMute}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMute();
+                }}
+              >
                 <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
                   {muted ? (
                     <VolumeX className="text-white" />
@@ -198,7 +234,7 @@ export default function ReelsPage() {
             </div>
 
             {/* PROGRESS BAR */}
-            {idx === activeIndex && (
+            {idx === activeIndex && pausedIndex !== idx && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
                 <div className="h-full bg-white animate-progress" />
               </div>
@@ -219,7 +255,6 @@ export default function ReelsPage() {
         )}
       </div>
 
-      {/* CSS */}
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
