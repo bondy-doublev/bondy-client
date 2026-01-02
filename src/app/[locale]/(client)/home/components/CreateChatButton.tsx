@@ -16,6 +16,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import DefaultAvatar from "./user/DefaultAvatar";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 export default function CreateChatButton() {
   const [friends, setFriends] = useState<any[]>([]);
@@ -216,7 +217,7 @@ export default function CreateChatButton() {
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                       {friend.avatarUrl ? (
                         <img
-                          src={friend.avatarUrl}
+                          src={resolveFileUrl(friend.avatarUrl)}
                           alt={friend.fullName}
                           className="w-full h-full object-cover"
                         />

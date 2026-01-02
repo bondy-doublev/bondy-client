@@ -54,8 +54,6 @@ export default function SignIn() {
       setUser(response.data.user);
       router.push("/");
     } catch (err: any) {
-      const message = extractErrorMessage(err);
-      toast.error(message);
     } finally {
       setSubmitting(false);
     }

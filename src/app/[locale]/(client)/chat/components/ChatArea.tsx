@@ -20,6 +20,7 @@ import { useRingtone } from "@/app/hooks/useRingTone";
 import { ChatRightPanel } from "./ChatRightPanel";
 import { useCall } from "@/context/CallContext";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ChatAreaProps {
   isGroup: boolean;
@@ -236,7 +237,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               >
                 {file.type.startsWith("image") ? (
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={resolveFileUrl(URL.createObjectURL(file))}
                     alt={file.name}
                     className="w-16 h-16 object-cover rounded"
                   />

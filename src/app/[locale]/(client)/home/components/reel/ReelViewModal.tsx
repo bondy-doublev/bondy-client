@@ -10,6 +10,8 @@ import {
 import { X, Settings, Eye, Globe, Users, Lock, LockIcon } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { reelService } from "@/services/reelService";
+import { ReelAction } from "@/app/[locale]/(client)/home/components/reel/VisibleReels";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface ReelResponse {
   id: number;
@@ -27,6 +29,7 @@ interface ReelViewModalProps {
   onClose: () => void;
   initialReels: any[];
   onOpenEdit: (reel: any) => void;
+  onMarkViewdOrRead: (reelId: number, action: ReelAction) => void;
 }
 
 export default function ReelViewModal({
@@ -35,6 +38,7 @@ export default function ReelViewModal({
   onClose,
   initialReels = [],
   onOpenEdit,
+  onMarkViewdOrRead,
 }: ReelViewModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -108,7 +112,12 @@ export default function ReelViewModal({
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX;
     const mid = rect.left + rect.width / 2;
-    clickX < mid ? handlePrev() : handleNext();
+
+    if (clickX < mid) {
+      handlePrev();
+    } else {
+      handleNext();
+    }
   };
 
   const currentReel = initialReels[currentIndex];
@@ -117,13 +126,22 @@ export default function ReelViewModal({
   useEffect(() => {
     if (!open || !currentReel) return;
 
-    reelService.markViewed(currentReel?.id, currentUserId).catch((err) => {
-      console.error("Failed to mark reel viewed", err);
-    });
-    reelService.markRead(currentReel?.id, currentUserId).catch((err) => {
-      console.error("Failed to mark reel read", err);
-    });
-  }, [currentIndex, currentReel, currentUserId, open]);
+    (async () => {
+      try {
+        await reelService.markViewed(currentReel.id, currentUserId);
+        onMarkViewdOrRead(currentReel.id, "viewed");
+      } catch (error) {
+        console.error("Failed to mark reel viewed", error);
+      }
+
+      try {
+        await reelService.markRead(currentReel.id, currentUserId);
+        onMarkViewdOrRead(currentReel.id, "read");
+      } catch (error) {
+        console.error("Failed to mark reel read", error);
+      }
+    })();
+  }, [open, currentReel?.id, currentIndex, currentUserId]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -168,7 +186,10 @@ export default function ReelViewModal({
         <div className="absolute top-8 left-4 right-4 flex items-start justify-between z-20 pointer-events-none">
           <div className="flex items-center gap-3">
             <img
-              src={currentReel?.owner?.avatarUrl || "/images/fallback/user.png"}
+              src={
+                resolveFileUrl(currentReel?.owner?.avatarUrl) ||
+                "/images/fallback/user.png"
+              }
               alt={currentReel?.owner?.fullName}
               className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
             />
@@ -217,7 +238,7 @@ export default function ReelViewModal({
           <video
             ref={videoRef}
             key={currentReel?.id}
-            src={currentReel?.videoUrl}
+            src={resolveFileUrl(currentReel?.videoUrl)}
             onEnded={handleEnded}
             onClick={() => {
               const v = videoRef.current;
@@ -284,7 +305,10 @@ export default function ReelViewModal({
                       className="flex items-center gap-2 mb-2 last:mb-0"
                     >
                       <img
-                        src={user.avatarUrl || "/images/fallback/user.png"}
+                        src={
+                          resolveFileUrl(user.avatarUrl) ||
+                          "/images/fallback/user.png"
+                        }
                         alt={user.fullName}
                         className="w-6 h-6 rounded-full object-cover"
                       />

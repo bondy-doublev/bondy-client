@@ -7,6 +7,7 @@ import Image from "next/image";
 import { userService } from "@/services/userService";
 import { useTranslations } from "use-intl";
 import { Search, Plus, Users, MessageCircle } from "lucide-react";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface SidebarProps {
   tab: "personal" | "group";
@@ -15,7 +16,7 @@ interface SidebarProps {
   selectedRoomId: string | null;
   onSelectRoom: (room: any) => void;
   onOpenDialog: () => void;
-  currentUserId?:  number;
+  currentUserId?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
@@ -40,13 +41,13 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
       .filter((id): id is string => !!id && id !== String(currentUserId));
 
     idsToFetch.forEach((id) => {
-      if (! senderNames[id]) {
+      if (!senderNames[id]) {
         userService
           .getBasicProfile(Number(id))
           .then((profile) => {
             setSenderNames((prev) => ({
               ...prev,
-              [id]: 
+              [id]:
                 profile.data.id == currentUserId
                   ? t("you")
                   : profile.data.fullName ||
@@ -167,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
             <p className="text-sm text-gray-500">
               {searchQuery ? t("noConversationsFound") : t("noConversations")}
             </p>
-            {! searchQuery && (
+            {!searchQuery && (
               <Button
                 onClick={onOpenDialog}
                 className="mt-4 bg-green-600 hover:bg-green-700 text-white text-sm"
@@ -188,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                 ? senderNames[latest.senderId] || t("someoneElse")
                 : "";
               const content = latest?.content || "";
-              const isUnread = latest?. isUnread && ! isMine;
+              const isUnread = latest?.isUnread && !isMine;
               const avatarUrl =
                 tab === "personal" ? r.avatarUrl : r.avatar || null;
               const displayName = tab === "personal" ? r.displayName : r.name;
@@ -200,7 +201,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                     onClick={() => onSelectRoom(r)}
                     className={`w-full flex items-center gap-3 px-4 py-3 transition-colors relative ${
                       selectedRoomId === r.id
-                        ?  "bg-green-50 border-l-4 border-green-600"
+                        ? "bg-green-50 border-l-4 border-green-600"
                         : "hover: bg-gray-50"
                     }`}
                   >
@@ -208,11 +209,12 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                     <div className="relative flex-shrink-0">
                       {avatarUrl ? (
                         <Image
-                          src={avatarUrl}
+                          src={resolveFileUrl(avatarUrl)}
                           alt="avatar"
                           width={48}
                           height={48}
                           className="rounded-full object-cover ring-2 ring-white"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
@@ -233,7 +235,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                       >
                         {displayName}
                       </div>
-                      {latest ?  (
+                      {latest ? (
                         <div
                           className={`text-xs truncate mt-0.5 ${
                             isUnread
@@ -242,22 +244,22 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
                           }`}
                         >
                           {senderLabel && (
-                            <span className="font-medium">{senderLabel}:  </span>
+                            <span className="font-medium">{senderLabel}: </span>
                           )}
-                          {content. length > 0 ? content : t("attachment")}
+                          {content.length > 0 ? content : t("attachment")}
                         </div>
                       ) : (
                         <div className="text-xs text-gray-400 italic mt-0.5">
                           {t("noMessages")}
                         </div>
                       )}
-                      {latest?. createdAt && (
+                      {latest?.createdAt && (
                         <div className="text-[10px] text-gray-400 mt-0.5">
                           {new Date(latest.createdAt).toLocaleString([], {
                             month: "short",
                             day: "numeric",
                             hour: "2-digit",
-                            minute:  "2-digit",
+                            minute: "2-digit",
                           })}
                         </div>
                       )}

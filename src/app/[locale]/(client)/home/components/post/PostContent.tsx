@@ -6,6 +6,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { MediaAttachment } from "@/models/Post";
 import MediaModal from "@/app/[locale]/(wall)/user/components/MediaModal";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 type ModalItem = {
   url: string;
@@ -82,7 +83,7 @@ export default function PostContent({
                     {isVideo ? (
                       <div className="relative w-auto h-auto max-h-[80vh]">
                         <video
-                          src={media.url}
+                          src={resolveFileUrl(media.url)}
                           controls
                           preload="metadata"
                           className="max-h-[80vh] w-auto object-contain bg-black"
@@ -99,7 +100,7 @@ export default function PostContent({
                       <div className="relative w-auto h-auto max-h-[80vh]">
                         <Image
                           unoptimized
-                          src={media.url}
+                          src={resolveFileUrl(media.url)}
                           alt={`post media ${i + 1}`}
                           width={800}
                           height={600}
