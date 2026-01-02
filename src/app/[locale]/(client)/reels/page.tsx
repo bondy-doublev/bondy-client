@@ -1,25 +1,241 @@
-'use client';
+"use client";
 
+import { useEffect, useRef, useState } from "react";
+import {
+  Eye,
+  Globe,
+  Users,
+  Lock,
+  MoreHorizontal,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { Reel } from "@/models/Reel";
 import { reelService } from "@/services/reelService";
-import { useEffect } from "react";
 
-function ReelsPage() {
+const resolveFileUrl = (url?: string) => url || "";
 
-  const handleGetReels = async () => {
+export default function ReelsPage() {
+  const { user } = useAuthStore();
+
+  const [reels, setReels] = useState<Reel[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  // 🔊 mặc định BẬT tiếng
+  const [muted, setMuted] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // ✅ lưu reel đã mark để không gọi lại
+  const viewedReelsRef = useRef<Set<number>>(new Set());
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  /* ================= FETCH ================= */
+
+  const loadReels = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
     try {
-      const response = await reelService.getPublicReels(1, 20);
-    } catch (error) {
-      console.error("Error fetching reels:", error);
+      const data = await reelService.getPublicReels(page, 5);
+      if (!data.length) {
+        setHasMore(false);
+      } else {
+        setReels((prev) => [...prev, ...data]);
+        setPage((p) => p + 1);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    handleGetReels();
-    document.title = "Reels - MyApp";
+    loadReels();
   }, []);
-  return (  
-    <h1>Reels</h1>
+
+  /* ================= AUTOPLAY + MARK VIEW ================= */
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          const index = videoRefs.current.indexOf(video);
+          const reel = reels[index];
+
+          if (!reel) return;
+
+          if (entry.isIntersecting) {
+            setActiveIndex(index);
+
+            video.currentTime = 0;
+            video.muted = muted;
+            video.play().catch(() => {});
+
+            // ✅ MARK VIEWED + READ (1 lần)
+            if (user?.id && !viewedReelsRef.current.has(reel.id)) {
+              viewedReelsRef.current.add(reel.id);
+
+              reelService.markViewed(reel.id, user.id);
+              reelService.markRead(reel.id, user.id);
+            }
+          } else {
+            video.pause();
+          }
+        });
+      },
+      {
+        root: containerRef.current,
+        threshold: 0.6,
+      }
+    );
+
+    videoRefs.current.forEach((v) => v && observer.observe(v));
+    return () => observer.disconnect();
+  }, [reels, muted, user?.id]);
+
+  /* ================= LOAD MORE ================= */
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      if (
+        el.scrollTop + el.clientHeight >=
+        el.scrollHeight - el.clientHeight * 1.5
+      ) {
+        loadReels();
+      }
+    };
+
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [loading, hasMore]);
+
+  /* ================= TOGGLE MUTE ================= */
+
+  const toggleMute = () => {
+    setMuted((m) => !m);
+    videoRefs.current.forEach((v) => {
+      if (v) v.muted = !muted;
+    });
+  };
+
+  /* ================= RENDER ================= */
+
+  return (
+    <div className="h-[100vh] bg-[rgba(0,0,0,0.8)]">
+      <div
+        ref={containerRef}
+        className="h-full max-w-[430px] mx-auto overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {reels.map((reel, idx) => (
+          <div
+            key={reel.id}
+            className="relative h-[calc(100vh-40px)] snap-start flex items-center justify-center"
+          >
+            {/* VIDEO */}
+            <video
+              ref={(el) => (videoRefs.current[idx] = el)}
+              src={resolveFileUrl(reel.videoUrl)}
+              playsInline
+              loop
+              muted={muted}
+              className="w-full h-full object-cover"
+            />
+
+            {/* TOP BAR */}
+            <div className="absolute top-3 left-4 right-4 flex justify-between z-20">
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    resolveFileUrl(reel.owner.avatarUrl) ||
+                    "/images/fallback/user.png"
+                  }
+                  className="w-8 h-8 rounded-full border-2 border-white"
+                />
+                <span className="text-white text-sm font-semibold">
+                  {reel.owner.fullName}
+                </span>
+              </div>
+
+              <button className="text-white p-2">
+                <MoreHorizontal />
+              </button>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="absolute right-3 bottom-24 flex flex-col gap-4 z-20">
+              <button onClick={toggleMute}>
+                <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                  {muted ? (
+                    <VolumeX className="text-white" />
+                  ) : (
+                    <Volume2 className="text-white" />
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {/* BOTTOM INFO */}
+            <div className="absolute bottom-5 left-4 right-20 text-white z-20">
+              <div className="flex items-center gap-2 text-xs">
+                {reel.visibilityType === "PUBLIC" && <Globe size={14} />}
+                {reel.visibilityType === "PRIVATE" && <Lock size={14} />}
+                {reel.visibilityType === "CUSTOM" && <Users size={14} />}
+                <Eye size={14} />
+                <span>{reel.viewCount} lượt xem</span>
+              </div>
+            </div>
+
+            {/* PROGRESS BAR */}
+            {idx === activeIndex && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
+                <div className="h-full bg-white animate-progress" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <div className="h-24 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        )}
+
+        {!hasMore && reels.length > 0 && (
+          <div className="h-16 flex items-center justify-center text-white/60 text-sm">
+            Đã hết video
+          </div>
+        )}
+      </div>
+
+      {/* CSS */}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        @keyframes progress {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 100%;
+          }
+        }
+        .animate-progress {
+          animation: progress 15s linear;
+        }
+      `}</style>
+    </div>
   );
 }
-
-export default ReelsPage;
