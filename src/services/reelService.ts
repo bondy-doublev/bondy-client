@@ -107,19 +107,6 @@ export const reelService = {
     }
   },
 
-  async markRead(reelId: number, viewerId: number): Promise<boolean> {
-    try {
-      await api.post(`${BASE}/${reelId}/read`, null, {
-        params: { viewerId },
-      });
-      return true;
-    } catch (error: any) {
-      console.error("Mark Viewed Error:", error);
-      Toast.error(error?.response?.data?.message || "Failed to mark viewed");
-      return false;
-    }
-  },
-
   // ---------------- RUN EXPIRE JOB (DEBUG) ----------------
   async expireNow(): Promise<string | null> {
     try {
@@ -159,6 +146,26 @@ export const reelService = {
     } catch (error: any) {
       console.error("Get All Reels Error:", error);
       Toast.error(error?.response?.data?.message || "Failed to load reels");
+      return null;
+    }
+  },
+
+  // ---------------- GET PUBLIC REELS (PAGINATED) ----------------
+  async getPublicReels(
+    page = 0,
+    size = 20
+  ): Promise<any> {
+    try {
+      const res = await api.get(
+        `${BASE}/public`,
+        {
+          params: { page, size },
+        }
+      );
+
+      return res.data.data || res.data;
+    } catch (error: any) {
+      console.error("Get Public Reels Error:", error);
       return null;
     }
   },

@@ -112,6 +112,8 @@
     "instagramTitle": "Từ Instagram của chúng tôi"
   },
   "sidebar": {
+    "friends": "Bạn bè",
+    "chat": "Trò chuyện",
     "home": "Trang chủ",
     "search": "Tìm kiếm",
     "explore": "Khám phá",
@@ -350,6 +352,8 @@
     "you": "Bạn"
   },
   "chat": {
+    "callingUser": "Đang gọi",
+    "ringing": "Đang đổ chuông",
     "videoCall": "Cuộc gọi video",
     "expandToFullChat": "Mở rộng thành trò chuyện đầy đủ",
     "close": "Đóng",

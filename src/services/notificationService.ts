@@ -29,7 +29,6 @@ export const notificationService = {
       return res.data.content as Notification[];
     } catch (error: any) {
       console.error("Error:", error);
-      Toast.error(error);
       return [];
     }
   },

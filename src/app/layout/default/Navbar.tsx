@@ -78,9 +78,11 @@ export default function Navbar() {
   const navItems = [
     { path: "/", icon: Home },
     { path: "/friends", icon: Users },
-    { path: "/chat", icon: MessageCircle, badge: unreadCount },
-    { path: "/videos", icon: Video },
-    { path: "/groups", icon: Users2 },
+    {
+      path: "/chat",
+      icon: MessageCircle,
+      badge: unreadCount, // 👈 dùng unreadCount
+    },
   ];
 
   // =======================
@@ -344,7 +346,7 @@ export default function Navbar() {
         <div className="flex items-center justify-end flex-1 space-x-4">
           <div className="items-center hidden space-x-4 xl:flex">
             <LanguageSwitcher />
-            <ModeToggle />
+            {/* <ModeToggle /> */}
             <NotificationDropdown />
             <UserDropdown />
           </div>

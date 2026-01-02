@@ -1,5 +1,6 @@
 "use client";
 
+import Profile from "@/app/[locale]/(client)/home/components/sidebar/Profile";
 import { SIDEBAR_ITEMS } from "@/constants";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +13,7 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:block fixed top-0 left-0 h-screen w-[20%] bg-green-100 text-black overflow-y-auto shadow-md">
       <div className="text-2xl font-bold mb-10 cursor-pointer">Bondy</div>
+      <Profile />
 
       {SIDEBAR_ITEMS.map((item) => (
         <Link
