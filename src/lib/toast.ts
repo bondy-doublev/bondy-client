@@ -10,6 +10,10 @@ class ToastService {
     toast(message);
   }
 
+  warning(message: string) {
+    toast.warning(message);
+  }
+
   loading(message: string) {
     return toast.loading(message);
   }

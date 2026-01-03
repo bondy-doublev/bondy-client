@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { Reel } from "@/models/Reel";
 import { reelService } from "@/services/reelService";
+import { useRouter } from "next/navigation";
 
 const resolveFileUrl = (url?: string) => url || "";
 
@@ -24,6 +25,7 @@ export default function ReelsPage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   // 🔊 mặc định BẬT tiếng
   const [muted, setMuted] = useState(false);
@@ -56,6 +58,10 @@ export default function ReelsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoToProfile = (userId: number) => {
+    router.push(`/user/${userId}`);
   };
 
   useEffect(() => {
@@ -187,7 +193,10 @@ export default function ReelsPage() {
 
             {/* TOP BAR */}
             <div className="absolute top-3 left-4 right-4 flex justify-between z-20">
-              <div className="flex items-center gap-2">
+              <div
+                onClick={() => handleGoToProfile(reel.owner.id)}
+                className="flex items-center gap-2"
+              >
                 <img
                   src={
                     resolveFileUrl(reel.owner.avatarUrl) ||

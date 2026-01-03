@@ -83,6 +83,10 @@ export default function Navbar() {
       icon: MessageCircle,
       badge: unreadCount, // 👈 dùng unreadCount
     },
+    {
+      path: "/reels",
+      icon: Video,
+    },
   ];
 
   // =======================
