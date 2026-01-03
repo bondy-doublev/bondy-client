@@ -1,6 +1,6 @@
 import { api } from "../lib/axios";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL;
+const BASE = process.env.NEXT_PUBLIC_UPLOAD_URL;
 
 type AppApiResponse<T> = { code?: number; message?: string; data: T };
 
@@ -76,8 +76,7 @@ export async function uploadCloudinaryVideoSingle(file: File): Promise<string> {
 
   const res = await api.post<AppApiResponse<string>>(
     `${BASE}/upload/cloudinary/video`,
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    formData
   );
 
   return res.data.data;

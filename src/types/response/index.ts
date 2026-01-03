@@ -21,3 +21,38 @@ export interface ReelResponse {
   isRead: boolean;
   readUsers: UserBasicResponse[];
 }
+
+export type AdvertMediaType = "IMAGE" | "VIDEO";
+
+export interface AdvertMediaResponse {
+  id: number;
+  advertId: number;
+  url: string;
+  type: AdvertMediaType;
+}
+
+export type AdvertRequestStatus =
+  | "pending"
+  | "waiting_payment"
+  | "paid"
+  | "running"
+  | "done"
+  | "rejected"
+  | "cancelled";
+
+export interface AdvertRequestResponse {
+  id: number;
+  userId: number;
+  userAvatar?: string;
+  accountName: string;
+  title: string;
+  postId?: number;
+  pricePerDay: number;
+  totalDays: number;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  status: AdvertRequestStatus;
+  media: AdvertMediaResponse[];
+  createdAt: string; // ISO string
+}
