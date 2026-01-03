@@ -31,6 +31,22 @@ export const advertService = {
     }
   },
 
+  // ---------------- GET BY ID ----------------
+  async getById(advertId: number): Promise<AdvertRequestResponse | null> {
+    try {
+      const res = await api.get<AppApiResponse<AdvertRequestResponse>>(
+        `${BASE}/${advertId}`
+      );
+
+      // backend của bạn trả thẳng entity → không bọc data
+      return (res.data as any).data ?? res.data;
+    } catch (error: any) {
+      console.error("Get Advert By ID Error:", error);
+      Toast.error(error?.response?.data?.message || "Failed to load advert");
+      return null;
+    }
+  },
+
   // ---------------- GET MY REQUESTS ----------------
   async getMyRequests(userId: number): Promise<any> {
     try {
@@ -76,6 +92,15 @@ export const advertService = {
         error?.response?.data?.message || "Failed to update advert status"
       );
       return null;
+    }
+  },
+
+  async getActiveAdverts() {
+    try {
+      const response = await api.get(`${BASE}/active`);
+      return response.data;
+    } catch {
+      throw new Error("Failed to fetch active adverts");
     }
   },
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import AdRunningCarousel from "@/app/[locale]/(client)/advert/components/AdRunningCarousel";
 import Profile from "@/app/[locale]/(client)/home/components/sidebar/Profile";
 import { SIDEBAR_ITEMS } from "@/constants";
 import Link from "next/link";
@@ -11,30 +12,31 @@ export default function Sidebar() {
   const t = useTranslations("sidebar");
 
   return (
-    <aside className="hidden md:block fixed top-0 left-0 h-screen w-[20%] bg-green-100 text-black overflow-y-auto shadow-md">
-      <div className="text-2xl font-bold mb-10 cursor-pointer">Bondy</div>
+    <aside className="hidden md:block fixed top-0 left-0 h-screen w-[20%] bg-green-100 text-black overflow-y-auto shadow-md px-3">
+      <div className="text-2xl font-bold mb-6 cursor-pointer">Bondy</div>
+
       <Profile />
 
-      {SIDEBAR_ITEMS.map((item) => (
-        <Link
-          href={item.href || "#"}
-          key={item.id}
-          onClick={() => setActive(item.id)}
-          className={`flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer hover:bg-green/70 transition-colors text-black-always ${
-            active === item.id ? "bg-green/80 font-semibold" : ""
-          }`}
-        >
-          <div className="relative">
-            {item.icon}
-            {item.badge && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-4 h-4 flex items-center justify-center rounded-full text-white-always">
-                {item.badge}
-              </span>
-            )}
-          </div>
-          <span>{t(item.id)}</span>
-        </Link>
-      ))}
+      <div className="space-y-1 mt-4">
+        {SIDEBAR_ITEMS.map((item) => (
+          <Link
+            href={item.href || "#"}
+            key={item.id}
+            onClick={() => setActive(item.id)}
+            className={`flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-green/70 transition-colors ${
+              active === item.id ? "bg-green/80 font-semibold" : ""
+            }`}
+          >
+            <div className="relative">{item.icon}</div>
+            <span>{t(item.id)}</span>
+          </Link>
+        ))}
+      </div>
+
+      {/* ADS */}
+      <div className="mt-6">
+        <AdRunningCarousel />
+      </div>
     </aside>
   );
 }

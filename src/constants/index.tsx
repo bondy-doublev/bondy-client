@@ -5,5 +5,4 @@ export const SIDEBAR_ITEMS = [
   { id: "reels", href: "/reels", label: "Reels", icon: <Video /> },
   { id: "chat", href: "/chat", label: "Chat", icon: <Send /> },
   { id: "advert", href: "/advert/list", label: "Advert", icon: <Megaphone /> },
-  { id: "games", href: "/games", label: "Game", icon: <Gamepad /> },
 ];

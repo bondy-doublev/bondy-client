@@ -24,6 +24,7 @@ export interface AdvertMediaInput {
 
 export interface CreateAdvertRequest {
   userId: number; // id người tạo quảng cáo
+  userAvatar?: string; // avatar người tạo quảng cáo
   accountName: string; // tên tài khoản
   title: string; // nội dung quảng cáo / title
   postId?: number; // nếu quảng cáo từ post
