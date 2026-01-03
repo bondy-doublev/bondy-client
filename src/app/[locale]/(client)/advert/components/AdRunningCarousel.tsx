@@ -1,9 +1,9 @@
-// AdRunningCarousel.tsx - Navigate to new page version
 "use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { advertService } from "@/services/advertService";
+import { useTranslations } from "use-intl";
 
 interface Advert {
   id: number;
@@ -20,6 +20,7 @@ export default function AdRunningCarousel() {
   const [ads, setAds] = useState<Advert[]>([]);
   const [index, setIndex] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const t = useTranslations("advert")
 
   /* =========================
    * FETCH ACTIVE ADS
@@ -51,9 +52,6 @@ export default function AdRunningCarousel() {
     };
   }, [ads]);
 
-  /* =========================
-   * NAVIGATE TO AD DETAIL
-   * ========================= */
   const handleAdClick = (adId: number) => {
     // Navigate to advert detail page
     router.push(`/advert/${adId}`);
@@ -94,13 +92,13 @@ export default function AdRunningCarousel() {
 
         {/* BADGE */}
         <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded">
-          Sponsored
+          {t("sponsored")}
         </span>
 
         {/* MEDIA COUNT */}
         {currentAd.media.length > 1 && (
           <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-            {currentAd.media.length} media
+            {currentAd.media.length} {t("media")}
           </span>
         )}
       </div>
@@ -145,7 +143,7 @@ export default function AdRunningCarousel() {
                   ? "bg-green-600 w-6"
                   : "bg-gray-300 hover:bg-gray-400"
               }`}
-              aria-label={`View ad ${i + 1}`}
+              aria-label={`${t("viewAd")} ${i + 1}`}
             />
           ))}
         </div>

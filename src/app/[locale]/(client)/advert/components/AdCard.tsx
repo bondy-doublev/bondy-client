@@ -1,4 +1,3 @@
-// components/AdCard.tsx
 "use client";
 
 import { useState } from "react";
@@ -12,6 +11,10 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { AdvertRequestResponse } from "@/types/response";
+import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+import { advertService } from "@/services/advertService";
+import { Toast } from "@/lib/toast";
+import { useTranslations } from "use-intl";
 
 interface AdCardProps {
   advert: AdvertRequestResponse;
@@ -27,6 +30,7 @@ export default function AdCard({
   onClose,
 }: AdCardProps) {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const t = useTranslations("advert");
 
   const nextMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,25 +58,23 @@ export default function AdCard({
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-700 border-yellow-300",
-      waiting_payment: "bg-orange-100 text-orange-700 border-orange-300",
-      paid: "bg-blue-100 text-blue-700 border-blue-300",
       running: "bg-green-100 text-green-700 border-green-300",
       done: "bg-gray-100 text-gray-700 border-gray-300",
       rejected: "bg-red-100 text-red-700 border-red-300",
       cancelled: "bg-gray-100 text-gray-500 border-gray-300",
+      accepted: "bg-blue-100 text-blue-700 border-blue-300",
     };
     return colors[status] || "bg-gray-100 text-gray-700 border-gray-300";
   };
 
   const getStatusText = (status: string) => {
     const texts: Record<string, string> = {
-      pending: "Chờ duyệt",
-      waiting_payment: "Chờ thanh toán",
-      paid: "Đã thanh toán",
-      running: "Đang chạy",
-      done: "Hoàn thành",
-      rejected: "Từ chối",
-      cancelled: "Đã hủy",
+      pending: t("pending"),
+      running: t("running"),
+      done: t("done"),
+      rejected: t("rejected"),
+      cancelled: t("cancelled"),
+      accepted: t("accepted"),
     };
     return texts[status] || status;
   };
@@ -124,7 +126,7 @@ export default function AdCard({
                 <span className="font-semibold text-lg block">
                   {advert.accountName}
                 </span>
-                <span className="text-sm text-white/80">Sponsored</span>
+                <span className="text-sm text-white/80">{t("sponsored")}</span>
               </div>
             </Link>
           </div>
@@ -188,7 +190,7 @@ export default function AdCard({
                         ? "bg-white w-8"
                         : "bg-white/40 hover:bg-white/60 w-2"
                     }`}
-                    aria-label={`Media ${index + 1}`}
+                    aria-label={`${t("media")} ${index + 1}`}
                   />
                 ))}
               </div>
@@ -336,9 +338,9 @@ export default function AdCard({
             <div className="bg-gray-50 p-4 rounded-lg border">
               <div className="flex items-center gap-2 text-gray-600 mb-2">
                 <Calendar className="w-4 h-4" />
-                Thời gian
+                {t("time")}
               </div>
-              <div className="font-semibold">{advert.totalDays} ngày</div>
+              <div className="font-semibold">{advert.totalDays} {t("days")}</div>
               <div className="text-xs text-gray-500">
                 {formatDate(advert.startDate)} → {formatDate(advert.endDate)}
               </div>
@@ -347,13 +349,13 @@ export default function AdCard({
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 text-green-700 mb-2">
                 <DollarSign className="w-4 h-4" />
-                Chi phí
+                {t("cost")}
               </div>
               <div className="font-semibold text-green-700">
                 {formatPrice(advert.totalPrice)}
               </div>
               <div className="text-xs text-green-600">
-                {formatPrice(advert.pricePerDay)} / ngày
+                {formatPrice(advert.pricePerDay)} / {t("day")}
               </div>
             </div>
 
@@ -364,30 +366,59 @@ export default function AdCard({
                 ) : (
                   <ImageIcon className="w-4 h-4" />
                 )}
-                <span className="font-medium text-sm">Media</span>
+                <span className="font-medium text-sm">{t("media")}</span>
               </div>
               <div className="font-semibold text-blue-700">
-                {advert.media.length} file
+                {advert.media.length} {t("file")}
               </div>
               <div className="text-xs text-blue-600 mt-1">
-                {advert.media.filter((m) => m.type === "IMAGE").length} ảnh,{" "}
-                {advert.media.filter((m) => m.type === "VIDEO").length} video
+                {advert.media.filter((m) => m.type === "IMAGE").length} {t("image")},{" "}
+                {advert.media.filter((m) => m.type === "VIDEO").length} {t("video")}
               </div>
             </div>
           </div>
 
           <div className="text-xs text-gray-500 mb-4">
-            Tạo lúc: {new Date(advert.createdAt).toLocaleString("vi-VN")}
+            {t("createdAt")}: {new Date(advert.createdAt).toLocaleString("vi-VN")}
           </div>
 
           {showActions && (
-            <div className="flex gap-3">
-              {onClose && (
+            <div className="absolute bottom-4 right-6 flex gap-2 z-20">
+              {/* Hủy */}
+              {(advert.status === "pending" || advert.status === "running") && (
+                <ConfirmDialog
+                  title={t("cancelAdvert")}
+                  description={t("cancelAdvertDescription")}
+                  confirmText={t("cancelAdvert")}
+                  cancelText={t("close")}
+                  loadingText={t("cancelling")}
+                  onConfirm={async () => {
+                    try {
+                      await advertService.updateStatus(advert.id, "cancelled");
+                      Toast.success(t("cancelAdvertSuccess"));
+                      onClose?.();
+                    } catch (err) {
+                      console.error(err);
+                      Toast.error(t("cancelAdvertFailed"));
+                    }
+                  }}
+                  trigger={
+                    <button className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg">
+                      {t("cancel")}
+                    </button>
+                  }
+                />
+              )}
+
+              {/* Thanh toán */}
+              {advert.status === "accepted" && (
                 <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    (window.location.href = `/payment/${advert.id}`)
+                  }
+                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg"
                 >
-                  Đóng
+                  {t("pay")}
                 </button>
               )}
             </div>

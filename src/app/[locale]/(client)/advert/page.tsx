@@ -17,6 +17,7 @@ import { AdvertRequestResponse } from "@/types/response";
 import { Toast } from "@/lib/toast";
 import { useAuthStore } from "@/store/authStore";
 import AdCard from "./components/AdCard";
+import { useTranslations } from "use-intl";
 
 interface MediaItem {
   url: string;
@@ -41,6 +42,7 @@ export default function AdvertPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const t = useTranslations("advert");
 
   /* ================= UTILS ================= */
   const calculateTotalDays = () => {
@@ -57,11 +59,12 @@ export default function AdvertPage() {
     title || mediaUrls.length > 0
       ? {
           id: 0,
-          title: title || "Tiêu đề quảng cáo",
-          accountName: accountName || "Tên tài khoản",
+          title: title || t("advertTitle"),
+          accountName: accountName || t("accountName"),
           userId: user?.id || 0,
           userAvatar: user?.avatarUrl || "",
           startDate,
+          userEmail: user?.email || "",
           endDate,
           totalDays: calculateTotalDays(),
           pricePerDay: 20000,
@@ -101,13 +104,13 @@ export default function AdvertPage() {
       !startDate ||
       !endDate
     ) {
-      Toast.warning("Vui lòng điền đầy đủ thông tin và thêm media");
+      Toast.warning(t("pleaseFillAllFieldsAndAddMedia"));
       return;
     }
 
     const totalDays = calculateTotalDays();
     if (totalDays <= 0) {
-      Toast.warning("Ngày kết thúc phải sau ngày bắt đầu");
+      Toast.warning(t("endDateMustBeAfterStartDate"));
       return;
     }
 
@@ -128,6 +131,7 @@ export default function AdvertPage() {
 
       await advertService.create({
         userId: user?.id || 0,
+        userEmail: user?.email || "",
         title,
         accountName,
         startDate,
@@ -139,10 +143,10 @@ export default function AdvertPage() {
         media,
       });
 
-      Toast.success("Tạo quảng cáo thành công!");
+      Toast.success(t("advertCreatedSuccessfully"));
       router.push("/advert/list");
     } catch (err) {
-      Toast.error("Tạo quảng cáo thất bại!");
+      Toast.error(t("advertCreationFailed"));
       console.error(err);
     } finally {
       setLoading(false);
@@ -157,10 +161,10 @@ export default function AdvertPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              Tạo quảng cáo
+              {t("createAdvert")}
             </h1>
             <p className="text-gray-600">
-              Xem trước quảng cáo giống hệt khi hiển thị thật
+              {t("previewAdvertExact")}
             </p>
           </div>
 
@@ -169,7 +173,7 @@ export default function AdvertPage() {
             className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             <ArrowLeft className="w-4 h-4" />
-            Về danh sách
+            {t("backToList")}
           </button>
         </div>
 
@@ -179,25 +183,13 @@ export default function AdvertPage() {
             <div className="bg-white border rounded-xl p-6 shadow-sm sticky top-4 space-y-5">
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <Plus className="w-5 h-5 text-green-500" />
-                Thông tin quảng cáo
+                {t("advertInformation")}
               </h2>
-
-              {/* Account name */}
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Tên tài khoản
-                </label>
-                <input
-                  className="mt-1 w-full rounded-lg border px-4 py-2"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                />
-              </div>
 
               {/* Title */}
               <div>
                 <label className="text-sm font-medium text-gray-700">
-                  Tiêu đề quảng cáo
+                  {t("advertTitle")}
                 </label>
                 <input
                   className="mt-1 w-full rounded-lg border px-4 py-2"
@@ -210,7 +202,7 @@ export default function AdvertPage() {
               <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Ngày bắt đầu
+                    {t("startDate")}
                   </label>
                   <input
                     type="date"
@@ -222,7 +214,7 @@ export default function AdvertPage() {
 
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Ngày kết thúc
+                    {t("endDate")}
                   </label>
                   <input
                     type="date"
@@ -236,7 +228,7 @@ export default function AdvertPage() {
               {/* Upload */}
               <label className="flex items-center justify-center border-2 border-dashed rounded-lg p-4 cursor-pointer hover:border-green-500">
                 <Upload className="w-5 h-5 mr-2" />
-                Thêm ảnh / video
+                {t("addPhotosVideos")}
                 <input
                   type="file"
                   multiple
@@ -278,26 +270,26 @@ export default function AdvertPage() {
               {/* ================= PRICE INFO ================= */}
               <div className="rounded-xl border bg-green-50 p-4 space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Giá / ngày</span>
+                  <span className="text-gray-600">{t("pricePerDay")}</span>
                   <span className="font-semibold text-green-700">
-                    20,000 VNĐ
+                    20,000 {t("vnd")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Số ngày chạy</span>
+                  <span className="text-gray-600">{t("numberOfDays")}</span>
                   <span className="font-semibold">
                     {calculateTotalDays() > 0
-                      ? `${calculateTotalDays()} ngày`
+                      ? `${calculateTotalDays()} ${t("days")}`
                       : "--"}
                   </span>
                 </div>
 
                 <div className="border-t pt-2 flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">Tổng tiền</span>
+                  <span className="font-semibold text-gray-900">{t("totalPrice")}</span>
                   <span className="font-bold text-green-700 text-lg">
                     {calculateTotalDays() > 0
-                      ? (20000 * calculateTotalDays()).toLocaleString() + " VNĐ"
+                      ? (20000 * calculateTotalDays()).toLocaleString() + " " + t("vnd")
                       : "--"}
                   </span>
                 </div>
@@ -308,14 +300,14 @@ export default function AdvertPage() {
                 disabled={loading}
                 className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg"
               >
-                {loading ? "Đang tạo..." : "Tạo quảng cáo"}
+                {loading ? t("creating") : t("createAdvert")}
               </button>
             </div>
           </div>
 
           {/* ================= PREVIEW ================= */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">Xem trước</h2>
+            <h2 className="text-2xl font-bold mb-4">{t("preview")}</h2>
 
             {previewAdvert ? (
               <div className="max-h-[600px] overflow-hidden rounded-xl">
@@ -323,7 +315,7 @@ export default function AdvertPage() {
               </div>
             ) : (
               <div className="border-2 border-dashed rounded-xl p-12 text-center text-gray-500">
-                Nhập thông tin để xem trước quảng cáo
+                {t("enterInfoToPreviewAdvert")}
               </div>
             )}
           </div>

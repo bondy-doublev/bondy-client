@@ -24,6 +24,7 @@ export interface AdvertMediaInput {
 
 export interface CreateAdvertRequest {
   userId: number; // id người tạo quảng cáo
+  userEmail?: string; // email người tạo quảng cáo
   userAvatar?: string; // avatar người tạo quảng cáo
   accountName: string; // tên tài khoản
   title: string; // nội dung quảng cáo / title
@@ -38,9 +39,8 @@ export interface CreateAdvertRequest {
 
 export type UpdateAdvertRequestStatus =
   | "pending"
-  | "waiting_payment"
-  | "paid"
   | "running"
   | "done"
   | "rejected"
-  | "cancelled";
+  | "cancelled"
+  | "accepted";

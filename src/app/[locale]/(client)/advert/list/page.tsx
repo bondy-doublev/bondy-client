@@ -8,7 +8,7 @@ import { Plus, Image as ImageIcon, Eye } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { Toast } from "@/lib/toast";
 import AdCard from "../components/AdCard";
-import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+import { useTranslations } from "use-intl";
 
 function AdvertListPage() {
   const router = useRouter();
@@ -18,6 +18,7 @@ function AdvertListPage() {
   const [loading, setLoading] = useState(true);
   const [selectedAdvert, setSelectedAdvert] =
     useState<AdvertRequestResponse | null>(null);
+  const t = useTranslations("advert");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -32,32 +33,32 @@ function AdvertListPage() {
       setAdverts(res || []);
     } catch (error) {
       console.error(error);
-      Toast.error("Không thể tải danh sách quảng cáo");
+      Toast.error(t("serverError"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* ================= HEADER ================= */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-              Quảng cáo của tôi
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1">
+              {t("myAdverts")}
             </h1>
-            <p className="text-gray-600">
-              Quản lý tất cả các yêu cầu quảng cáo của bạn
+            <p className="text-gray-600 text-sm">
+              {t("manageAllYourAdRequests")}
             </p>
           </div>
 
           <button
             onClick={() => router.push("/advert")}
-            className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-sm"
+            className="flex items-center gap-2 sm:px-2 sm:py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-sm transition-colors text-sm sm:text-base"
           >
-            <Plus className="w-5 h-5" />
-            Tạo mới
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            {t("createNew")}
           </button>
         </div>
 
@@ -67,72 +68,34 @@ function AdvertListPage() {
             <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : adverts.length === 0 ? (
-          <div className="border-2 border-gray-200 rounded-xl p-12 text-center">
+          <div className="border-2 border-gray-200 rounded-xl p-12 text-center bg-white shadow-sm">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ImageIcon className="w-10 h-10 text-green-500" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">Chưa có quảng cáo</h3>
+            <h3 className="text-2xl font-semibold mb-2">{t("noAdverts")}</h3>
             <p className="text-gray-500 mb-6">
-              Tạo quảng cáo đầu tiên của bạn để bắt đầu
+              {t("createYourFirstAdvert")}
             </p>
-            <button
-              onClick={() => router.push("/advert")}
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg"
-            >
-              <Plus className="w-5 h-5 inline mr-2" />
-              Tạo quảng cáo mới
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {adverts.map((advert) => (
-              <div key={advert.id}>
-                <AdCard advert={advert} variant="full" />
+              <div key={advert.id} className="relative">
+                <AdCard
+                  advert={advert}
+                  variant="full"
+                  showActions
+                  onClose={handleGetAdverts} 
+                />
 
-                {/* ===== ACTIONS ===== */}
-                <div className="mt-3 flex gap-3">
-                  <button
-                    onClick={() => setSelectedAdvert(advert)}
-                    className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Preview
-                  </button>
-
-                  {advert.status === "pending" && (
-                    <ConfirmDialog
-                      title="Hủy quảng cáo"
-                      description="Bạn có chắc chắn muốn hủy quảng cáo này không? Hành động này không thể hoàn tác."
-                      confirmText="Hủy quảng cáo"
-                      cancelText="Đóng"
-                      loadingText="Đang hủy..."
-                      onConfirm={async () => {
-                        try {
-                          await advertService.updateStatus(
-                            advert.id,
-                            "cancelled"
-                          );
-                          Toast.success("Đã hủy quảng cáo thành công");
-                          await handleGetAdverts();
-                        } catch (err) {
-                          console.error(err);
-                          Toast.error("Hủy quảng cáo thất bại");
-                        }
-                      }}
-                      trigger={
-                        <button className="flex-1 px-4 py-2 bg-white hover:bg-red-50 text-red-500 rounded-lg border border-red-500">
-                          Hủy
-                        </button>
-                      }
-                    />
-                  )}
-
-                  {advert.status === "waiting_payment" && (
-                    <button className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-                      Thanh toán
-                    </button>
-                  )}
-                </div>
+                {/* Preview Button */}
+                <button
+                  onClick={() => setSelectedAdvert(advert)}
+                  className="absolute top-4 right-4 bg-white/90 hover:bg-white shadow-sm text-gray-800 px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 border border-gray-200 transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  {t("viewAd")}
+                </button>
               </div>
             ))}
           </div>
@@ -150,7 +113,7 @@ function AdvertListPage() {
             >
               <div className="flex justify-between px-6 py-4 border-b">
                 <div>
-                  <h2 className="font-bold">Preview quảng cáo</h2>
+                  <h2 className="font-bold">{t("previewAdvert")}</h2>
                   <p className="text-sm text-gray-500">
                     @{selectedAdvert.accountName}
                   </p>
