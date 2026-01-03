@@ -1,4 +1,3 @@
-// components/AdCard.tsx
 "use client";
 
 import { useState } from "react";
@@ -15,6 +14,7 @@ import { AdvertRequestResponse } from "@/types/response";
 import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
 import { advertService } from "@/services/advertService";
 import { Toast } from "@/lib/toast";
+import { useTranslations } from "use-intl";
 
 interface AdCardProps {
   advert: AdvertRequestResponse;
@@ -30,6 +30,7 @@ export default function AdCard({
   onClose,
 }: AdCardProps) {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const t = useTranslations("advert");
 
   const nextMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -68,12 +69,12 @@ export default function AdCard({
 
   const getStatusText = (status: string) => {
     const texts: Record<string, string> = {
-      pending: "Chờ duyệt",
-      running: "Đang chạy",
-      done: "Hoàn thành",
-      rejected: "Từ chối",
-      cancelled: "Đã hủy",
-      accepted: "Đã duyệt",
+      pending: t("pending"),
+      running: t("running"),
+      done: t("done"),
+      rejected: t("rejected"),
+      cancelled: t("cancelled"),
+      accepted: t("accepted"),
     };
     return texts[status] || status;
   };
@@ -125,7 +126,7 @@ export default function AdCard({
                 <span className="font-semibold text-lg block">
                   {advert.accountName}
                 </span>
-                <span className="text-sm text-white/80">Sponsored</span>
+                <span className="text-sm text-white/80">{t("sponsored")}</span>
               </div>
             </Link>
           </div>
@@ -189,7 +190,7 @@ export default function AdCard({
                         ? "bg-white w-8"
                         : "bg-white/40 hover:bg-white/60 w-2"
                     }`}
-                    aria-label={`Media ${index + 1}`}
+                    aria-label={`${t("media")} ${index + 1}`}
                   />
                 ))}
               </div>
@@ -337,9 +338,9 @@ export default function AdCard({
             <div className="bg-gray-50 p-4 rounded-lg border">
               <div className="flex items-center gap-2 text-gray-600 mb-2">
                 <Calendar className="w-4 h-4" />
-                Thời gian
+                {t("time")}
               </div>
-              <div className="font-semibold">{advert.totalDays} ngày</div>
+              <div className="font-semibold">{advert.totalDays} {t("days")}</div>
               <div className="text-xs text-gray-500">
                 {formatDate(advert.startDate)} → {formatDate(advert.endDate)}
               </div>
@@ -348,13 +349,13 @@ export default function AdCard({
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 text-green-700 mb-2">
                 <DollarSign className="w-4 h-4" />
-                Chi phí
+                {t("cost")}
               </div>
               <div className="font-semibold text-green-700">
                 {formatPrice(advert.totalPrice)}
               </div>
               <div className="text-xs text-green-600">
-                {formatPrice(advert.pricePerDay)} / ngày
+                {formatPrice(advert.pricePerDay)} / {t("day")}
               </div>
             </div>
 
@@ -365,59 +366,59 @@ export default function AdCard({
                 ) : (
                   <ImageIcon className="w-4 h-4" />
                 )}
-                <span className="font-medium text-sm">Media</span>
+                <span className="font-medium text-sm">{t("media")}</span>
               </div>
               <div className="font-semibold text-blue-700">
-                {advert.media.length} file
+                {advert.media.length} {t("file")}
               </div>
               <div className="text-xs text-blue-600 mt-1">
-                {advert.media.filter((m) => m.type === "IMAGE").length} ảnh,{" "}
-                {advert.media.filter((m) => m.type === "VIDEO").length} video
+                {advert.media.filter((m) => m.type === "IMAGE").length} {t("image")},{" "}
+                {advert.media.filter((m) => m.type === "VIDEO").length} {t("video")}
               </div>
             </div>
           </div>
 
           <div className="text-xs text-gray-500 mb-4">
-            Tạo lúc: {new Date(advert.createdAt).toLocaleString("vi-VN")}
+            {t("createdAt")}: {new Date(advert.createdAt).toLocaleString("vi-VN")}
           </div>
 
           {showActions && (
-            <div className="flex gap-3 mt-4">
-              {/* Cancel: pending, running, waiting_payment */}
+            <div className="absolute bottom-4 right-6 flex gap-2 z-20">
+              {/* Hủy */}
               {(advert.status === "pending" || advert.status === "running") && (
                 <ConfirmDialog
-                  title="Hủy quảng cáo"
-                  description="Bạn có chắc chắn muốn hủy quảng cáo này không? Hành động này không thể hoàn tác."
-                  confirmText="Hủy quảng cáo"
-                  cancelText="Đóng"
-                  loadingText="Đang hủy..."
+                  title={t("cancelAdvert")}
+                  description={t("cancelAdvertDescription")}
+                  confirmText={t("cancelAdvert")}
+                  cancelText={t("close")}
+                  loadingText={t("cancelling")}
                   onConfirm={async () => {
                     try {
                       await advertService.updateStatus(advert.id, "cancelled");
-                      Toast.success("Đã hủy quảng cáo thành công");
-                      onClose?.(); // nếu muốn reload danh sách
+                      Toast.success(t("cancelAdvertSuccess"));
+                      onClose?.();
                     } catch (err) {
                       console.error(err);
-                      Toast.error("Hủy quảng cáo thất bại");
+                      Toast.error(t("cancelAdvertFailed"));
                     }
                   }}
                   trigger={
-                    <button className="flex-1 px-4 py-2 bg-white hover:bg-red-50 text-red-500 rounded-lg border border-red-500">
-                      Hủy
+                    <button className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg">
+                      {t("cancel")}
                     </button>
                   }
                 />
               )}
 
-              {/* Thanh toán: accepted hoặc waiting_payment */}
+              {/* Thanh toán */}
               {advert.status === "accepted" && (
                 <button
                   onClick={() =>
                     (window.location.href = `/payment/${advert.id}`)
                   }
-                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg"
                 >
-                  Thanh toán
+                  {t("pay")}
                 </button>
               )}
             </div>

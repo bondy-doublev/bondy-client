@@ -1,4 +1,3 @@
-// app/payment/[id]/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Toast } from "@/lib/toast";
+import { useTranslations } from "use-intl";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -26,6 +26,7 @@ export default function PaymentPage() {
   const [selectedMethod, setSelectedMethod] = useState<"vnpay" | "momo" | null>(
     null
   );
+  const t = useTranslations("advert");
 
   useEffect(() => {
     async function fetchAdvert() {
@@ -34,7 +35,7 @@ export default function PaymentPage() {
         setAdvert(data);
       } catch (error) {
         console.error("Failed to fetch advert:", error);
-        Toast.error("Không thể tải thông tin quảng cáo");
+        Toast.error(t("serverError"));
       }
     }
     fetchAdvert();
@@ -65,7 +66,7 @@ export default function PaymentPage() {
       }
     } catch (error) {
       console.error(error);
-      Toast.error("Thanh toán thất bại, vui lòng thử lại");
+      Toast.error(t("paymentFailed"));
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function PaymentPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải thông tin thanh toán...</p>
+          <p className="text-gray-600">{t("loadingPaymentInfo")}</p>
         </div>
       </div>
     );
@@ -92,7 +93,7 @@ export default function PaymentPage() {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Quay lại</span>
+            <span className="font-medium">{t("back")}</span>
           </button>
         </div>
       </div>
@@ -102,10 +103,10 @@ export default function PaymentPage() {
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Thanh toán quảng cáo
+            {t("paymentTitle")}
           </h1>
           <p className="text-gray-600">
-            Hoàn tất thanh toán để quảng cáo của bạn được kích hoạt
+            {t("paymentDescription")}
           </p>
         </div>
 
@@ -116,14 +117,14 @@ export default function PaymentPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-green-600" />
-                Chi tiết đơn hàng
+                {t("orderDetails")}
               </h2>
 
               <div className="space-y-4">
                 {/* Title */}
                 <div>
                   <div className="text-sm text-gray-500 mb-1">
-                    Tiêu đề quảng cáo
+                    {t("advertTitle")}
                   </div>
                   <div className="font-semibold text-gray-900 mb-2">
                     {advert.title}
@@ -168,10 +169,10 @@ export default function PaymentPage() {
                   <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
                     <div className="flex items-center gap-2 text-gray-600 mb-2">
                       <Calendar className="w-4 h-4" />
-                      <span className="text-sm font-medium">Thời gian</span>
+                      <span className="text-sm font-medium">{t("duration")}</span>
                     </div>
                     <div className="font-semibold text-gray-900">
-                      {advert.totalDays} ngày
+                      {advert.totalDays} {t("days")}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {new Date(advert.startDate).toLocaleDateString("vi-VN")} →{" "}
@@ -182,13 +183,13 @@ export default function PaymentPage() {
                   <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
                     <div className="flex items-center gap-2 text-green-700 mb-2">
                       <DollarSign className="w-4 h-4" />
-                      <span className="text-sm font-medium">Giá mỗi ngày</span>
+                      <span className="text-sm font-medium">{t("pricePerDay")}</span>
                     </div>
                     <div className="font-semibold text-green-700">
                       {advert.pricePerDay.toLocaleString("vi-VN")} đ
                     </div>
                     <div className="text-xs text-green-600 mt-1">
-                      x {advert.totalDays} ngày
+                      x {advert.totalDays} {t("days")}
                     </div>
                   </div>
                 </div>
@@ -198,7 +199,7 @@ export default function PaymentPage() {
             {/* Payment Methods */}
             <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Chọn phương thức thanh toán
+                {t("choosePaymentMethod")}
               </h2>
 
               <div className="space-y-3">
@@ -223,7 +224,7 @@ export default function PaymentPage() {
                       <div>
                         <div className="font-semibold text-gray-900">VNPay</div>
                         <div className="text-sm text-gray-500">
-                          Thanh toán qua VNPay
+                          {t("payWithVNPay")}
                         </div>
                       </div>
                     </div>
@@ -252,9 +253,9 @@ export default function PaymentPage() {
                         />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Momo</div>
+                        <div className="font-semibold text-gray-900">{t("momo")}</div>
                         <div className="text-sm text-gray-500">
-                          Thanh toán qua Ví Momo
+                          {t("payWithMomo")}
                         </div>
                       </div>
                     </div>
@@ -272,11 +273,10 @@ export default function PaymentPage() {
                 <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-blue-900 mb-1">
-                    Thanh toán bảo mật
+                    {t("securePayment")}
                   </div>
                   <div className="text-sm text-blue-700">
-                    Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt
-                    đối. Chúng tôi không lưu trữ thông tin thẻ của bạn.
+                    {t("securePaymentDescription")}
                   </div>
                 </div>
               </div>
@@ -286,21 +286,21 @@ export default function PaymentPage() {
           {/* Right: Summary Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 sticky top-24">
-              <h3 className="font-bold text-gray-900 mb-4">Tổng thanh toán</h3>
+              <h3 className="font-bold text-gray-900 mb-4">{t("totalPayment")}</h3>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
-                  <span>Giá mỗi ngày</span>
+                  <span>{t("pricePerDay")}</span>
                   <span>{advert.pricePerDay.toLocaleString("vi-VN")} đ</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Số ngày</span>
-                  <span>{advert.totalDays} ngày</span>
+                  <span>{t("days")}</span>
+                  <span>{advert.totalDays} {t("days")}</span>
                 </div>
                 <div className="border-t-2 border-gray-200 pt-3">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-900">
-                      Tổng cộng
+                      {t("total")}
                     </span>
                     <span className="text-2xl font-bold text-green-600">
                       {advert.totalPrice.toLocaleString("vi-VN")} đ
@@ -321,19 +321,19 @@ export default function PaymentPage() {
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Đang xử lý...
+                    {t("processing")}...
                   </div>
                 ) : !selectedMethod ? (
-                  "Chọn phương thức thanh toán"
+                  t("choosePaymentMethod")
                 ) : (
-                  `Thanh toán ${advert.totalPrice.toLocaleString("vi-VN")} đ`
+                  `${t("pay")} ${advert.totalPrice.toLocaleString("vi-VN")} đ`
                 )}
               </button>
 
               {!selectedMethod && (
                 <div className="mt-3 flex items-start gap-2 text-sm text-amber-600">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>Vui lòng chọn phương thức thanh toán</span>
+                  <span>{t("pleaseChoosePaymentMethod")}</span>
                 </div>
               )}
             </div>

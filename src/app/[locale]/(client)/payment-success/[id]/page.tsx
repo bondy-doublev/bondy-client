@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Toast } from "@/lib/toast";
 import confetti from "canvas-confetti";
+import { useTranslations } from "use-intl";
 
 export default function PaymentSuccessPage() {
   const params = useParams();
@@ -28,6 +29,7 @@ export default function PaymentSuccessPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("advert");
 
   useEffect(() => {
     if (advertId && user?.id) {
@@ -40,7 +42,7 @@ export default function PaymentSuccessPage() {
       setProcessing(true);
 
       const advertData = await advertService.getById(advertId);
-      if (!advertData) throw new Error("Không tìm thấy quảng cáo");
+      if (!advertData) throw new Error(t("notFound"));
       setAdvert(advertData);
 
       await advertService.updateStatus(advertId, "running");
@@ -55,11 +57,11 @@ export default function PaymentSuccessPage() {
       }
 
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      Toast.success("Thanh toán thành công! Quảng cáo đã được kích hoạt");
+      Toast.success(t("paymentSuccess"));
     } catch (err: any) {
       console.error("Payment processing error:", err);
-      setError(err.message || "Có lỗi xảy ra khi xử lý thanh toán");
-      Toast.error("Có lỗi xảy ra, vui lòng liên hệ hỗ trợ");
+      setError(err.message || t("processingError"));
+      Toast.error(t("processingError"));
     } finally {
       setProcessing(false);
       setLoading(false);
@@ -72,9 +74,9 @@ export default function PaymentSuccessPage() {
         <div className="text-center">
           <Loader2 className="w-16 h-16 text-green-600 animate-spin mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Đang xử lý thanh toán...
+            {t("processing")}
           </h2>
-          <p className="text-gray-600">Vui lòng không tắt trang này</p>
+          <p className="text-gray-600">{t("pleaseDoNotClose")}</p>
         </div>
       </div>
     );
@@ -89,10 +91,10 @@ export default function PaymentSuccessPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Có lỗi xảy ra
+            {t("errorOccurred")}
           </h1>
           <p className="text-gray-600 mb-6">
-            {error || "Không thể xử lý thanh toán của bạn"}
+            {error || t("paymentProcessingFailed")}
           </p>
 
           <div className="flex gap-3">
@@ -100,13 +102,13 @@ export default function PaymentSuccessPage() {
               onClick={() => router.push("/advert/list")}
               className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
             >
-              Về danh sách
+              {t("backToList")}
             </button>
             <button
               onClick={() => processPaymentSuccess()}
               className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
             >
-              Thử lại
+              {t("retry")}
             </button>
           </div>
         </div>
@@ -127,11 +129,9 @@ export default function PaymentSuccessPage() {
           </div>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Thanh toán thành công! 🎉
+            {t("paymentSuccess")}
           </h1>
-          <p className="text-lg text-gray-600">
-            Quảng cáo của bạn đã được kích hoạt và bắt đầu chạy
-          </p>
+          <p className="text-lg text-gray-600">{t("advertActivated")}</p>
         </div>
 
         {/* Advert Details Card */}
@@ -139,14 +139,16 @@ export default function PaymentSuccessPage() {
           {/* Header */}
           <div className="bg-green-500 px-6 py-4">
             <h2 className="text-white font-semibold text-lg">
-              Thông tin quảng cáo
+              {t("advertInformation")}
             </h2>
           </div>
 
           {/* Body */}
           <div className="p-6 space-y-4">
             <div>
-              <div className="text-sm text-gray-500 mb-1">Tiêu đề</div>
+              <div className="text-sm text-gray-500 mb-1">
+                {t("advertTitle")}
+              </div>
               <div className="text-xl font-bold text-gray-900">
                 {advert.title}
               </div>
@@ -158,12 +160,12 @@ export default function PaymentSuccessPage() {
               <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
                 <div className="flex items-center gap-2 text-blue-700 mb-2">
                   <Calendar className="w-5 h-5" />
-                  <span className="font-medium">Thời gian</span>
+                  <span className="font-medium">{t("time")}</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-900">
                   {advert.totalDays}
                 </div>
-                <div className="text-sm text-blue-600">ngày</div>
+                <div className="text-sm text-blue-600">{t("days")}</div>
                 <div className="text-xs text-blue-600 mt-2">
                   {new Date(advert.startDate).toLocaleDateString("vi-VN")} -{" "}
                   {new Date(advert.endDate).toLocaleDateString("vi-VN")}
@@ -174,7 +176,7 @@ export default function PaymentSuccessPage() {
               <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200">
                 <div className="flex items-center gap-2 text-green-700 mb-2">
                   <DollarSign className="w-5 h-5" />
-                  <span className="font-medium">Đã thanh toán</span>
+                  <span className="font-medium">{t("paid")}</span>
                 </div>
                 <div className="text-2xl font-bold text-green-900">
                   {(advert.totalPrice / 1000).toFixed(0)}K
@@ -188,11 +190,11 @@ export default function PaymentSuccessPage() {
               <div className="bg-purple-50 p-4 rounded-xl border-2 border-purple-200">
                 <div className="flex items-center gap-2 text-purple-700 mb-2">
                   <FileText className="w-5 h-5" />
-                  <span className="font-medium">Trạng thái</span>
+                  <span className="font-medium">{t("status")}</span>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold border-2 border-green-300">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  Đang chạy
+                  {t("running")}
                 </div>
               </div>
             </div>
@@ -203,12 +205,10 @@ export default function PaymentSuccessPage() {
                 <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-blue-900 mb-1">
-                    Email xác nhận đã được gửi
+                    {t("emailConfirmationSent")}
                   </div>
                   <div className="text-sm text-blue-700">
-                    Chúng tôi đã gửi email xác nhận thanh toán đến{" "}
-                    <span className="font-medium">{user?.email}</span>. Vui lòng
-                    kiểm tra hộp thư của bạn.
+                    {t("emailConfirmationMessage", { email: user?.email || "" })}
                   </div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function PaymentSuccessPage() {
             className="flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border-2 border-gray-200 transition-all shadow-sm hover:shadow-md"
           >
             <Home className="w-5 h-5" />
-            Về trang chủ
+            {t("backToHome")}
           </button>
 
           <button
@@ -231,22 +231,22 @@ export default function PaymentSuccessPage() {
             className="flex items-center justify-center gap-2 px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
           >
             <FileText className="w-5 h-5" />
-            Xem quảng cáo của tôi
+            {t("viewMyAdverts")}
           </button>
         </div>
 
         {/* Additional Info */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
-            Quảng cáo của bạn sẽ được hiển thị trong vòng 5-10 phút
+            {t("advertWillBeDisplayedIn5To10Minutes")}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Nếu có thắc mắc, vui lòng{" "}
+            {t("ifYouHaveQuestionsPlease")}
             <button
               onClick={() => router.push("/support")}
               className="text-blue-600 hover:text-blue-700 font-medium underline"
             >
-              liên hệ hỗ trợ
+              {t("contactSupport")}
             </button>
           </p>
         </div>
