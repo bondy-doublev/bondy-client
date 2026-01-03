@@ -62,6 +62,7 @@ export default function AdvertPage() {
           userId: user?.id || 0,
           userAvatar: user?.avatarUrl || "",
           startDate,
+          userEmail: user?.email || "",
           endDate,
           totalDays: calculateTotalDays(),
           pricePerDay: 20000,
@@ -128,6 +129,7 @@ export default function AdvertPage() {
 
       await advertService.create({
         userId: user?.id || 0,
+        userEmail: user?.email || "",
         title,
         accountName,
         startDate,

@@ -33,15 +33,15 @@ export interface AdvertMediaResponse {
 
 export type AdvertRequestStatus =
   | "pending"
-  | "waiting_payment"
-  | "paid"
   | "running"
   | "done"
   | "rejected"
-  | "cancelled";
+  | "cancelled"
+  | "accepted";
 
 export interface AdvertRequestResponse {
   id: number;
+  userEmail?: string;
   userId: number;
   userAvatar?: string;
   accountName: string;

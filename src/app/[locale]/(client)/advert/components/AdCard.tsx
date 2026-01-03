@@ -12,6 +12,9 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { AdvertRequestResponse } from "@/types/response";
+import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
+import { advertService } from "@/services/advertService";
+import { Toast } from "@/lib/toast";
 
 interface AdCardProps {
   advert: AdvertRequestResponse;
@@ -54,12 +57,11 @@ export default function AdCard({
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-700 border-yellow-300",
-      waiting_payment: "bg-orange-100 text-orange-700 border-orange-300",
-      paid: "bg-blue-100 text-blue-700 border-blue-300",
       running: "bg-green-100 text-green-700 border-green-300",
       done: "bg-gray-100 text-gray-700 border-gray-300",
       rejected: "bg-red-100 text-red-700 border-red-300",
       cancelled: "bg-gray-100 text-gray-500 border-gray-300",
+      accepted: "bg-blue-100 text-blue-700 border-blue-300",
     };
     return colors[status] || "bg-gray-100 text-gray-700 border-gray-300";
   };
@@ -67,12 +69,11 @@ export default function AdCard({
   const getStatusText = (status: string) => {
     const texts: Record<string, string> = {
       pending: "Chờ duyệt",
-      waiting_payment: "Chờ thanh toán",
-      paid: "Đã thanh toán",
       running: "Đang chạy",
       done: "Hoàn thành",
       rejected: "Từ chối",
       cancelled: "Đã hủy",
+      accepted: "Đã duyệt",
     };
     return texts[status] || status;
   };
@@ -381,13 +382,42 @@ export default function AdCard({
           </div>
 
           {showActions && (
-            <div className="flex gap-3">
-              {onClose && (
+            <div className="flex gap-3 mt-4">
+              {/* Cancel: pending, running, waiting_payment */}
+              {(advert.status === "pending" || advert.status === "running") && (
+                <ConfirmDialog
+                  title="Hủy quảng cáo"
+                  description="Bạn có chắc chắn muốn hủy quảng cáo này không? Hành động này không thể hoàn tác."
+                  confirmText="Hủy quảng cáo"
+                  cancelText="Đóng"
+                  loadingText="Đang hủy..."
+                  onConfirm={async () => {
+                    try {
+                      await advertService.updateStatus(advert.id, "cancelled");
+                      Toast.success("Đã hủy quảng cáo thành công");
+                      onClose?.(); // nếu muốn reload danh sách
+                    } catch (err) {
+                      console.error(err);
+                      Toast.error("Hủy quảng cáo thất bại");
+                    }
+                  }}
+                  trigger={
+                    <button className="flex-1 px-4 py-2 bg-white hover:bg-red-50 text-red-500 rounded-lg border border-red-500">
+                      Hủy
+                    </button>
+                  }
+                />
+              )}
+
+              {/* Thanh toán: accepted hoặc waiting_payment */}
+              {advert.status === "accepted" && (
                 <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    (window.location.href = `/payment/${advert.id}`)
+                  }
+                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
                 >
-                  Đóng
+                  Thanh toán
                 </button>
               )}
             </div>

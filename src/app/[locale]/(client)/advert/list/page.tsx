@@ -87,52 +87,7 @@ function AdvertListPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {adverts.map((advert) => (
               <div key={advert.id}>
-                <AdCard advert={advert} variant="full" />
-
-                {/* ===== ACTIONS ===== */}
-                <div className="mt-3 flex gap-3">
-                  <button
-                    onClick={() => setSelectedAdvert(advert)}
-                    className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Preview
-                  </button>
-
-                  {advert.status === "pending" && (
-                    <ConfirmDialog
-                      title="Hủy quảng cáo"
-                      description="Bạn có chắc chắn muốn hủy quảng cáo này không? Hành động này không thể hoàn tác."
-                      confirmText="Hủy quảng cáo"
-                      cancelText="Đóng"
-                      loadingText="Đang hủy..."
-                      onConfirm={async () => {
-                        try {
-                          await advertService.updateStatus(
-                            advert.id,
-                            "cancelled"
-                          );
-                          Toast.success("Đã hủy quảng cáo thành công");
-                          await handleGetAdverts();
-                        } catch (err) {
-                          console.error(err);
-                          Toast.error("Hủy quảng cáo thất bại");
-                        }
-                      }}
-                      trigger={
-                        <button className="flex-1 px-4 py-2 bg-white hover:bg-red-50 text-red-500 rounded-lg border border-red-500">
-                          Hủy
-                        </button>
-                      }
-                    />
-                  )}
-
-                  {advert.status === "waiting_payment" && (
-                    <button className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-                      Thanh toán
-                    </button>
-                  )}
-                </div>
+                <AdCard advert={advert} variant="full" showActions />
               </div>
             ))}
           </div>
