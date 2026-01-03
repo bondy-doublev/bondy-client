@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Home } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Home,
+  UserPlus,
+  Shield,
+  Sparkles,
+  Users,
+  Mail,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { authService } from "@/services/authService";
 import {
@@ -21,17 +30,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
-// Spinner custom
-function Spinner({ size = "sm" }: { size?: "sm" | "md" | "lg" }) {
-  const sizeClass =
-    size === "sm" ? "h-4 w-4" : size === "md" ? "h-6 w-6" : "h-8 w-8";
-  return (
-    <div
-      className={`animate-spin rounded-full border-2 border-t-2 border-gray-300 ${sizeClass}`}
-    />
-  );
-}
-
 export default function SignUp() {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -44,7 +42,7 @@ export default function SignUp() {
 
   const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
   const isPasswordValid = password.length >= 8;
-  const canSubmit = isEmailValid && isPasswordValid && !submitting;
+  const canSubmit = isEmailValid && isPasswordValid && agree && !submitting;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,10 +50,8 @@ export default function SignUp() {
 
     setSubmitting(true);
     try {
-      // lưu tạm email + password + agree vào query params hoặc sessionStorage
       sessionStorage.setItem("signupData", JSON.stringify({ email, password }));
-
-      router.push("/information"); // chuyển sang trang nhập full info
+      router.push("/information");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || t("serverError"));
@@ -70,135 +66,283 @@ export default function SignUp() {
   }, []);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <Link
-            href="/"
-            className="flex items-center gap-2 mb-4 text-sm text-gray-500"
-          >
-            <Home size={16} /> {t("home")}
-          </Link>
-          <CardTitle className="text-center text-2xl">{t("signUp")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {/* Social login */}
-          <div className="flex flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={loginWithGoogle}
-              className="flex-1 flex items-center justify-center gap-2"
-            >
-              <FcGoogle size={20} />
-              {/* Desktop: full text / Mobile: compact text */}
-              <span className="hidden sm:inline">{t("signInWithGoogle")}</span>
-              <span className="inline sm:hidden">
-                {t("signInWithGoogleCompact")}
-              </span>
-            </Button>
-
-            <Button
-              style={{ backgroundColor: "#5865F2", color: "white" }}
-              className="flex-1 flex items-center justify-center gap-2"
-              onClick={loginWithDiscord}
-            >
-              <FaDiscord size={20} />
-              <span className="hidden sm:inline">{t("signInWithDiscord")}</span>
-              <span className="inline sm:hidden">
-                {t("signInWithDiscordCompact")}
-              </span>
-            </Button>
-          </div>
-
-          {/* OR divider */}
-          <div className="flex items-center my-4">
-            <hr className="flex-grow border-gray-300" />
-            <span className="px-2 text-gray-500">{t("or")}</span>
-            <hr className="flex-grow border-gray-300" />
-          </div>
-
-          {/* Normal signup form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Email */}
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4">
+      <div className="w-full max-w-5xl">
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Left Side - Info Card */}
+          <div className="hidden md:flex flex-col justify-center space-y-6 p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
             <div>
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={
-                  !email
-                    ? ""
-                    : isEmailValid
-                    ? "border-green-500"
-                    : "border-red-500"
-                }
-                required
-              />
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h1 className="text-4xl font-bold text-gray-900">
+                  Join Bondy!
+                </h1>
+              </div>
+              <p className="text-gray-600 text-lg">
+                Start your journey with our amazing community
+              </p>
             </div>
 
-            {/* Password */}
-            <div>
-              <Label htmlFor="password">{t("password")}</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPass ? "text" : "password"}
-                  placeholder={t("passwordPlaceholder")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={
-                    !password
-                      ? ""
-                      : isPasswordValid
-                      ? "border-green-500"
-                      : "border-red-500"
-                  }
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <UserPlus className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Quick & Easy Setup
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Create your account in just a few simple steps
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Stay Connected
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Connect with friends and discover new content daily
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Secure & Private
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Your data is encrypted and protected with industry-standard
+                    security
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Premium Features
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Access exclusive features and customize your experience
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Agree */}
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="agree"
-                checked={agree}
-                onCheckedChange={(checked) => setAgree(Boolean(checked))}
-              />
-              <Label htmlFor="agree">{t("agreeTerms")}</Label>
+            <div className="pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                Already have an account?{" "}
+                <Link
+                  href="/signin"
+                  className="text-green-600 hover:text-green-700 font-semibold"
+                >
+                  Sign in
+                </Link>
+              </p>
             </div>
+          </div>
 
-            {/* Submit */}
-            <Button type="submit" disabled={!canSubmit} className="w-full">
-              {submitting ? (
-                <span className="flex items-center gap-2">
-                  <Spinner size="sm" /> {t("signingUp")}
+          {/* Right Side - Form Card */}
+          <Card className="shadow-2xl border-2 border-gray-100">
+            <CardHeader className="space-y-1 pb-4">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-2 w-fit"
+              >
+                <Home size={16} /> {t("home")}
+              </Link>
+              <CardTitle className="text-center text-2xl font-bold text-gray-900">
+                {t("signUp")}
+              </CardTitle>
+              <p className="text-center text-sm text-gray-500">
+                Create your account to get started
+              </p>
+            </CardHeader>
+
+            <CardContent className="px-6 pb-6">
+              {/* Social Login */}
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  onClick={loginWithGoogle}
+                  className="w-full flex items-center justify-center gap-2 h-11 hover:bg-gray-50 transition-colors"
+                >
+                  <FcGoogle size={20} />
+                  <span>{t("signInWithGoogle")}</span>
+                </Button>
+
+                <Button
+                  onClick={loginWithDiscord}
+                  className="w-full flex items-center justify-center gap-2 h-11 transition-colors"
+                  style={{ backgroundColor: "#5865F2" }}
+                >
+                  <FaDiscord size={20} />
+                  <span>{t("signInWithDiscord")}</span>
+                </Button>
+              </div>
+
+              {/* OR Divider */}
+              <div className="flex items-center my-6">
+                <hr className="flex-grow border-gray-300" />
+                <span className="px-3 text-sm text-gray-500 font-medium">
+                  {t("or")}
                 </span>
-              ) : (
-                t("nextStep")
-              )}
-            </Button>
-          </form>
+                <hr className="flex-grow border-gray-300" />
+              </div>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-gray-600 mt-4">
-            {t("alreadyAccount")}{" "}
-            <Link href="/signin" className="text-blue-600 hover:underline">
-              {t("signIn")}
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+              {/* Sign Up Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <div>
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-semibold text-gray-700"
+                  >
+                    {t("email")} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t("emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`mt-1.5 ${
+                      !email
+                        ? ""
+                        : isEmailValid
+                        ? "border-green-500 focus:ring-green-500"
+                        : "border-red-500 focus:ring-red-500"
+                    }`}
+                    required
+                  />
+                  {email && !isEmailValid && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Please enter a valid email address
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-semibold text-gray-700"
+                  >
+                    {t("password")} <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      id="password"
+                      type={showPass ? "text" : "password"}
+                      placeholder={t("passwordPlaceholder")}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`pr-10 ${
+                        !password
+                          ? ""
+                          : isPasswordValid
+                          ? "border-green-500 focus:ring-green-500"
+                          : "border-red-500 focus:ring-red-500"
+                      }`}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {password && !isPasswordValid && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Password must be at least 8 characters
+                    </p>
+                  )}
+                  {password && isPasswordValid && (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Password strength: Good
+                    </p>
+                  )}
+                </div>
+
+                {/* Terms Agreement */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="agree"
+                      checked={agree}
+                      onCheckedChange={(checked) => setAgree(Boolean(checked))}
+                      className="mt-0.5"
+                    />
+                    <Label
+                      htmlFor="agree"
+                      className="text-sm text-gray-600 cursor-pointer leading-relaxed"
+                    >
+                      I agree to the{" "}
+                      <Link
+                        href="/terms"
+                        className="text-green-600 hover:text-green-700 font-medium"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        href="/privacy"
+                        className="text-green-600 hover:text-green-700 font-medium"
+                      >
+                        Privacy Policy
+                      </Link>
+                    </Label>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={!canSubmit}
+                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg hover:shadow-xl"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Creating account...
+                    </span>
+                  ) : (
+                    t("nextStep")
+                  )}
+                </Button>
+              </form>
+
+              {/* Mobile: Already have account */}
+              <p className="text-center text-sm text-gray-600 mt-6 md:hidden">
+                {t("alreadyAccount")}{" "}
+                <Link
+                  href="/signin"
+                  className="text-green-600 hover:text-green-700 font-semibold"
+                >
+                  {t("signIn")}
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </main>
   );
 }
