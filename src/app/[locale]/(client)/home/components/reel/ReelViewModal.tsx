@@ -183,7 +183,7 @@ export default function ReelViewModal({
         </div>
 
         {/* Header */}
-        <div className="absolute top-8 left-4 right-4 flex items-start justify-between z-20 pointer-events-none">
+        <div className="absolute top-8 left-4 right-4 flex items-start justify-between z-20">
           <div className="flex items-center gap-3">
             <img
               src={
@@ -198,7 +198,6 @@ export default function ReelViewModal({
                 {currentReel?.owner?.fullName}
               </span>
               <div className="flex items-center justify-start">
-                {/* Icon visibility */}
                 {currentReel?.visibilityType === "PUBLIC" && (
                   <Globe size={16} className="text-white" />
                 )}
@@ -215,7 +214,7 @@ export default function ReelViewModal({
             </div>
           </div>
 
-          <div className="flex gap-2 pointer-events-auto">
+          <div className="flex gap-2">
             {isOwner && (
               <button
                 onClick={() => onOpenEdit(currentReel)}
@@ -233,8 +232,8 @@ export default function ReelViewModal({
           </div>
         </div>
 
-        {/* Video */}
-        <div className="flex-1 relative flex items-center justify-center min-h-0">
+        {/* ===== VIDEO WRAPPER (FIX CHE HEADER) ===== */}
+        <div className="flex-1 relative min-h-0 pt-24">
           <video
             ref={videoRef}
             key={currentReel?.id}
@@ -251,6 +250,7 @@ export default function ReelViewModal({
             className="w-full h-full object-contain"
           />
 
+          {/* Click vùng trái/phải để next/prev */}
           <div
             className="absolute inset-0 flex items-center justify-between z-10"
             onClick={handleNavigationClick}
@@ -269,6 +269,7 @@ export default function ReelViewModal({
             />
           </div>
 
+          {/* Play overlay */}
           {!isPlaying && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
               <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center text-white">
@@ -287,41 +288,10 @@ export default function ReelViewModal({
 
         {/* Footer */}
         <div className="p-4 flex justify-between items-center bg-black/10 z-20 relative">
-          <div className="flex items-center gap-2 text-sm text-white drop-shadow-lg relative">
+          <div className="flex items-center gap-2 text-sm text-white drop-shadow-lg">
             <Eye size={16} />
             <span>{currentReel?.viewCount} lượt xem</span>
-
-            {/* Popover hiện người xem */}
-            <div className="group relative">
-              <button className="ml-2 p-1 bg-white/10 rounded-full hover:bg-white/20 transition">
-                <Users size={16} />
-              </button>
-
-              <div className="absolute bottom-full mb-2 left-0 w-48 bg-black/90 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-30">
-                <div className="max-h-48 overflow-y-auto p-2">
-                  {currentReel?.readUsers?.map((user: any) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center gap-2 mb-2 last:mb-0"
-                    >
-                      <img
-                        src={
-                          resolveFileUrl(user.avatarUrl) ||
-                          "/images/fallback/user.png"
-                        }
-                        alt={user.fullName}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                      <span className="text-xs text-white">
-                        {user.fullName}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
-
           <span className="text-xs font-medium text-white/80">
             {currentIndex + 1} / {initialReels.length}
           </span>

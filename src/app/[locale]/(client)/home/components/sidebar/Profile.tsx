@@ -2,6 +2,7 @@
 
 import { userService } from "@/services/userService";
 import { useAuthStore } from "@/store/authStore";
+import { resolveFileUrl } from "@/utils/fileUrl";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -21,18 +22,16 @@ interface ProfileData {
 
 export default function Profile() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const { user } = useAuthStore();
+  const { userProfile } = useAuthStore();
   const t = useTranslations("sidebar");
 
   useEffect(() => {
-    if (!user) return;
-
+    if (!userProfile) return;
     userService.getProfile().then((res) => {
       setProfile(res.data ?? res);
     });
-  }, [user]);
-
-  if (!user) {
+  }, [userProfile]);
+  if (!userProfile) {
     return null;
   }
 
@@ -62,8 +61,8 @@ export default function Profile() {
       {/* Avatar */}
       <div className="relative w-11 h-11 shrink-0">
         <Image
-          unoptimized
-          src={profile.avatarUrl}
+          unoptimized={true}
+          src={resolveFileUrl(profile.avatarUrl)}
           alt="avatar"
           fill
           className="rounded-full object-cover"

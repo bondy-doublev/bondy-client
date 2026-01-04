@@ -18,8 +18,8 @@ import { useChat } from "@/app/providers/ChatProvider";
 import { useCall } from "@/context/CallContext";
 import { useRingtone } from "@/app/hooks/useRingTone";
 import {
-  uploadCloudinaryMultiple,
-  uploadCloudinarySingle,
+  uploadLocalMultiple,
+  uploadLocalSingle,
 } from "@/services/uploadService";
 import { toast } from "react-toastify";
 import { addDoc, collection, doc, onSnapshot } from "firebase/firestore";
@@ -231,10 +231,10 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
       }[] = [];
 
       if (attachments.length === 1) {
-        const uploaded = await uploadCloudinarySingle(attachments[0]);
+        const uploaded = await uploadLocalSingle(attachments[0]);
         fileUrl = uploaded;
       } else if (attachments.length > 1) {
-        const uploadedUrls = await uploadCloudinaryMultiple(attachments);
+        const uploadedUrls = await uploadLocalMultiple(attachments);
         uploadedAttachments = uploadedUrls.map((url, i) => ({
           url,
           fileName: attachments[i].name,

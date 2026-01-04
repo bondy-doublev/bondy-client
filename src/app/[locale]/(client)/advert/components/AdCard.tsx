@@ -15,6 +15,7 @@ import ConfirmDialog from "@/app/components/dialog/ConfirmDialog";
 import { advertService } from "@/services/advertService";
 import { Toast } from "@/lib/toast";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface AdCardProps {
   advert: AdvertRequestResponse;
@@ -142,7 +143,7 @@ export default function AdCard({
                 />
               ) : (
                 <video
-                  src={advert.media[currentMediaIndex].url}
+                  src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                   controls
                   className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-2xl shadow-2xl"
                 />
@@ -258,7 +259,7 @@ export default function AdCard({
               />
             ) : (
               <video
-                src={advert.media[currentMediaIndex].url}
+                src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                 controls
                 className="w-full h-full object-cover"
               />
@@ -340,7 +341,9 @@ export default function AdCard({
                 <Calendar className="w-4 h-4" />
                 {t("time")}
               </div>
-              <div className="font-semibold">{advert.totalDays} {t("days")}</div>
+              <div className="font-semibold">
+                {advert.totalDays} {t("days")}
+              </div>
               <div className="text-xs text-gray-500">
                 {formatDate(advert.startDate)} → {formatDate(advert.endDate)}
               </div>
@@ -372,14 +375,17 @@ export default function AdCard({
                 {advert.media.length} {t("file")}
               </div>
               <div className="text-xs text-blue-600 mt-1">
-                {advert.media.filter((m) => m.type === "IMAGE").length} {t("image")},{" "}
-                {advert.media.filter((m) => m.type === "VIDEO").length} {t("video")}
+                {advert.media.filter((m) => m.type === "IMAGE").length}{" "}
+                {t("image")},{" "}
+                {advert.media.filter((m) => m.type === "VIDEO").length}{" "}
+                {t("video")}
               </div>
             </div>
           </div>
 
           <div className="text-xs text-gray-500 mb-4">
-            {t("createdAt")}: {new Date(advert.createdAt).toLocaleString("vi-VN")}
+            {t("createdAt")}:{" "}
+            {new Date(advert.createdAt).toLocaleString("vi-VN")}
           </div>
 
           {showActions && (
