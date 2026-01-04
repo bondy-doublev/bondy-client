@@ -62,6 +62,7 @@ export default function Profile() {
       {/* Avatar */}
       <div className="relative w-11 h-11 shrink-0">
         <Image
+          unoptimized
           src={profile.avatarUrl}
           alt="avatar"
           fill
