@@ -15,9 +15,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-import Image from "next/image";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
+import { useAuthStore } from "@/store/authStore";
 
 type ProfileFormProps = {
   userInfo: any;
@@ -36,6 +36,8 @@ export default function ProfileForm({
   const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { setUser } = useAuthStore();
 
   const canEdit = isOwner;
 
@@ -70,13 +72,15 @@ export default function ProfileForm({
           ? formData.dob.split("T")[0]
           : formData.dob;
 
-      await userService.updateProfile({
+      const res = await userService.updateProfile({
         firstName: formData.firstName,
         middleName: formData.middleName,
         lastName: formData.lastName,
         dob: dobValue, // 👈 FIX
         gender: formData.gender,
       });
+
+      setUser(res.data);
 
       toast.success("Profile updated successfully!");
       setIsEditing(false);
@@ -221,6 +225,7 @@ export default function ProfileForm({
             <Input
               type="date"
               value={formData.dob ? String(formData.dob).split("T")[0] : ""}
+              max={new Date().toISOString().split("T")[0]} // 🚫 không chọn được ngày mai
               onChange={(e) => handleChange("dob", e.target.value)}
               disabled={!canEdit || !isEditing}
             />

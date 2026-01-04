@@ -20,7 +20,9 @@ import { resolveFileUrl } from "@/utils/fileUrl";
 import { useTranslations } from "use-intl";
 
 export default function ReelsPage() {
+  const t = useTranslations("reel");
   const { user } = useAuthStore();
+  const router = useRouter();
 
   const [reels, setReels] = useState<Reel[]>([]);
   const [page, setPage] = useState(0);
@@ -32,13 +34,9 @@ export default function ReelsPage() {
   // 🔊 mặc định BẬT tiếng
   const [muted, setMuted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-
-  // ⏯ pause/play state
   const [pausedIndex, setPausedIndex] = useState<number | null>(null);
 
-  // ✅ lưu reel đã mark để không gọi lại
   const viewedReelsRef = useRef<Set<number>>(new Set());
-
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -62,13 +60,13 @@ export default function ReelsPage() {
     }
   };
 
-  const handleGoToProfile = (userId: number) => {
-    router.push(`/user/${userId}`);
-  };
-
   useEffect(() => {
     loadReels();
   }, []);
+
+  const handleGoToProfile = (userId: number) => {
+    router.push(`/user/${userId}`);
+  };
 
   /* ================= AUTOPLAY + MARK VIEW ================= */
 
@@ -81,7 +79,6 @@ export default function ReelsPage() {
           const video = entry.target as HTMLVideoElement;
           const index = videoRefs.current.indexOf(video);
           const reel = reels[index];
-
           if (!reel) return;
 
           if (entry.isIntersecting) {
@@ -128,14 +125,12 @@ export default function ReelsPage() {
     return () => el.removeEventListener("scroll", onScroll);
   }, [loading, hasMore]);
 
-  /* ================= TOGGLE MUTE ================= */
+  /* ================= CONTROLS ================= */
 
   const toggleMute = () => {
     setMuted((m) => !m);
     videoRefs.current.forEach((v) => v && (v.muted = !muted));
   };
-
-  /* ================= TOGGLE PLAY ================= */
 
   const togglePlay = (idx: number) => {
     const video = videoRefs.current[idx];
@@ -153,11 +148,19 @@ export default function ReelsPage() {
   /* ================= RENDER ================= */
 
   return (
-    <div className="h-[100vh] bg-black/90 z-[60]">
+    <div className="h-[100vh] bg-gray-100 z-[60]">
       <div
         ref={containerRef}
         className="h-full max-w-[430px] mx-auto overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
       >
+        {/* EMPTY STATE */}
+        {!loading && reels.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-gray-500 px-6 text-center">
+            <Play size={48} className="mb-3 opacity-50" />
+            <p className="text-sm">{t("empty")}</p>
+          </div>
+        )}
+
         {reels.map((reel, idx) => (
           <div
             key={reel.id}
@@ -197,7 +200,7 @@ export default function ReelsPage() {
             <div className="absolute top-3 left-4 right-4 flex justify-between z-20">
               <div
                 onClick={() => handleGoToProfile(reel.owner.id)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
               >
                 <Image
                   alt="avatar"

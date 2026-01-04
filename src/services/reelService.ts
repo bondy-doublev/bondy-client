@@ -18,6 +18,7 @@ export const reelService = {
   // ---------------- CREATE REEL ----------------
   async create(req: CreateReelRequest): Promise<ReelResponse | null> {
     try {
+      console.log("BASEEEEEEEEEEEEEEEEEEEEEEEEEE: ", BASE);
       const res = await api.post<AppApiResponse<ReelResponse>>(BASE, req);
       return res.data.data;
     } catch (error: any) {

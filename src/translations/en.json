@@ -442,7 +442,10 @@
     "createReelError": "Failed to create reel",
     "noReels": "No reels available. Create your first reel now!",
     "reels": "Reels",
-    "you": "You"
+    "you": "You",
+    "empty": "No videos available",
+    "noMore": "No more videos",
+    "views": "views"
   },
   "chat": {
     "callingUser": "Calling",

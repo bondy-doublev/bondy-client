@@ -47,6 +47,11 @@ export default function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Only two modes: desktop (>= lg / 1024px) vs below-lg (< 1024px) -> slide-in
+  const [isDesktop, setIsDesktop] = useState<boolean>(
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : true
+  );
+
   // Refs
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const tabRef = useRef(tab);
@@ -55,9 +60,26 @@ export default function ChatPage() {
   const pendingRoomIdRef = useRef<string | null>(roomIdFromUrl);
 
   // Constants
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const hasRoom = !!selectedRoom?.id;
-  const shouldShowSidebarMobile = isMobile && !hasRoom && isSidebarOpen;
+
+  // Set sidebar default: desktop show by default, below-lg hidden by default
+  useEffect(() => {
+    if (isDesktop) setIsSidebarOpen(true);
+    else setIsSidebarOpen(false);
+  }, [isDesktop]);
+
+  // watch resize to update isDesktop (>= 1024px)
+  useEffect(() => {
+    const handleResize = () => {
+      const newIsDesktop = window.innerWidth >= 1024;
+      setIsDesktop((prev) => {
+        if (prev !== newIsDesktop) return newIsDesktop;
+        return prev;
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // ✅ Sync refs
   useEffect(() => {
@@ -123,6 +145,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     handleGetFriends();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // ✅ Fetch conversations với preserve selected room
@@ -285,6 +308,7 @@ export default function ChatPage() {
     fetchConversations(tabFromUrl, { preserveSelected: false }).then(() => {
       setIsInitialized(true);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // ✅ Sync URL params changes (navigation from elsewhere)
@@ -325,6 +349,7 @@ export default function ChatPage() {
         setMessages([]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isInitialized]);
 
   // ✅ Socket events
@@ -377,6 +402,7 @@ export default function ChatPage() {
       s.off("messageEdited", handleEdited);
       s.off("messageDeleted", handleDeleted);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, chatSocket]);
 
   // ✅ Infinity scroll
@@ -532,7 +558,7 @@ export default function ChatPage() {
     }
   };
 
-  // Sidebar handler
+  // Sidebar open event (legacy support)
   useEffect(() => {
     const openHandler = () => setIsSidebarOpen(true);
     window.addEventListener("openSidebar", openHandler);
@@ -540,22 +566,52 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (isMobile) setIsSidebarOpen(true);
-  }, [isMobile]);
+    // if desktop and no sidebar open -> open it
+    if (isDesktop) setIsSidebarOpen(true);
+  }, [isDesktop]);
 
   return (
-    <div className="flex h-[90vh] flex-col md:flex-row">
-      {shouldShowSidebarMobile && (
+    <div className="flex h-[90vh] flex-col md:flex-row relative">
+      {/* For below-lg: overlay when sidebar open */}
+      {!isDesktop && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50"
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {isMobile && !hasRoom && isSidebarOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      {/* Sidebar rendering */}
+      {isDesktop ? (
+        // Desktop: sidebar always visible inline (use fixed width)
+        <div className="hidden lg:block w-fit flex-shrink-0">
           <Sidebar
-            className="bg-white w-11/12 max-w-sm h-5/6 shadow-lg rounded-lg p-4"
+            className="h-full"
+            tab={tab}
+            setTab={(v) => {
+              setTab(v);
+              setSelectedRoom(null);
+              setMessages([]);
+              pendingRoomIdRef.current = null;
+              updateUrl(v, null);
+              fetchConversations(v, { preserveSelected: false });
+            }}
+            currentUserId={user?.id}
+            conversations={conversations}
+            selectedRoomId={selectedRoom?.id || null}
+            onSelectRoom={(room) => loadRoomMessages(room)}
+            onOpenDialog={() => setOpenDialog(true)}
+            isOverlay={false}
+          />
+        </div>
+      ) : (
+        // Below-lg: slide-in sidebar from left
+        <div
+          className={`w-fit absolute left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <Sidebar
+            className="h-full shadow-lg bg-white"
             tab={tab}
             setTab={(v) => {
               setTab(v);
@@ -570,49 +626,38 @@ export default function ChatPage() {
             selectedRoomId={selectedRoom?.id || null}
             onSelectRoom={(room) => {
               loadRoomMessages(room);
+              // close after selection for better UX
               setIsSidebarOpen(false);
             }}
             onOpenDialog={() => setOpenDialog(true)}
+            onClose={() => setIsSidebarOpen(false)}
+            isOverlay
           />
         </div>
-      ) : (
-        <Sidebar
-          className="hidden md:block w-[300px]"
-          tab={tab}
-          setTab={(v) => {
-            setTab(v);
-            setSelectedRoom(null);
-            setMessages([]);
-            pendingRoomIdRef.current = null;
-            updateUrl(v, null);
-            fetchConversations(v, { preserveSelected: false });
-          }}
-          currentUserId={user?.id}
-          conversations={conversations}
-          selectedRoomId={selectedRoom?.id || null}
-          onSelectRoom={(room) => loadRoomMessages(room)}
-          onOpenDialog={() => setOpenDialog(true)}
-        />
       )}
 
-      <ChatArea
-        isGroup={tab === "group"}
-        selectedRoom={selectedRoom?.id || null}
-        currentUserId={user?.id || 0}
-        messages={messages}
-        newMsg={newMsg}
-        setNewMsg={setNewMsg}
-        onSend={handleSend}
-        messageEndRef={useRef<HTMLDivElement>(null)}
-        messageContainerRef={messageContainerRef}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        onEditMessage={handleEditMessage}
-        onDeleteMessage={handleDeleteMessage}
-        onReplyMessage={handleReplyMessage}
-        replyingMessage={replyingMessage}
-        onRoomUpdated={reloadConversations}
-      />
+      {/* Main Chat Area */}
+      <div className="flex-1">
+        <ChatArea
+          isGroup={tab === "group"}
+          selectedRoom={selectedRoom?.id || null}
+          currentUserId={user?.id || 0}
+          messages={messages}
+          newMsg={newMsg}
+          setNewMsg={setNewMsg}
+          onSend={handleSend}
+          messageEndRef={useRef<HTMLDivElement>(null)}
+          messageContainerRef={messageContainerRef}
+          attachments={attachments}
+          setAttachments={setAttachments}
+          onEditMessage={handleEditMessage}
+          onDeleteMessage={handleDeleteMessage}
+          onReplyMessage={handleReplyMessage}
+          replyingMessage={replyingMessage}
+          onRoomUpdated={reloadConversations}
+          onToggleSidebar={() => setIsSidebarOpen((s) => !s)}
+        />
+      </div>
 
       {openDialog && (
         <CreateRoomDialog
