@@ -15,7 +15,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-import Image from "next/image";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 
@@ -221,9 +220,11 @@ export default function ProfileForm({
             <Input
               type="date"
               value={formData.dob ? String(formData.dob).split("T")[0] : ""}
+              max={new Date().toISOString().split("T")[0]} // 🚫 không chọn được ngày mai
               onChange={(e) => handleChange("dob", e.target.value)}
               disabled={!canEdit || !isEditing}
             />
+
           </div>
 
           <div>

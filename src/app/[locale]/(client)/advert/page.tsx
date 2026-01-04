@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Plus,
-  Trash2,
-  Calendar,
-  Upload,
-  Image,
-  Video,
-  ArrowLeft,
-} from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { advertService } from "@/services/advertService";
 import { uploadCloudinaryMultiple } from "@/services/uploadService";
@@ -25,9 +17,12 @@ interface MediaItem {
   file?: File;
 }
 
+const PRICE_PER_DAY = 20000;
+
 export default function AdvertPage() {
   const { user } = useAuthStore();
   const router = useRouter();
+  const t = useTranslations("advert");
 
   const [title, setTitle] = useState("");
   const [accountName, setAccountName] = useState(
@@ -42,19 +37,35 @@ export default function AdvertPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const t = useTranslations("advert");
 
-  /* ================= UTILS ================= */
+  /* ================= DATE UTILS ================= */
+
+  const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+  const tomorrow = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(0, 0, 0, 0);
+    return formatDate(d);
+  })();
+
   const calculateTotalDays = () => {
     if (!startDate || !endDate) return 0;
+
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return (
-      Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
-    );
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    return Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
   };
 
+  const totalDays = calculateTotalDays();
+  const totalPrice = totalDays * PRICE_PER_DAY;
+
   /* ================= PREVIEW ================= */
+
   const previewAdvert: AdvertRequestResponse | null =
     title || mediaUrls.length > 0
       ? {
@@ -63,12 +74,12 @@ export default function AdvertPage() {
           accountName: accountName || t("accountName"),
           userId: user?.id || 0,
           userAvatar: user?.avatarUrl || "",
-          startDate,
           userEmail: user?.email || "",
+          startDate,
           endDate,
-          totalDays: calculateTotalDays(),
-          pricePerDay: 20000,
-          totalPrice: 20000 * calculateTotalDays(),
+          totalDays,
+          pricePerDay: PRICE_PER_DAY,
+          totalPrice,
           status: "pending",
           createdAt: new Date().toISOString(),
           media: mediaUrls.map((m) => ({
@@ -79,6 +90,7 @@ export default function AdvertPage() {
       : null;
 
   /* ================= HANDLERS ================= */
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -100,16 +112,26 @@ export default function AdvertPage() {
     if (
       !title ||
       !accountName ||
-      mediaUrls.length === 0 ||
       !startDate ||
-      !endDate
+      !endDate ||
+      mediaUrls.length === 0
     ) {
       Toast.warning(t("pleaseFillAllFieldsAndAddMedia"));
       return;
     }
 
-    const totalDays = calculateTotalDays();
-    if (totalDays <= 0) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    if (start < new Date(tomorrow)) {
+      Toast.warning(t("startDateMustBeFromTomorrow"));
+      return;
+    }
+
+    if (start >= end) {
       Toast.warning(t("endDateMustBeAfterStartDate"));
       return;
     }
@@ -118,6 +140,7 @@ export default function AdvertPage() {
 
     try {
       const filesToUpload = mediaUrls.filter((m) => m.file).map((m) => m.file!);
+
       let uploadedUrls: string[] = [];
 
       if (filesToUpload.length) {
@@ -137,8 +160,8 @@ export default function AdvertPage() {
         startDate,
         endDate,
         totalDays,
-        pricePerDay: 20000,
-        totalPrice: 20000 * totalDays,
+        pricePerDay: PRICE_PER_DAY,
+        totalPrice,
         userAvatar: user?.avatarUrl || "",
         media,
       });
@@ -154,6 +177,7 @@ export default function AdvertPage() {
   };
 
   /* ================= RENDER ================= */
+
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -163,9 +187,7 @@ export default function AdvertPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
               {t("createAdvert")}
             </h1>
-            <p className="text-gray-600">
-              {t("previewAdvertExact")}
-            </p>
+            <p className="text-gray-600">{t("previewAdvertExact")}</p>
           </div>
 
           <button
@@ -178,50 +200,72 @@ export default function AdvertPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* ================= FORM ================= */}
+          {/* FORM */}
           <div className="lg:col-span-1">
-            <div className="bg-white border rounded-xl p-6 shadow-sm sticky top-4 space-y-5">
+            <div className="bg-white border rounded-xl p-6 shadow-sm space-y-5">
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <Plus className="w-5 h-5 text-green-500" />
                 {t("advertInformation")}
               </h2>
 
               {/* Title */}
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  {t("advertTitle")}
-                </label>
-                <input
-                  className="mt-1 w-full rounded-lg border px-4 py-2"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
+              <input
+                className="w-full rounded-lg border px-4 py-2"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t("advertTitle")}
+              />
 
               {/* Dates */}
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    {t("startDate")}
-                  </label>
-                  <input
-                    type="date"
-                    className="mt-1 w-full rounded-lg border px-4 py-2"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
+              <input
+                type="date"
+                className="w-full rounded-lg border px-4 py-2"
+                min={tomorrow}
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setEndDate("");
+                }}
+              />
+
+              <input
+                type="date"
+                className="w-full rounded-lg border px-4 py-2"
+                disabled={!startDate}
+                min={
+                  startDate
+                    ? formatDate(
+                        new Date(new Date(startDate).getTime() + 86400000)
+                      )
+                    : undefined
+                }
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+
+              {/* PRICE INFO */}
+              <div className="rounded-xl border bg-green-50 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>{t("pricePerDay")}</span>
+                  <span className="font-semibold text-green-700">
+                    {PRICE_PER_DAY.toLocaleString()} {t("vnd")}
+                  </span>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    {t("endDate")}
-                  </label>
-                  <input
-                    type="date"
-                    className="mt-1 w-full rounded-lg border px-4 py-2"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
+                <div className="flex justify-between text-sm">
+                  <span>{t("numberOfDays")}</span>
+                  <span className="font-semibold">
+                    {totalDays > 0 ? `${totalDays} ${t("days")}` : "--"}
+                  </span>
+                </div>
+
+                <div className="border-t pt-2 flex justify-between">
+                  <span className="font-semibold">{t("totalPrice")}</span>
+                  <span className="font-bold text-green-700 text-lg">
+                    {totalDays > 0
+                      ? `${totalPrice.toLocaleString()} ${t("vnd")}`
+                      : "--"}
+                  </span>
                 </div>
               </div>
 
@@ -238,81 +282,22 @@ export default function AdvertPage() {
                 />
               </label>
 
-              {/* Media list */}
-              {mediaUrls.length > 0 && (
-                <div className="space-y-2">
-                  {mediaUrls.map((m, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between bg-gray-50 border rounded px-3 py-2 text-sm"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        {m.type === "IMAGE" ? (
-                          <Image className="w-4 h-4" />
-                        ) : (
-                          <Video className="w-4 h-4" />
-                        )}
-                        <span className="truncate">
-                          {m.file?.name || "Media"}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveMedia(i)}
-                        className="text-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* ================= PRICE INFO ================= */}
-              <div className="rounded-xl border bg-green-50 p-4 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{t("pricePerDay")}</span>
-                  <span className="font-semibold text-green-700">
-                    20,000 {t("vnd")}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{t("numberOfDays")}</span>
-                  <span className="font-semibold">
-                    {calculateTotalDays() > 0
-                      ? `${calculateTotalDays()} ${t("days")}`
-                      : "--"}
-                  </span>
-                </div>
-
-                <div className="border-t pt-2 flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">{t("totalPrice")}</span>
-                  <span className="font-bold text-green-700 text-lg">
-                    {calculateTotalDays() > 0
-                      ? (20000 * calculateTotalDays()).toLocaleString() + " " + t("vnd")
-                      : "--"}
-                  </span>
-                </div>
-              </div>
-
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg"
+                className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-xl text-white font-bold"
               >
                 {loading ? t("creating") : t("createAdvert")}
               </button>
             </div>
           </div>
 
-          {/* ================= PREVIEW ================= */}
+          {/* PREVIEW */}
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold mb-4">{t("preview")}</h2>
 
             {previewAdvert ? (
-              <div className="max-h-[600px] overflow-hidden rounded-xl">
-                <AdCard advert={previewAdvert} variant="preview" />
-              </div>
+              <AdCard advert={previewAdvert} variant="preview" />
             ) : (
               <div className="border-2 border-dashed rounded-xl p-12 text-center text-gray-500">
                 {t("enterInfoToPreviewAdvert")}
