@@ -16,8 +16,7 @@ import { Reel } from "@/models/Reel";
 import { reelService } from "@/services/reelService";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
-const resolveFileUrl = (url?: string) => url || "";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 export default function ReelsPage() {
   const t = useTranslations("reel");
