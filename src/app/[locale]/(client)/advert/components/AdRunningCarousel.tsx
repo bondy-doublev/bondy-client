@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { advertService } from "@/services/advertService";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface Advert {
   id: number;
@@ -82,7 +83,7 @@ export default function AdRunningCarousel() {
           />
         ) : (
           <video
-            src={currentAd.media[0].url}
+            src={resolveFileUrl(currentAd.media[0].url)}
             className="w-full h-full object-cover"
             muted
             autoPlay

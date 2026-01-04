@@ -15,9 +15,9 @@ import { useAuthStore } from "@/store/authStore";
 import { Reel } from "@/models/Reel";
 import { reelService } from "@/services/reelService";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-
-const resolveFileUrl = (url?: string) => url || "";
+import Image from "next/image";
+import { resolveFileUrl } from "@/utils/fileUrl";
+import { useTranslations } from "use-intl";
 
 export default function ReelsPage() {
   const t = useTranslations("reel");
@@ -28,6 +28,8 @@ export default function ReelsPage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const t = useTranslations("reel");
 
   // 🔊 mặc định BẬT tiếng
   const [muted, setMuted] = useState(false);
@@ -177,8 +179,8 @@ export default function ReelsPage() {
 
             {/* MAIN VIDEO */}
             <video
-              ref={(el) => (videoRefs.current[idx] = el)}
               src={resolveFileUrl(reel.videoUrl)}
+              ref={(el) => (videoRefs.current[idx] = el)}
               playsInline
               loop
               muted={muted}
@@ -200,7 +202,11 @@ export default function ReelsPage() {
                 onClick={() => handleGoToProfile(reel.owner.id)}
                 className="flex items-center gap-2 cursor-pointer"
               >
-                <img
+                <Image
+                  alt="avatar"
+                  width={32}
+                  height={32}
+                  unoptimized={true}
                   src={
                     resolveFileUrl(reel.owner.avatarUrl) ||
                     "/images/fallback/user.png"
@@ -241,9 +247,7 @@ export default function ReelsPage() {
                 {reel.visibilityType === "PRIVATE" && <Lock size={14} />}
                 {reel.visibilityType === "CUSTOM" && <Users size={14} />}
                 <Eye size={14} />
-                <span>
-                  {reel.viewCount} {t("views")}
-                </span>
+                <span>{reel.viewCount} {t("views")}</span>
               </div>
             </div>
 
@@ -264,7 +268,7 @@ export default function ReelsPage() {
 
         {!hasMore && reels.length > 0 && (
           <div className="h-16 flex items-center justify-center text-white/60 text-sm">
-            {t("noMore")}
+            {t("noMoreVideos")}
           </div>
         )}
       </div>
