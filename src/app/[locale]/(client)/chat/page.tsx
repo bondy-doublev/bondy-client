@@ -10,8 +10,8 @@ import { Sidebar } from "./components/Sidebar";
 import { ChatArea } from "./components/ChatArea";
 import { CreateRoomDialog } from "./components/CreateRoomDialog";
 import {
-  uploadCloudinaryMultiple,
-  uploadCloudinarySingle,
+  uploadLocalMultiple,
+  uploadLocalSingle,
 } from "@/services/uploadService";
 import { useChat } from "@/app/providers/ChatProvider";
 import { useTranslations } from "use-intl";
@@ -413,12 +413,12 @@ export default function ChatPage() {
 
     try {
       if (attachments.length === 1) {
-        const uploaded = await uploadCloudinarySingle(attachments[0]);
+        const uploaded = await uploadLocalSingle(attachments[0]);
         fileUrl = uploaded;
       }
 
       if (attachments.length > 1) {
-        const uploadedUrls = await uploadCloudinaryMultiple(attachments);
+        const uploadedUrls = await uploadLocalMultiple(attachments);
         uploadedAttachments = uploadedUrls.map((url, i) => ({
           url,
           fileName: attachments[i].name,
@@ -603,7 +603,7 @@ export default function ChatPage() {
         newMsg={newMsg}
         setNewMsg={setNewMsg}
         onSend={handleSend}
-        messageEndRef={useRef<HTMLDivElement>(null)} 
+        messageEndRef={useRef<HTMLDivElement>(null)}
         messageContainerRef={messageContainerRef}
         attachments={attachments}
         setAttachments={setAttachments}

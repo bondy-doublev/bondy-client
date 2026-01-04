@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Toast } from "@/lib/toast";
 import { useTranslations } from "use-intl";
+import { resolveFileUrl } from "@/utils/fileUrl";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -146,7 +147,7 @@ export default function PaymentPage() {
                             />
                           ) : (
                             <video
-                              src={m.url}
+                              src={resolveFileUrl(m.url)}
                               className="w-full h-full object-cover"
                               muted
                               loop

@@ -398,6 +398,7 @@
     "acceptedYourFriendRequest": "đã chấp nhận lời mời kết bạn của bạn"
   },
   "reel": {
+    "views": "lượt xem",
     "createNewReel": "Tạo Reel mới",
     "editReel": "Chỉnh sửa Reel",
     "owner": "Chủ sở hữu",
@@ -442,6 +443,7 @@
     "you": "Bạn"
   },
   "chat": {
+    "createNewGroup": "Tạo nhóm mới",
     "callingUser": "Đang gọi",
     "ringing": "Đang đổ chuông",
     "videoCall": "Cuộc gọi video",

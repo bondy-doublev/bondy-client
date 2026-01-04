@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Image, Upload, X, Edit2, Check } from "lucide-react";
 import { chatService } from "@/services/chatService";
 import { userService } from "@/services/userService";
-import { uploadCloudinarySingle } from "@/services/uploadService";
+import { uploadLocalSingle } from "@/services/uploadService";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "use-intl";
 import { resolveFileUrl } from "@/utils/fileUrl";
@@ -91,7 +91,7 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   const handleAvatarChange = async (file: File) => {
     try {
       setLoading(true);
-      const url = await uploadCloudinarySingle(file);
+      const url = await uploadLocalSingle(file);
       setGroupAvatar(url);
       if (selectedRoom) {
         await chatService.updateRoomInformation(selectedRoom, {

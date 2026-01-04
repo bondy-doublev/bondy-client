@@ -14,12 +14,23 @@ import { useAuthStore } from "@/store/authStore";
 import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultAvatar";
 import { useTranslations } from "next-intl";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import { userService } from "@/services/userService";
+import { useEffect } from "react";
 
 export default function UserDropdown() {
   const t = useTranslations("navbar");
 
   const router = useRouter();
-  const { user, setUser, setTokens } = useAuthStore();
+  const { setUser, setTokens, userProfile, setUserProfile } = useAuthStore();
+
+  const handleGetUserProfile = async () => {
+    try {
+      const res = await userService.getProfile();
+      setUserProfile(res.data);
+    } catch (err) {
+      console.error("Failed to fetch user profile:", err);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -32,22 +43,26 @@ export default function UserDropdown() {
     }
   };
 
+  useEffect(() => {
+    handleGetUserProfile();
+  }, []);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center justify-center w-8 h-8 overflow-hidden bg-gray-100 border border-gray-300 rounded-full cursor-pointer">
-          {user !== null ? (
-            user.avatarUrl ? (
+          {userProfile !== null ? (
+            userProfile.avatarUrl ? (
               <Image
                 width={32}
                 height={32}
-                src={resolveFileUrl(user.avatarUrl)}
+                src={resolveFileUrl(userProfile.avatarUrl)}
                 alt="Avatar"
                 className="object-cover"
                 unoptimized
               />
             ) : (
-              <DefaultAvatar firstName={user?.firstName} />
+              <DefaultAvatar firstName={userProfile?.firstName} />
             )
           ) : (
             <Image
@@ -62,13 +77,13 @@ export default function UserDropdown() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-44">
-        {user ? (
+        {userProfile ? (
           <>
             <div
-              onClick={() => router.push("/user/" + user.id)}
+              onClick={() => router.push("/user/" + userProfile.id)}
               className="px-3 py-2 text-sm font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:rounded-md"
             >
-              {user?.firstName} {user?.lastName}
+              {userProfile?.firstName} {userProfile?.lastName}
             </div>
             <DropdownMenuItem
               onClick={handleLogout}

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { advertService } from "@/services/advertService";
-import { uploadCloudinaryMultiple } from "@/services/uploadService";
+import { uploadLocalMultiple } from "@/services/uploadService";
 import { AdvertRequestResponse } from "@/types/response";
 import { Toast } from "@/lib/toast";
 import { useAuthStore } from "@/store/authStore";
@@ -121,7 +121,7 @@ export default function AdvertPage() {
       let uploadedUrls: string[] = [];
 
       if (filesToUpload.length) {
-        uploadedUrls = await uploadCloudinaryMultiple(filesToUpload);
+        uploadedUrls = await uploadLocalMultiple(filesToUpload);
       }
 
       const media = mediaUrls.map((m) => ({
@@ -163,9 +163,7 @@ export default function AdvertPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
               {t("createAdvert")}
             </h1>
-            <p className="text-gray-600">
-              {t("previewAdvertExact")}
-            </p>
+            <p className="text-gray-600">{t("previewAdvertExact")}</p>
           </div>
 
           <button
@@ -286,10 +284,14 @@ export default function AdvertPage() {
                 </div>
 
                 <div className="border-t pt-2 flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">{t("totalPrice")}</span>
+                  <span className="font-semibold text-gray-900">
+                    {t("totalPrice")}
+                  </span>
                   <span className="font-bold text-green-700 text-lg">
                     {calculateTotalDays() > 0
-                      ? (20000 * calculateTotalDays()).toLocaleString() + " " + t("vnd")
+                      ? (20000 * calculateTotalDays()).toLocaleString() +
+                        " " +
+                        t("vnd")
                       : "--"}
                   </span>
                 </div>

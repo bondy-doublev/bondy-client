@@ -399,6 +399,8 @@
     "acceptedYourFriendRequest": "accepted your friend request"
   },
   "reel": {
+    "createNewGroup": "Create New Group",
+    "views": "views",
     "createNewReel": "Create New Reel",
     "editReel": "Edit Reel",
     "owner": "Owner",
