@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "./ChatMessage";
 import { chatService, Message } from "@/services/chatService";
-import { FaEllipsisV, FaPaperclip, FaVideo } from "react-icons/fa";
+import { FaEllipsisV, FaPaperclip, FaVideo, FaBars } from "react-icons/fa";
 import VideoCallModal from "./VideoCallModal";
 import { v4 as uuid } from "uuid";
 import {
@@ -39,6 +39,8 @@ interface ChatAreaProps {
   onReplyMessage: (msg: Message) => void;
   replyingMessage: Message | null;
   onRoomUpdated: () => void;
+  // new: handler to toggle sidebar (mobile/tablet)
+  onToggleSidebar?: () => void;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -58,6 +60,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   onReplyMessage,
   replyingMessage,
   onRoomUpdated,
+  onToggleSidebar,
 }) => {
   const [uploading, setUploading] = useState(false);
   const { setOutgoingCallId, outgoingCallId, setOutgoingCallReceiver } =
@@ -134,7 +137,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     };
 
     fetchMembers();
-  }, [selectedRoom, currentUserId]);
+  }, [selectedRoom, currentUserId, t]);
 
   useEffect(() => {
     if (!outgoingCallId) return;
@@ -149,7 +152,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       }
     });
     return () => unsub();
-  }, [outgoingCallId]);
+  }, [outgoingCallId, setOutgoingCallId]);
 
   return (
     <div className="flex-1 flex flex-col h-full relative">
@@ -161,25 +164,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         onRoomUpdated={onRoomUpdated}
       />
 
-      <div className="w-full p-2 md:p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <button
-          className="md:hidden p-2 mr-2 rounded hover:bg-gray-100"
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            const roomId = params.get("roomId");
-
-            if (roomId) {
-              // Nếu đang ở trong phòng → quay lại trang trước
-              window.history.back();
-              // Không có room → mở sidebar
-              const event = new CustomEvent("openSidebar");
-              window.dispatchEvent(event);
-              return;
-            }
-          }}
-        >
-          ☰
-        </button>
+      <div className="w-full p-2 px-4 md:p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div className="lg:hidden">
+          <button
+            className="md:p-2 mr-2 rounded hover:bg-gray-100"
+            onClick={() => {
+              if (onToggleSidebar) onToggleSidebar();
+            }}
+            aria-label="Toggle sidebar"
+          >
+            <FaBars size={18} />
+          </button>
+        </div>
 
         <div className="font-semibold text-gray-700">{t("chat")}</div>
 
