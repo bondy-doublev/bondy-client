@@ -20,9 +20,7 @@ import { resolveFileUrl } from "@/utils/fileUrl";
 import { useTranslations } from "use-intl";
 
 export default function ReelsPage() {
-  const t = useTranslations("reel");
   const { user } = useAuthStore();
-  const router = useRouter();
 
   const [reels, setReels] = useState<Reel[]>([]);
   const [page, setPage] = useState(0);
@@ -247,7 +245,9 @@ export default function ReelsPage() {
                 {reel.visibilityType === "PRIVATE" && <Lock size={14} />}
                 {reel.visibilityType === "CUSTOM" && <Users size={14} />}
                 <Eye size={14} />
-                <span>{reel.viewCount} {t("views")}</span>
+                <span>
+                  {reel.viewCount} {t("views")}
+                </span>
               </div>
             </div>
 
