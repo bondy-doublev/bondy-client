@@ -2,7 +2,7 @@
 
 import { ReelVisibility } from "@/enums";
 import { reelService } from "@/services/reelService";
-import { uploadCloudinaryVideoSingle } from "@/services/uploadService";
+import { uploadLocalSingle } from "@/services/uploadService";
 import { CreateReelRequest } from "@/types/request";
 import { useState, useMemo, useRef } from "react";
 import {
@@ -95,7 +95,7 @@ export default function ReelCreateModal({
 
     try {
       setIsUploading(true);
-      const videoUrl = await uploadCloudinaryVideoSingle(file);
+      const videoUrl = await uploadLocalSingle(file);
 
       const payload: CreateReelRequest = {
         userId,

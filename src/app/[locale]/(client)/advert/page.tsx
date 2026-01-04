@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus, Trash2, Upload, Image, Video, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { advertService } from "@/services/advertService";
-import { uploadCloudinaryMultiple } from "@/services/uploadService";
+import { uploadLocalMultiple } from "@/services/uploadService";
 import { AdvertRequestResponse } from "@/types/response";
 import { Toast } from "@/lib/toast";
 import { useAuthStore } from "@/store/authStore";
@@ -144,7 +144,7 @@ export default function AdvertPage() {
       let uploadedUrls: string[] = [];
 
       if (filesToUpload.length) {
-        uploadedUrls = await uploadCloudinaryMultiple(filesToUpload);
+        uploadedUrls = await uploadLocalMultiple(filesToUpload);
       }
 
       const media = mediaUrls.map((m) => ({
@@ -242,33 +242,7 @@ export default function AdvertPage() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
-
-              {/* PRICE INFO */}
-              <div className="rounded-xl border bg-green-50 p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{t("pricePerDay")}</span>
-                  <span className="font-semibold text-green-700">
-                    {PRICE_PER_DAY.toLocaleString()} {t("vnd")}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span>{t("numberOfDays")}</span>
-                  <span className="font-semibold">
-                    {totalDays > 0 ? `${totalDays} ${t("days")}` : "--"}
-                  </span>
-                </div>
-
-                <div className="border-t pt-2 flex justify-between">
-                  <span className="font-semibold">{t("totalPrice")}</span>
-                  <span className="font-bold text-green-700 text-lg">
-                    {totalDays > 0
-                      ? `${totalPrice.toLocaleString()} ${t("vnd")}`
-                      : "--"}
-                  </span>
-                </div>
-              </div>
-
+              
               {/* Upload */}
               <label className="flex items-center justify-center border-2 border-dashed rounded-lg p-4 cursor-pointer hover:border-green-500">
                 <Upload className="w-5 h-5 mr-2" />
@@ -281,6 +255,67 @@ export default function AdvertPage() {
                   onChange={handleFileUpload}
                 />
               </label>
+
+              {/* Media list */}
+              {mediaUrls.length > 0 && (
+                <div className="space-y-2">
+                  {mediaUrls.map((m, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between bg-gray-50 border rounded px-3 py-2 text-sm"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        {m.type === "IMAGE" ? (
+                          <Image className="w-4 h-4" />
+                        ) : (
+                          <Video className="w-4 h-4" />
+                        )}
+                        <span className="truncate">
+                          {m.file?.name || "Media"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveMedia(i)}
+                        className="text-red-500"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ================= PRICE INFO ================= */}
+              <div className="rounded-xl border bg-green-50 p-4 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{t("pricePerDay")}</span>
+                  <span className="font-semibold text-green-700">
+                    20,000 {t("vnd")}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{t("numberOfDays")}</span>
+                  <span className="font-semibold">
+                    {calculateTotalDays() > 0
+                      ? `${calculateTotalDays()} ${t("days")}`
+                      : "--"}
+                  </span>
+                </div>
+
+                <div className="border-t pt-2 flex items-center justify-between">
+                  <span className="font-semibold text-gray-900">
+                    {t("totalPrice")}
+                  </span>
+                  <span className="font-bold text-green-700 text-lg">
+                    {calculateTotalDays() > 0
+                      ? (20000 * calculateTotalDays()).toLocaleString() +
+                        " " +
+                        t("vnd")
+                      : "--"}
+                  </span>
+                </div>
+              </div>
 
               <button
                 onClick={handleSubmit}
