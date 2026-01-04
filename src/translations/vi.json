@@ -129,7 +129,7 @@
     "createYourFirstAdvert": "Hãy tạo quảng cáo đầu tiên của bạn ngay bây giờ.",
     "createNewAdvert": "Tạo quảng cáo mới",
     "previewAdvert": "Xem trước quảng cáo",
-     "createAdvert": "Tạo quảng cáo",
+    "createAdvert": "Tạo quảng cáo",
     "previewAdvertExact": "Xem trước quảng cáo bạn đang tạo",
     "backToList": "Quay lại danh sách",
     "advertInformation": "Thông tin quảng cáo",
@@ -439,7 +439,10 @@
     "createReelError": "Tạo reel thất bại",
     "reels": "Reels",
     "noReels": "Chưa có reel nào. Hãy tạo reel đầu tiên của bạn ngay bây giờ!",
-    "you": "Bạn"
+    "you": "Bạn",
+    "empty": "No videos available",
+    "noMore": "No more videos",
+    "views": "views"
   },
   "chat": {
     "callingUser": "Đang gọi",

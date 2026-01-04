@@ -62,7 +62,7 @@ export default function SignIn() {
       toast.success("Welcome back!");
       router.push("/");
     } catch (err: any) {
-      toast.error(err.message || "Login failed");
+      console.log("Login failed");
     } finally {
       setSubmitting(false);
     }

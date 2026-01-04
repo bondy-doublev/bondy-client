@@ -31,9 +31,18 @@ const processQueue = (error: any, token: string | null = null) => {
 
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+
+  if (config.headers) {
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (apiKey) {
+      config.headers["x-api-key"] = apiKey;
+    }
   }
+
   return config;
 });
 
@@ -41,6 +50,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -48,6 +58,7 @@ api.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         }).then((token: string) => {
           originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers["x-api-key"] = apiKey;
           return api(originalRequest);
         });
       }
@@ -57,11 +68,23 @@ api.interceptors.response.use(
 
       try {
         // Gửi refresh_token qua body
-        const res = await api.post("/auth/refresh", {});
-        const newAccessToken = res.data.accessToken;
+        const res = await api.post(
+          "/auth/refresh",
+          {},
+          {
+            headers: {
+              "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+            },
+          }
+        );
+
+        console.log("refresh res: ", res);
+
+        const newAccessToken = res.data.data.accessToken;
         setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers["x-api-key"] = apiKey;
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);

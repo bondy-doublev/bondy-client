@@ -6,8 +6,6 @@ import {
 } from "@/types/request";
 import { AdvertRequestResponse } from "@/types/response";
 
-const BASE = `${process.env.NEXT_PUBLIC_API_URL}/advert`;
-
 type AppApiResponse<T> = {
   code?: number;
   message?: string;
@@ -20,7 +18,7 @@ export const advertService = {
     req: CreateAdvertRequest
   ): Promise<AdvertRequestResponse | null> {
     try {
-      const res = await api.post(BASE, req);
+      const res = await api.post("/advert", req);
       return res.data;
     } catch (error: any) {
       console.error("Create Advert Request Error:", error);
@@ -35,11 +33,11 @@ export const advertService = {
   async getById(advertId: number): Promise<AdvertRequestResponse | null> {
     try {
       const res = await api.get<AppApiResponse<AdvertRequestResponse>>(
-        `${BASE}/${advertId}`
+        `/advert/${advertId}`
       );
 
-      // backend của bạn trả thẳng entity → không bọc data
-      return (res.data as any).data ?? res.data;
+      // backend có thể trả bọc hoặc không bọc data
+      return (res.data as any).data ?? (res.data as any);
     } catch (error: any) {
       console.error("Get Advert By ID Error:", error);
       Toast.error(error?.response?.data?.message || "Failed to load advert");
@@ -48,9 +46,11 @@ export const advertService = {
   },
 
   // ---------------- GET MY REQUESTS ----------------
-  async getMyRequests(userId: number): Promise<any> {
+  async getMyRequests(userId: number): Promise<any[]> {
     try {
-      const res = await api.get(`${BASE}/me?userId=${userId}`);
+      const res = await api.get(`/advert/me`, {
+        params: { userId },
+      });
       return res.data || [];
     } catch (error: any) {
       console.error("Get My Advert Requests Error:", error);
@@ -64,7 +64,7 @@ export const advertService = {
   // ---------------- GET ALL REQUESTS (ADMIN) ----------------
   async getAllRequests(): Promise<any> {
     try {
-      const res = await api.get(BASE);
+      const res = await api.get("/advert");
       return res.data;
     } catch (error: any) {
       console.error("Get All Advert Requests Error:", error);
@@ -82,7 +82,7 @@ export const advertService = {
   ): Promise<AdvertRequestResponse | null> {
     try {
       const res = await api.patch<AppApiResponse<AdvertRequestResponse>>(
-        `${BASE}/${advertId}/status`,
+        `/advert/${advertId}/status`,
         { status }
       );
       return res.data.data;
@@ -95,12 +95,17 @@ export const advertService = {
     }
   },
 
-  async getActiveAdverts() {
+  // ---------------- GET ACTIVE ADVERTS ----------------
+  async getActiveAdverts(): Promise<any[]> {
     try {
-      const response = await api.get(`${BASE}/active`);
-      return response.data;
-    } catch {
-      throw new Error("Failed to fetch active adverts");
+      const res = await api.get("/advert/active");
+      return res.data || [];
+    } catch (error: any) {
+      console.error("Get Active Adverts Error:", error);
+      Toast.error(
+        error?.response?.data?.message || "Failed to load active adverts"
+      );
+      return [];
     }
   },
 };
