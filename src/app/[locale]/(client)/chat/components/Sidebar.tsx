@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { userService } from "@/services/userService";
 import { useTranslations } from "use-intl";
-import { Search, Plus, Users, MessageCircle } from "lucide-react";
+import { Search, Plus, Users, MessageCircle, X } from "lucide-react";
 import { resolveFileUrl } from "@/utils/fileUrl";
 
 interface SidebarProps {
@@ -17,9 +17,15 @@ interface SidebarProps {
   onSelectRoom: (room: any) => void;
   onOpenDialog: () => void;
   currentUserId?: number;
+  // new
+  onClose?: () => void;
+  // allow external classes for sliding/transitions/positioning
+  className?: string;
+  // if it's being shown as overlay (mobile/tablet slide-in)
+  isOverlay?: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
+export const Sidebar: React.FC<SidebarProps> = ({
   className,
   tab,
   setTab,
@@ -28,6 +34,8 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
   onSelectRoom,
   onOpenDialog,
   currentUserId,
+  onClose,
+  isOverlay = false,
 }) => {
   const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
           });
       }
     });
-  }, [conversations, currentUserId]);
+  }, [conversations, currentUserId, senderNames, t]);
 
   // Filter conversations based on search
   const filteredConversations = useMemo(() => {
@@ -96,49 +104,67 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
       className={`w-full md:w-[400px] border-r border-gray-200 bg-white flex flex-col ${
         className || ""
       }`}
+      role="complementary"
     >
       {/* Header */}
-      <div className="p-4 border-b bg-gradient-to-r from-green-50 to-white shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-green-600" />
-            {t("messages")}
-          </h2>
-          <Button
-            onClick={onOpenDialog}
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full w-9 h-9 p-0 flex items-center justify-center shadow-md"
-            title={tab === "personal" ? t("newChat") : t("newGroup")}
+      <div className="p-4 border-b bg-gradient-to-r from-green-50 to-white shrink-0 flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+              {t("messages")}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={onOpenDialog}
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full w-9 h-9 p-0 flex items-center justify-center shadow-md"
+                title={tab === "personal" ? t("newChat") : t("newGroup")}
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+              {/* Close button shown when overlay (mobile/tablet slide-in) */}
+              {isOverlay && onClose && (
+                <button
+                  aria-label="Close sidebar"
+                  onClick={onClose}
+                  className="ml-2 p-2 rounded-full hover:bg-gray-100 text-gray-600"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Tab Switch */}
+          <Tabs
+            value={tab}
+            onValueChange={(v) => setTab(v as "personal" | "group")}
+            className="w-full"
           >
-            <Plus className="w-5 h-5" />
-          </Button>
+            <TabsList className="w-full grid grid-cols-2 bg-gray-100 p-1 rounded-full h-9">
+              <TabsTrigger
+                value="personal"
+                className="rounded-full text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm"
+              >
+                <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+                {t("personal")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="group"
+                className="rounded-full text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm"
+              >
+                <Users className="w-3.5 h-3.5 mr-1.5" />
+                {t("group")}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+      </div>
 
-        {/* Tab Switch */}
-        <Tabs
-          value={tab}
-          onValueChange={(v) => setTab(v as "personal" | "group")}
-          className="w-full"
-        >
-          <TabsList className="w-full grid grid-cols-2 bg-gray-100 p-1 rounded-full h-9">
-            <TabsTrigger
-              value="personal"
-              className="rounded-full text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm"
-            >
-              <MessageCircle className="w-3. 5 h-3.5 mr-1.5" />
-              {t("personal")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="group"
-              className="rounded-full text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm"
-            >
-              <Users className="w-3.5 h-3.5 mr-1.5" />
-              {t("group")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Search Bar */}
-        <div className="relative mt-3">
+      {/* Search Bar */}
+      <div className="p-4 border-b">
+        <div className="relative mt-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -193,16 +219,20 @@ export const Sidebar: React.FC<SidebarProps & { className?: string }> = ({
               const avatarUrl =
                 tab === "personal" ? r.avatarUrl : r.avatar || null;
               const displayName = tab === "personal" ? r.displayName : r.name;
-              const fallbackLetter = displayName?.[0]?.toUpperCase() || "? ";
+              const fallbackLetter = displayName?.[0]?.toUpperCase() || "?";
 
               return (
                 <li key={r.id || index}>
                   <button
-                    onClick={() => onSelectRoom(r)}
+                    onClick={() => {
+                      onSelectRoom(r);
+                      // if overlay, close sidebar after selecting (common mobile/tablet UX)
+                      if (isOverlay && onClose) onClose();
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 transition-colors relative ${
                       selectedRoomId === r.id
                         ? "bg-green-50 border-l-4 border-green-600"
-                        : "hover: bg-gray-50"
+                        : "hover:bg-gray-50"
                     }`}
                   >
                     {/* Avatar */}
