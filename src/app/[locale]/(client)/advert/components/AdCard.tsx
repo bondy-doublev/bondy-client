@@ -114,7 +114,7 @@ export default function AdCard({
             >
               {advert.userAvatar ? (
                 <img
-                  src={advert.userAvatar}
+                  src={resolveFileUrl(advert.userAvatar)}
                   alt={advert.accountName}
                   className="w-12 h-12 rounded-full object-cover border-2 border-white/50 shadow-lg"
                 />
@@ -137,7 +137,7 @@ export default function AdCard({
             <div className="relative max-w-full max-h-full">
               {advert.media[currentMediaIndex].type === "IMAGE" ? (
                 <img
-                  src={advert.media[currentMediaIndex].url}
+                  src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                   alt={advert.title}
                   className="max-w-full max-h-[calc(100vh-200px)] object-contain rounded-2xl shadow-2xl"
                 />
@@ -227,7 +227,7 @@ export default function AdCard({
               >
                 {advert.userAvatar ? (
                   <img
-                    src={advert.userAvatar}
+                    src={resolveFileUrl(advert.userAvatar)}
                     alt={advert.accountName}
                     className="w-10 h-10 rounded-full object-cover border border-white/50"
                   />
@@ -253,7 +253,7 @@ export default function AdCard({
           <>
             {advert.media[currentMediaIndex].type === "IMAGE" ? (
               <img
-                src={advert.media[currentMediaIndex].url}
+                src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                 alt={advert.title}
                 className="w-full h-full object-cover"
               />
@@ -313,7 +313,7 @@ export default function AdCard({
             <div className="flex items-center gap-3 min-w-0">
               {advert.userAvatar && (
                 <img
-                  src={advert.userAvatar}
+                  src={resolveFileUrl(advert.userAvatar)}
                   alt={advert.accountName}
                   className="w-10 h-10 rounded-full object-cover"
                 />
