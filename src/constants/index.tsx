@@ -1,7 +1,8 @@
-import { Home, Video, Send, Gamepad, Megaphone } from "lucide-react";
+import { Home, Video, Send, Gamepad, Megaphone, Users } from "lucide-react";
 
 export const SIDEBAR_ITEMS = [
   { id: "home", href: "/", label: "Home", icon: <Home /> },
+  { id: "friends", href: "/friends", label: "Friends", icon: <Users /> },
   { id: "reels", href: "/reels", label: "Reels", icon: <Video /> },
   { id: "chat", href: "/chat", label: "Chat", icon: <Send /> },
   { id: "advert", href: "/advert/list", label: "Advert", icon: <Megaphone /> },
