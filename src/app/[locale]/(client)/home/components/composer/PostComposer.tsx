@@ -5,7 +5,6 @@ import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultA
 import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/PostComposerModal";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Plus } from "lucide-react";
-import User from "@/models/User";
 
 export default function PostComposer({
   onPostCreated,
@@ -20,7 +19,31 @@ export default function PostComposer({
   const placeholder = user?.firstName + ", " + t("message");
 
   return (
-    <div className="bg-white rounded-xl shadow">
+    <div className="bg-white shadow rounded-xl">
+      {/* <div className="flex items-center gap-3 p-4">
+        {user?.avatarUrl ? (
+          <UserAvatar userId={user.id} avatarUrl={user?.avatarUrl} />
+        ) : (
+          <DefaultAvatar userId={user!.id ?? ""} firstName={user?.firstName} />
+        )}
+
+        <input
+          readOnly
+          type="text"
+          placeholder={placeholder}
+          className="flex-1 px-4 py-2 text-sm bg-gray-100 rounded-full outline-none cursor-pointer hover:bg-gray-200"
+          onClick={() => setShowModal(true)}
+        />
+        <div className="flex gap-2">
+          <button
+            className="p-2 transition rounded-3xl hover:bg-gray-100"
+            onClick={() => setShowModal(true)}
+          >
+            <Plus color="blue" size={24} />
+          </button>
+        </div>
+      </div> */}
+
       <div className="flex items-center gap-3 p-4">
         {user?.avatarUrl ? (
           <UserAvatar userId={user.id} avatarUrl={user?.avatarUrl} />
@@ -32,17 +55,16 @@ export default function PostComposer({
           readOnly
           type="text"
           placeholder={placeholder}
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2 outline-none text-sm hover:bg-gray-200 cursor-pointer"
+          className="flex-1 min-w-0 px-4 py-2 text-sm bg-gray-100 rounded-full outline-none cursor-pointer hover:bg-gray-200"
           onClick={() => setShowModal(true)}
         />
-        <div className="flex gap-2">
-          <button
-            className="p-2 rounded-3xl hover:bg-gray-100 transition"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus color="blue" size={24} />
-          </button>
-        </div>
+
+        <button
+          className="flex-shrink-0 p-2 transition rounded-3xl hover:bg-gray-100"
+          onClick={() => setShowModal(true)}
+        >
+          <Plus color="blue" size={24} />
+        </button>
       </div>
 
       {showModal === true && (

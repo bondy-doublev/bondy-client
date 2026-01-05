@@ -84,7 +84,115 @@
     "confirmPassword": "Confirm Password",
     "note": "New password must have at least 8 characters",
     "reset": "Reset",
-    "passwordResetSuccess": "Your password has been reset successfully."
+    "passwordResetSuccess": "Your password has been reset successfully.",
+    "joinTitle": "Join Bondy!",
+    "joinSubtitle": "Start your journey with our amazing community",
+
+    "quickSetupTitle": "Quick & Easy Setup",
+    "quickSetupDesc": "Create your account in just a few simple steps",
+
+    "stayConnectedTitle": "Stay Connected",
+    "stayConnectedDesc": "Connect with friends and discover new content daily",
+
+    "secureTitle": "Secure & Private",
+    "secureDesc": "Your data is encrypted and protected with industry-standard security",
+
+    "premiumTitle": "Premium Features",
+    "premiumDesc": "Access exclusive features and customize your experience",
+
+    "signUpDesc": "Create your account to get started",
+
+    "passwordMin": "Password must be at least 8 characters",
+    "passwordStrong": "✓ Password strength: Good",
+
+    "agreePrefix": "I agree to the",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "and": "and",
+
+    "welcomeBackTitle": "Welcome Back!",
+    "welcomeBackSubtitle": "Sign in to continue your journey with Bondy",
+
+    "quickAccessTitle": "Quick Access",
+    "quickAccessDesc": "Sign in with your email or use social login for instant access",
+
+    "stayUpdatedTitle": "Stay Updated",
+    "stayUpdatedDesc": "See what your friends are sharing and discover new content",
+
+    "secureLoginTitle": "Secure Login",
+    "secureLoginDesc": "Your credentials are protected with end-to-end encryption",
+
+    "communityTitle": "Community Awaits",
+    "communityDesc": "Reconnect with your community and share your moments",
+
+    "newToBondy": "New to Bondy?",
+    "createAccount": "Create an account",
+
+    "signInDesc": "Enter your credentials to access your account",
+
+    "passwordRange": "Password must be 8–24 characters",
+
+    "welcomeBackToast": "Welcome back!",
+
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordSubtitle": "Don't worry! It happens. Follow these steps to reset your password.",
+
+    "step1Title": "Step 1: Email Verification",
+    "step1Desc": "Enter your email to receive a verification code",
+
+    "step2Title": "Step 2: Enter OTP Code",
+    "step2Desc": "Verify the 6-digit code sent to your email",
+
+    "step3Title": "Step 3: Create New Password",
+    "step3Desc": "Set a strong password for your account",
+
+    "backHome": "Back to Home",
+    "rememberPassword": "Remember your password?",
+
+    "sendOtp": "Send OTP Code",
+    "otpSent": "OTP code has been sent to your email",
+    "otpLength": "OTP must be 6 digits",
+
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+
+    "passwordMismatch": "Passwords do not match",
+
+    "continue": "Continue",
+    "back": "Back",
+
+    "additionalInfoDesc": "Just a few more details to get started",
+
+    "processing": "Processing...",
+
+    "welcomeToBondy": "Welcome to Bondy!",
+    "joinCommunity": "Join our community and connect with amazing people",
+
+    "createProfileTitle": "Create your profile",
+    "createProfileDesc": "Tell us about yourself to personalize your experience",
+
+    "verifyEmailTitle": "Verify your email",
+    "verifyEmailSubtitle": "Enter the code we sent to your email",
+    "verifyEmailDesc": "We will send a verification code to your email",
+
+    "privacyTitle": "Your privacy matters",
+    "privacyDesc": "Your information is secure and will never be shared",
+
+    "alreadyHaveAccount": "Already have an account?",
+
+    "datePlaceholder": "DD/MM/YYYY",
+    "ageLimitNote": "You must be at least 13 years old to register",
+
+    "otpPlaceholder": "000000",
+    "otpSentDesc": "We sent a verification code to",
+    "verifying": "Verifying...",
+    "verifyComplete": "Verify & Complete",
+
+    "resend": "Resend",
+    "resendQuestion": "Didn't receive the code?",
+
+    "registerInitSuccess": "Registration successful! Please check your email for the verification code.",
+    "registerComplete": "Registration completed successfully!"
   },
   "navbar": {
     "signIn": "Sign In",
@@ -444,8 +552,7 @@
     "reels": "Reels",
     "you": "You",
     "empty": "No videos available",
-    "noMore": "No more videos",
-    "views": "views"
+    "noMore": "No more videos"
   },
   "chat": {
     "callingUser": "Calling",
@@ -565,5 +672,46 @@
     "harassment": "Harassment / bullying",
     "spamUser": "Spam / unwanted contact",
     "inappropriateProfile": "Inappropriate profile"
+  },
+  "profile": {
+    "title": "Profile Information",
+
+    "actions": {
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+
+    "avatar": {
+      "change": "Change"
+    },
+
+    "fields": {
+      "email": "Email",
+      "firstName": "First Name",
+      "middleName": "Middle Name",
+      "lastName": "Last Name",
+      "dob": "Date of Birth",
+      "gender": "Gender"
+    },
+
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+
+    "placeholders": {
+      "gender": "Select gender"
+    },
+
+    "toast": {
+      "updateSuccess": "Profile updated successfully!",
+      "updateError": "Failed to update profile"
+    },
+
+    "empty": {
+      "noData": "No data found"
+    }
   }
 }

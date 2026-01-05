@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 import { userService } from "@/services/userService";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,6 @@ import { useAuthStore } from "@/store/authStore";
 type ProfileFormProps = {
   userInfo: any;
   isOwner: boolean;
-  // cho phép parent cập nhật lại state bên ngoài sau khi save (optional)
   onUserInfoChange?: (user: any) => void;
 };
 
@@ -31,6 +31,8 @@ export default function ProfileForm({
   isOwner,
   onUserInfoChange,
 }: ProfileFormProps) {
+  const t = useTranslations("profile");
+
   const [formData, setFormData] = useState<any>(userInfo);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -38,15 +40,12 @@ export default function ProfileForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { setUser } = useAuthStore();
-
   const canEdit = isOwner;
 
-  // sync lại khi props.userInfo thay đổi (VD: khi reload từ parent)
   useEffect(() => {
     setFormData(userInfo);
   }, [userInfo]);
 
-  // Nếu không phải chính chủ thì chắc chắn không được edit
   useEffect(() => {
     if (!canEdit && isEditing) {
       setIsEditing(false);
@@ -76,19 +75,17 @@ export default function ProfileForm({
         firstName: formData.firstName,
         middleName: formData.middleName,
         lastName: formData.lastName,
-        dob: dobValue, // 👈 FIX
+        dob: dobValue,
         gender: formData.gender,
       });
 
       setUser(res.data);
 
-      toast.success("Profile updated successfully!");
+      toast.success(t("toast.updateSuccess"));
       setIsEditing(false);
-
-      // cập nhật lại ra parent nếu cần
       onUserInfoChange?.(formData);
     } catch {
-      toast.error("Failed to update profile");
+      toast.error(t("toast.updateError"));
     } finally {
       setSaving(false);
     }
@@ -114,20 +111,20 @@ export default function ProfileForm({
   };
 
   if (!formData) {
-    return <p className="text-center text-gray-500">No data found</p>;
+    return <p className="text-center text-gray-500">{t("empty.noData")}</p>;
   }
 
   return (
     <div className="flex justify-center">
-      <div className="w-full bg-white rounded-2xl p-8">
+      <div className="w-full p-8 bg-white rounded-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Profile Information</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold">{t("title")}</h2>
 
           {canEdit &&
             (!isEditing ? (
               <Button variant="outline" onClick={() => setIsEditing(true)}>
-                Edit
+                {t("actions.edit")}
               </Button>
             ) : (
               <div className="flex gap-2">
@@ -135,14 +132,14 @@ export default function ProfileForm({
                   variant="secondary"
                   onClick={() => {
                     setIsEditing(false);
-                    setFormData(userInfo); // revert về data cũ
+                    setFormData(userInfo);
                     setAvatarFile(null);
                   }}
                 >
-                  Cancel
+                  {t("actions.cancel")}
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
+                  {saving ? t("actions.saving") : t("actions.save")}
                 </Button>
               </div>
             ))}
@@ -170,11 +167,12 @@ export default function ProfileForm({
             )}
 
             {canEdit && isEditing && (
-              <div className="absolute inset-0 bg-black/40 text-white text-sm flex items-center justify-center">
-                Change
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-white bg-black/40">
+                {t("avatar.change")}
               </div>
             )}
           </div>
+
           <input
             type="file"
             accept="image/*"
@@ -186,14 +184,14 @@ export default function ProfileForm({
 
         {/* Email */}
         <div className="mb-4">
-          <Label>Email</Label>
+          <Label>{t("fields.email")}</Label>
           <Input value={formData.email} disabled />
         </div>
 
-        {/* Name row */}
+        {/* Name */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
-            <Label>First Name</Label>
+            <Label>{t("fields.firstName")}</Label>
             <Input
               value={formData.firstName || ""}
               onChange={(e) => handleChange("firstName", e.target.value)}
@@ -201,7 +199,7 @@ export default function ProfileForm({
             />
           </div>
           <div>
-            <Label>Middle Name</Label>
+            <Label>{t("fields.middleName")}</Label>
             <Input
               value={formData.middleName || ""}
               onChange={(e) => handleChange("middleName", e.target.value)}
@@ -209,7 +207,7 @@ export default function ProfileForm({
             />
           </div>
           <div>
-            <Label>Last Name</Label>
+            <Label>{t("fields.lastName")}</Label>
             <Input
               value={formData.lastName || ""}
               onChange={(e) => handleChange("lastName", e.target.value)}
@@ -221,18 +219,18 @@ export default function ProfileForm({
         {/* DOB + Gender */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label>Date of Birth</Label>
+            <Label>{t("fields.dob")}</Label>
             <Input
               type="date"
               value={formData.dob ? String(formData.dob).split("T")[0] : ""}
-              max={new Date().toISOString().split("T")[0]} // 🚫 không chọn được ngày mai
+              max={new Date().toISOString().split("T")[0]}
               onChange={(e) => handleChange("dob", e.target.value)}
               disabled={!canEdit || !isEditing}
             />
           </div>
 
           <div>
-            <Label>Gender</Label>
+            <Label>{t("fields.gender")}</Label>
             <Select
               value={
                 formData.gender === true
@@ -241,17 +239,15 @@ export default function ProfileForm({
                   ? "false"
                   : ""
               }
-              onValueChange={(v: string) =>
-                handleChange("gender", v === "true")
-              }
+              onValueChange={(v) => handleChange("gender", v === "true")}
               disabled={!canEdit || !isEditing}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select gender" />
+                <SelectValue placeholder={t("placeholders.gender")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="true">Male</SelectItem>
-                <SelectItem value="false">Female</SelectItem>
+                <SelectItem value="true">{t("gender.male")}</SelectItem>
+                <SelectItem value="false">{t("gender.female")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

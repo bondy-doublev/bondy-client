@@ -77,12 +77,10 @@ export default function SignUp() {
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900">
-                  Join Bondy!
+                  {t("joinTitle")}
                 </h1>
               </div>
-              <p className="text-gray-600 text-lg">
-                Start your journey with our amazing community
-              </p>
+              <p className="text-gray-600 text-lg">{t("joinSubtitle")}</p>
             </div>
 
             <div className="space-y-4">
@@ -92,11 +90,9 @@ export default function SignUp() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Quick & Easy Setup
+                    {t("quickSetupTitle")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Create your account in just a few simple steps
-                  </p>
+                  <p className="text-sm text-gray-600">{t("quickSetupDesc")}</p>
                 </div>
               </div>
 
@@ -106,10 +102,10 @@ export default function SignUp() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Stay Connected
+                    {t("stayConnectedTitle")}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Connect with friends and discover new content daily
+                    {t("stayConnectedDesc")}
                   </p>
                 </div>
               </div>
@@ -120,12 +116,9 @@ export default function SignUp() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Secure & Private
+                    {t("secureTitle")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Your data is encrypted and protected with industry-standard
-                    security
-                  </p>
+                  <p className="text-sm text-gray-600">{t("secureDesc")}</p>
                 </div>
               </div>
 
@@ -135,23 +128,21 @@ export default function SignUp() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Premium Features
+                    {t("premiumTitle")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Access exclusive features and customize your experience
-                  </p>
+                  <p className="text-sm text-gray-600">{t("premiumDesc")}</p>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                Already have an account?{" "}
+                {t("alreadyAccount")}{" "}
                 <Link
                   href="/signin"
                   className="text-green-600 hover:text-green-700 font-semibold"
                 >
-                  Sign in
+                  {t("signIn")}
                 </Link>
               </p>
             </div>
@@ -170,7 +161,7 @@ export default function SignUp() {
                 {t("signUp")}
               </CardTitle>
               <p className="text-center text-sm text-gray-500">
-                Create your account to get started
+                {t("signUpDesc")}
               </p>
             </CardHeader>
 
@@ -232,7 +223,7 @@ export default function SignUp() {
                   />
                   {email && !isEmailValid && (
                     <p className="text-xs text-red-500 mt-1">
-                      Please enter a valid email address
+                      {t("invalidEmail")}
                     </p>
                   )}
                 </div>
@@ -271,12 +262,13 @@ export default function SignUp() {
                   </div>
                   {password && !isPasswordValid && (
                     <p className="text-xs text-red-500 mt-1">
-                      Password must be at least 8 characters
+                      {t("passwordMin")}
                     </p>
                   )}
+
                   {password && isPasswordValid && (
                     <p className="text-xs text-green-600 mt-1">
-                      ✓ Password strength: Good
+                      {t("passwordStrong")}
                     </p>
                   )}
                 </div>
@@ -292,21 +284,21 @@ export default function SignUp() {
                     />
                     <Label
                       htmlFor="agree"
-                      className="text-sm text-gray-600 cursor-pointer leading-relaxed"
+                      className="text-sm text-gray-600 cursor-pointer"
                     >
-                      I agree to the{" "}
+                      {t("agreePrefix")}{" "}
                       <Link
                         href="/terms"
-                        className="text-green-600 hover:text-green-700 font-medium"
+                        className="text-green-600 font-medium"
                       >
-                        Terms of Service
+                        {t("terms")}
                       </Link>{" "}
-                      and{" "}
+                      {t("and")}{" "}
                       <Link
                         href="/privacy"
-                        className="text-green-600 hover:text-green-700 font-medium"
+                        className="text-green-600 font-medium"
                       >
-                        Privacy Policy
+                        {t("privacy")}
                       </Link>
                     </Label>
                   </div>
@@ -321,7 +313,7 @@ export default function SignUp() {
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Creating account...
+                      {t("signingUp")}
                     </span>
                   ) : (
                     t("nextStep")

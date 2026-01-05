@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 import User from "@/models/User";
 import { userService } from "@/services/userService";
+import Loader from "@/app/components/ui/loader/Loader";
 
 export default function WallLayout({
   children,
@@ -46,11 +47,7 @@ export default function WallLayout({
   }, [userId]);
 
   if (loading || !userInfo) {
-    return (
-      <div className="flex justify-center items-center h-40 text-gray-500">
-        {t("loading") ?? "Đang tải..."}
-      </div>
-    );
+    return <Loader loading={loading || !userInfo} type="success"></Loader>;
   }
 
   return (
@@ -59,9 +56,9 @@ export default function WallLayout({
       <WallHeader wallUser={userInfo} />
 
       {/* ✅ Mini Navbar */}
-      <div className="px-4 w-full">
+      <div className="w-full px-4">
         <div className="w-full border-b">
-          <div className="flex gap-6 py-2 text-sm font-medium overflow-x-auto">
+          <div className="flex gap-6 py-2 overflow-x-auto text-sm font-medium">
             {tabs.map((tab) => {
               const active = pathnameWithoutLocale === tab.href;
 

@@ -12,6 +12,7 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 import { reelService } from "@/services/reelService";
 import { ReelAction } from "@/app/[locale]/(client)/home/components/reel/VisibleReels";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import { useTranslations } from "next-intl";
 
 interface ReelResponse {
   id: number;
@@ -40,6 +41,7 @@ export default function ReelViewModal({
   onOpenEdit,
   onMarkViewdOrRead,
 }: ReelViewModalProps) {
+  const t = useTranslations("reel");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -160,14 +162,14 @@ export default function ReelViewModal({
         }}
       >
         {/* Progress bars */}
-        <div className="absolute top-2 left-3 right-3 flex gap-1 z-20">
+        <div className="absolute z-20 flex gap-1 top-2 left-3 right-3">
           {initialReels.map((reel, idx) => (
             <div
               key={reel.id}
-              className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden"
+              className="flex-1 h-1 overflow-hidden rounded-full bg-white/30"
             >
               <div
-                className="h-full bg-white transition-all duration-100 ease-linear"
+                className="h-full transition-all duration-100 ease-linear bg-white"
                 style={{
                   width: `${
                     idx < currentIndex
@@ -183,7 +185,7 @@ export default function ReelViewModal({
         </div>
 
         {/* Header */}
-        <div className="absolute top-8 left-4 right-4 flex items-start justify-between z-20">
+        <div className="absolute z-20 flex items-start justify-between top-8 left-4 right-4">
           <div className="flex items-center gap-3">
             <img
               src={
@@ -191,10 +193,10 @@ export default function ReelViewModal({
                 "/images/fallback/user.png"
               }
               alt={currentReel?.owner?.fullName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
+              className="object-cover w-10 h-10 border-2 border-white rounded-full shadow-lg"
             />
             <div>
-              <span className="font-semibold text-white text-sm drop-shadow-lg">
+              <span className="text-sm font-semibold text-white drop-shadow-lg">
                 {currentReel?.owner?.fullName}
               </span>
               <div className="flex items-center justify-start">
@@ -207,7 +209,7 @@ export default function ReelViewModal({
                 {currentReel?.visibilityType === "CUSTOM" && (
                   <Users size={16} className="text-white" />
                 )}
-                <p className="text-white/80 text-xs drop-shadow-lg ml-2">
+                <p className="ml-2 text-xs text-white/80 drop-shadow-lg">
                   {new Date(currentReel?.createdAt).toLocaleDateString("vi-VN")}
                 </p>
               </div>
@@ -233,7 +235,7 @@ export default function ReelViewModal({
         </div>
 
         {/* ===== VIDEO WRAPPER (FIX CHE HEADER) ===== */}
-        <div className="flex-1 relative min-h-0 pt-24">
+        <div className="relative flex-1 min-h-0 pt-24">
           <video
             ref={videoRef}
             key={currentReel?.id}
@@ -247,12 +249,12 @@ export default function ReelViewModal({
               setIsPlaying(!isPlaying);
             }}
             playsInline
-            className="w-full h-full object-contain"
+            className="object-contain w-full h-full"
           />
 
           {/* Click vùng trái/phải để next/prev */}
           <div
-            className="absolute inset-0 flex items-center justify-between z-10"
+            className="absolute inset-0 z-10 flex items-center justify-between"
             onClick={handleNavigationClick}
           >
             <div
@@ -271,8 +273,8 @@ export default function ReelViewModal({
 
           {/* Play overlay */}
           {!isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-              <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center text-white">
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+              <div className="flex items-center justify-center w-16 h-16 text-white rounded-full bg-black/50">
                 <svg
                   width="32"
                   height="32"
@@ -287,10 +289,12 @@ export default function ReelViewModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 flex justify-between items-center bg-black/10 z-20 relative">
+        <div className="relative z-20 flex items-center justify-between p-4 bg-black/10">
           <div className="flex items-center gap-2 text-sm text-white drop-shadow-lg">
             <Eye size={16} />
-            <span>{currentReel?.viewCount} lượt xem</span>
+            <span>
+              {currentReel?.viewCount} {t("views")}
+            </span>
           </div>
           <span className="text-xs font-medium text-white/80">
             {currentIndex + 1} / {initialReels.length}
