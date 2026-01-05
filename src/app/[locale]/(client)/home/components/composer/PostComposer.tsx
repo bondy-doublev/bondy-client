@@ -8,42 +8,24 @@ import { Plus } from "lucide-react";
 import User from "@/models/User";
 
 export default function PostComposer({
-  owner,
   onPostCreated,
 }: {
-  owner?: User;
   onPostCreated?: () => void;
 }) {
   const t = useTranslations("post");
-  const [userInfo, setUserInfo] = useState<any>(null);
   const { user } = useAuthStore();
-
-  const handleGetUserInfo = async () => {
-    if (owner) {
-      setUserInfo(owner);
-    } else {
-      setUserInfo(user);
-    }
-  };
 
   const [showModal, setShowModal] = useState(false);
 
   const placeholder = user?.firstName + ", " + t("message");
 
-  useEffect(() => {
-    handleGetUserInfo();
-  }, []);
-
   return (
     <div className="bg-white rounded-xl shadow">
       <div className="flex items-center gap-3 p-4">
-        {userInfo?.avatarUrl ? (
-          <UserAvatar userId={userInfo.id} avatarUrl={userInfo?.avatarUrl} />
+        {user?.avatarUrl ? (
+          <UserAvatar userId={user.id} avatarUrl={user?.avatarUrl} />
         ) : (
-          <DefaultAvatar
-            userId={userInfo?.id ?? ""}
-            firstName={userInfo?.firstName}
-          />
+          <DefaultAvatar userId={user!.id ?? ""} firstName={user?.firstName} />
         )}
 
         <input
