@@ -42,49 +42,165 @@
     "female": "Nữ",
     "other": "Khác",
     "dob": "Ngày sinh",
-    "nextStep": "Bước tiếp theo",
+
+    "nextStep": "Tiếp tục",
     "or": "Hoặc",
-    "addressPlaceholder": "366 Hồ Chí Minh City",
-    "emailPlaceholder": "toi@email.com",
-    "passwordPlaceholder": "******",
-    "agreeTerms": "Tôi đồng ý với điều khoản",
-    "home": "Trang chủ",
-    "signInWithGoogle": "Đăng nhập với Google",
-    "signInWithGithub": "Đăng nhập với Github",
-    "signInWithGoogleCompact": "Với Google",
-    "signInWithDiscordCompact": "Với Discord",
-    "signInWithDiscord": "Đăng nhập với Discord",
+
+    "address": "Địa chỉ",
+    "addressPlaceholder": "366 Hồ Chí Minh, Việt Nam",
+
     "email": "Email",
+    "emailPlaceholder": "ten@email.com",
+
     "password": "Mật khẩu",
-    "rememberMe": "Ghi nhớ tôi",
+    "passwordPlaceholder": "••••••••",
+
+    "rememberMe": "Ghi nhớ đăng nhập",
     "forgotPassword": "Quên mật khẩu?",
+    "forgotPasswordDesc": "Nhập email của bạn để chúng tôi giúp bạn khôi phục mật khẩu.",
+
+    "agreeTerms": "Tôi đồng ý với điều khoản",
+
+    "home": "Trang chủ",
+
     "signIn": "Đăng nhập",
     "signingIn": "Đang đăng nhập...",
-    "noAccount": "Chưa có tài khoản?",
+    "signInDesc": "Nhập thông tin để truy cập tài khoản của bạn",
+
     "signUp": "Đăng ký",
-    "invalidEmail": "Email không hợp lệ",
-    "required": "Mật khẩu tối thiểu 6 ký tự",
-    "serverError": "Đăng nhập thất bại. Vui lòng thử lại.",
-    "address": "Địa chỉ",
-    "alreadyAccount": "Đã có tài khoản?",
     "signingUp": "Đang đăng ký...",
-    "forgotPasswordDesc": "Vui lòng nhập địa chỉ email của bạn để tìm kiếm tài khoản của bạn.",
+    "signUpDesc": "Tạo tài khoản để bắt đầu sử dụng",
+
+    "noAccount": "Chưa có tài khoản?",
+    "alreadyAccount": "Đã có tài khoản?",
+    "newToBondy": "Lần đầu đến với Bondy?",
+    "createAccount": "Tạo tài khoản",
+
+    "signInWithGoogle": "Đăng nhập bằng Google",
+    "signInWithGithub": "Đăng nhập bằng GitHub",
+    "signInWithDiscord": "Đăng nhập bằng Discord",
+    "signInWithGoogleCompact": "Google",
+    "signInWithDiscordCompact": "Discord",
+
+    "invalidEmail": "Email không hợp lệ",
+    "required": "Mật khẩu phải có ít nhất 6 ký tự",
+    "passwordMin": "Mật khẩu phải có ít nhất 8 ký tự",
+    "passwordRange": "Mật khẩu phải có từ 8 đến 24 ký tự",
+    "passwordStrong": "Độ mạnh mật khẩu: Tốt",
+    "passwordMismatch": "Mật khẩu không khớp",
+
+    "serverError": "Có lỗi xảy ra. Vui lòng thử lại sau.",
+
     "sendResetLink": "Gửi",
     "sending": "Đang gửi...",
-    "resetLinkSent": "Liên kết đặt lại đã được gửi tới email của bạn.",
+    "resetLinkSent": "Chúng tôi đã gửi liên kết đặt lại mật khẩu tới email của bạn.",
+
     "verifyOtp": "Xác thực OTP",
-    "otpDesc": "Nhập mã OTP được gửi tới email của bạn.",
-    "otp": "OTP",
-    "verify": "Xác nhận",
-    "otpValid": "OTP hợp lệ.",
-    "otpInvalid": "OTP không hợp lệ.",
+    "otpDesc": "Nhập mã OTP được gửi đến email của bạn.",
+    "otp": "Mã OTP",
+    "otpPlaceholder": "000000",
+    "otpValid": "Mã OTP hợp lệ.",
+    "otpInvalid": "Mã OTP không đúng.",
+    "otpLength": "Mã OTP phải gồm 6 chữ số",
+
     "resetPassword": "Đặt lại mật khẩu",
-    "resetPasswordDesc": "Nhập mật khẩu mới của bạn.",
+    "resetPasswordDesc": "Nhập mật khẩu mới cho tài khoản của bạn.",
     "newPassword": "Mật khẩu mới",
-    "confirmPassword": "Nhập lại mật khẩu mới",
-    "note": "Mật khẩu mới phải có ít nhất 8 ký tự",
+    "newPasswordPlaceholder": "Nhập mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+    "note": "Mật khẩu phải có ít nhất 8 ký tự",
     "reset": "Đặt lại",
-    "passwordResetSuccess": "Mật khẩu của bạn đã được đặt lại thành công."
+    "processing": "Đang xử lý...",
+    "passwordResetSuccess": "Mật khẩu đã được đặt lại thành công.",
+
+    "joinTitle": "Tham gia Bondy!",
+    "joinSubtitle": "Bắt đầu hành trình của bạn cùng cộng đồng Bondy",
+
+    "quickSetupTitle": "Thiết lập nhanh chóng",
+    "quickSetupDesc": "Tạo tài khoản chỉ với vài bước đơn giản",
+
+    "stayConnectedTitle": "Luôn kết nối",
+    "stayConnectedDesc": "Kết nối với bạn bè và khám phá nội dung mới mỗi ngày",
+
+    "secureTitle": "An toàn & Riêng tư",
+    "secureDesc": "Dữ liệu của bạn được bảo vệ bằng tiêu chuẩn bảo mật cao",
+
+    "premiumTitle": "Tính năng nâng cao",
+    "premiumDesc": "Trải nghiệm các tính năng độc quyền và cá nhân hóa",
+
+    "agreePrefix": "Tôi đồng ý với",
+    "terms": "Điều khoản dịch vụ",
+    "privacy": "Chính sách quyền riêng tư",
+    "and": "và",
+
+    "welcomeBackTitle": "Chào mừng quay lại!",
+    "welcomeBackSubtitle": "Đăng nhập để tiếp tục hành trình cùng Bondy",
+
+    "quickAccessTitle": "Truy cập nhanh",
+    "quickAccessDesc": "Đăng nhập bằng email hoặc mạng xã hội để sử dụng ngay",
+
+    "stayUpdatedTitle": "Luôn cập nhật",
+    "stayUpdatedDesc": "Theo dõi hoạt động của bạn bè và khám phá nội dung mới",
+
+    "secureLoginTitle": "Đăng nhập an toàn",
+    "secureLoginDesc": "Thông tin đăng nhập của bạn luôn được mã hóa và bảo vệ",
+
+    "communityTitle": "Cộng đồng đang chờ bạn",
+    "communityDesc": "Kết nối và chia sẻ khoảnh khắc cùng cộng đồng Bondy",
+
+    "welcomeBackToast": "Chào mừng trở lại!",
+
+    "resetPasswordTitle": "Đặt lại mật khẩu",
+    "resetPasswordSubtitle": "Đừng lo lắng! Chỉ cần làm theo các bước dưới đây để đặt lại mật khẩu.",
+
+    "step1Title": "Bước 1: Xác minh email",
+    "step1Desc": "Nhập email để nhận mã xác minh",
+
+    "step2Title": "Bước 2: Nhập mã OTP",
+    "step2Desc": "Xác minh mã gồm 6 chữ số được gửi tới email",
+
+    "step3Title": "Bước 3: Tạo mật khẩu mới",
+    "step3Desc": "Thiết lập mật khẩu mạnh cho tài khoản của bạn",
+
+    "backHome": "Quay về trang chủ",
+    "rememberPassword": "Bạn đã nhớ mật khẩu?",
+
+    "sendOtp": "Gửi mã OTP",
+    "otpSent": "Mã OTP đã được gửi tới email của bạn",
+
+    "continue": "Tiếp tục",
+    "back": "Quay lại",
+
+    "additionalInfoDesc": "Chỉ còn vài thông tin nữa để bắt đầu",
+
+    "welcomeToBondy": "Chào mừng đến với Bondy!",
+    "joinCommunity": "Tham gia cộng đồng và kết nối với những người tuyệt vời",
+
+    "createProfileTitle": "Tạo hồ sơ cá nhân",
+    "createProfileDesc": "Chia sẻ thông tin để cá nhân hóa trải nghiệm của bạn",
+
+    "verifyEmailTitle": "Xác minh email",
+    "verifyEmailSubtitle": "Nhập mã xác nhận đã được gửi tới email của bạn",
+    "verifyEmailDesc": "Chúng tôi sẽ gửi mã xác nhận tới email của bạn",
+
+    "privacyTitle": "Quyền riêng tư của bạn",
+    "privacyDesc": "Thông tin của bạn luôn được bảo mật và không bao giờ bị chia sẻ",
+
+    "alreadyHaveAccount": "Đã có tài khoản?",
+
+    "datePlaceholder": "DD/MM/YYYY",
+    "ageLimitNote": "Bạn phải đủ 13 tuổi trở lên để đăng ký",
+
+    "otpSentDesc": "Chúng tôi đã gửi mã xác nhận tới",
+    "verifying": "Đang xác minh...",
+    "verifyComplete": "Xác minh & Hoàn tất",
+
+    "resend": "Gửi lại",
+    "resendQuestion": "Chưa nhận được mã?",
+
+    "registerInitSuccess": "Đăng ký thành công! Vui lòng kiểm tra email để nhập mã xác nhận.",
+    "registerComplete": "Đăng ký hoàn tất!"
   },
   "navbar": {
     "signIn": "Đăng nhập",
@@ -398,7 +514,6 @@
     "acceptedYourFriendRequest": "đã chấp nhận lời mời kết bạn của bạn"
   },
   "reel": {
-    "views": "lượt xem",
     "createNewReel": "Tạo Reel mới",
     "editReel": "Chỉnh sửa Reel",
     "owner": "Chủ sở hữu",
@@ -563,5 +678,47 @@
     "harassment": "Quấy rối / bắt nạt",
     "spamUser": "Spam / làm phiền",
     "inappropriateProfile": "Trang cá nhân không phù hợp"
+  },
+
+  "profile": {
+    "title": "Thông tin cá nhân",
+
+    "actions": {
+      "edit": "Chỉnh sửa",
+      "cancel": "Huỷ",
+      "save": "Lưu",
+      "saving": "Đang lưu..."
+    },
+
+    "avatar": {
+      "change": "Thay đổi"
+    },
+
+    "fields": {
+      "email": "Email",
+      "firstName": "Tên",
+      "middleName": "Tên đệm",
+      "lastName": "Họ",
+      "dob": "Ngày sinh",
+      "gender": "Giới tính"
+    },
+
+    "gender": {
+      "male": "Nam",
+      "female": "Nữ"
+    },
+
+    "placeholders": {
+      "gender": "Chọn giới tính"
+    },
+
+    "toast": {
+      "updateSuccess": "Cập nhật hồ sơ thành công!",
+      "updateError": "Cập nhật hồ sơ thất bại"
+    },
+
+    "empty": {
+      "noData": "Không có dữ liệu"
+    }
   }
 }

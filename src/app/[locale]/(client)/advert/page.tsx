@@ -179,12 +179,12 @@ export default function AdvertPage() {
   /* ================= RENDER ================= */
 
   return (
-    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-4 bg-white sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="mb-1 text-3xl font-bold text-gray-900">
               {t("createAdvert")}
             </h1>
             <p className="text-gray-600">{t("previewAdvertExact")}</p>
@@ -199,18 +199,18 @@ export default function AdvertPage() {
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* FORM */}
           <div className="lg:col-span-1">
-            <div className="bg-white border rounded-xl p-6 shadow-sm space-y-5">
-              <h2 className="font-semibold text-lg flex items-center gap-2">
+            <div className="p-6 space-y-5 bg-white border shadow-sm rounded-xl">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <Plus className="w-5 h-5 text-green-500" />
                 {t("advertInformation")}
               </h2>
 
               {/* Title */}
               <input
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full px-4 py-2 border rounded-lg"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("advertTitle")}
@@ -219,7 +219,7 @@ export default function AdvertPage() {
               {/* Dates */}
               <input
                 type="date"
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full px-4 py-2 border rounded-lg"
                 min={tomorrow}
                 value={startDate}
                 onChange={(e) => {
@@ -230,7 +230,7 @@ export default function AdvertPage() {
 
               <input
                 type="date"
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full px-4 py-2 border rounded-lg"
                 disabled={!startDate}
                 min={
                   startDate
@@ -242,9 +242,9 @@ export default function AdvertPage() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
-              
+
               {/* Upload */}
-              <label className="flex items-center justify-center border-2 border-dashed rounded-lg p-4 cursor-pointer hover:border-green-500">
+              <label className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-green-500">
                 <Upload className="w-5 h-5 mr-2" />
                 {t("addPhotosVideos")}
                 <input
@@ -262,7 +262,7 @@ export default function AdvertPage() {
                   {mediaUrls.map((m, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between bg-gray-50 border rounded px-3 py-2 text-sm"
+                      className="flex items-center justify-between px-3 py-2 text-sm border rounded bg-gray-50"
                     >
                       <div className="flex items-center gap-2 truncate">
                         {m.type === "IMAGE" ? (
@@ -286,7 +286,7 @@ export default function AdvertPage() {
               )}
 
               {/* ================= PRICE INFO ================= */}
-              <div className="rounded-xl border bg-green-50 p-4 space-y-2">
+              <div className="p-4 space-y-2 border rounded-xl bg-green-50">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">{t("pricePerDay")}</span>
                   <span className="font-semibold text-green-700">
@@ -303,11 +303,11 @@ export default function AdvertPage() {
                   </span>
                 </div>
 
-                <div className="border-t pt-2 flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t">
                   <span className="font-semibold text-gray-900">
                     {t("totalPrice")}
                   </span>
-                  <span className="font-bold text-green-700 text-lg">
+                  <span className="text-lg font-bold text-green-700">
                     {calculateTotalDays() > 0
                       ? (20000 * calculateTotalDays()).toLocaleString() +
                         " " +
@@ -320,7 +320,7 @@ export default function AdvertPage() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-xl text-white font-bold"
+                className="w-full py-3 font-bold text-white bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-xl"
               >
                 {loading ? t("creating") : t("createAdvert")}
               </button>
@@ -329,12 +329,12 @@ export default function AdvertPage() {
 
           {/* PREVIEW */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">{t("preview")}</h2>
+            <h2 className="mb-4 text-2xl font-bold">{t("preview")}</h2>
 
             {previewAdvert ? (
               <AdCard advert={previewAdvert} variant="preview" />
             ) : (
-              <div className="border-2 border-dashed rounded-xl p-12 text-center text-gray-500">
+              <div className="p-12 text-center text-gray-500 border-2 border-dashed rounded-xl">
                 {t("enterInfoToPreviewAdvert")}
               </div>
             )}

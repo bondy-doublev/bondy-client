@@ -60,7 +60,7 @@ export default function SignIn() {
       }
       setUser(response.data.user);
       setUserProfile(response.data.user);
-      toast.success("Welcome back!");
+      toast.success(t("welcomeBackToast"));
       router.push("/");
     } catch (err: any) {
       console.log("Login failed");
@@ -75,111 +75,105 @@ export default function SignIn() {
   }, []);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4">
+    <main className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
       <div className="w-full max-w-5xl">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Left Side - Welcome Back Card */}
-          <div className="hidden md:flex flex-col justify-center space-y-6 p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+          <div className="flex-col justify-center hidden p-8 space-y-6 shadow-xl md:flex bg-white/80 backdrop-blur-sm rounded-2xl">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center justify-center bg-green-500 rounded-full w-14 h-14">
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900">
-                  Welcome Back!
+                  {t("welcomeBackTitle")}
                 </h1>
               </div>
-              <p className="text-gray-600 text-lg">
-                Sign in to continue your journey with Bondy
+              <p className="text-lg text-gray-600">
+                {t("welcomeBackSubtitle")}
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg">
                   <LogIn className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Quick Access
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("quickAccessTitle")}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Sign in with your email or use social login for instant
-                    access
+                    {t("quickAccessDesc")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg">
                   <Zap className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Stay Updated
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("stayUpdatedTitle")}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    See what your friends are sharing and discover new content
+                    {t("stayUpdatedDesc")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg">
                   <Shield className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Secure Login
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("secureLoginTitle")}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Your credentials are protected with end-to-end encryption
+                    {t("secureLoginDesc")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 bg-pink-100 rounded-lg">
                   <Heart className="w-6 h-6 text-pink-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Community Awaits
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("communityTitle")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Reconnect with your community and share your moments
-                  </p>
+                  <p className="text-sm text-gray-600">{t("communityDesc")}</p>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                New to Bondy?{" "}
-                <Link
-                  href="/signup"
-                  className="text-green-600 hover:text-green-700 font-semibold"
-                >
-                  Create an account
+                {t("newToBondy")}{" "}
+                <Link href="/signup" className="font-semibold text-green-600">
+                  {t("createAccount")}
                 </Link>
               </p>
             </div>
           </div>
 
           {/* Right Side - Sign In Form */}
-          <Card className="shadow-2xl border-2 border-gray-100">
-            <CardHeader className="space-y-1 pb-4">
+          <Card className="border-2 border-gray-100 shadow-2xl">
+            <CardHeader className="pb-4 space-y-1">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-2 w-fit"
+                className="inline-flex items-center gap-2 mb-2 text-sm text-gray-500 hover:text-gray-700 w-fit"
               >
                 <Home size={16} /> {t("home")}
               </Link>
-              <CardTitle className="text-center text-2xl font-bold text-gray-900">
+              <CardTitle className="text-2xl font-bold text-center text-gray-900">
                 {t("signIn")}
               </CardTitle>
-              <p className="text-center text-sm text-gray-500">
-                Enter your credentials to access your account
+              <p className="text-sm text-center text-gray-500">
+                {t("signInDesc")}
               </p>
             </CardHeader>
 
@@ -189,7 +183,7 @@ export default function SignIn() {
                 <Button
                   variant="outline"
                   onClick={loginWithGoogle}
-                  className="w-full flex items-center justify-center gap-2 h-11 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-center w-full gap-2 transition-colors h-11 hover:bg-gray-50"
                 >
                   <FcGoogle size={20} />
                   <span>{t("signInWithGoogle")}</span>
@@ -197,7 +191,7 @@ export default function SignIn() {
 
                 <Button
                   onClick={loginWithDiscord}
-                  className="w-full flex items-center justify-center gap-2 h-11 transition-colors"
+                  className="flex items-center justify-center w-full gap-2 transition-colors h-11"
                   style={{ backgroundColor: "#5865F2" }}
                 >
                   <FaDiscord size={20} />
@@ -208,7 +202,7 @@ export default function SignIn() {
               {/* OR Divider */}
               <div className="flex items-center my-6">
                 <hr className="flex-grow border-gray-300" />
-                <span className="px-3 text-sm text-gray-500 font-medium">
+                <span className="px-3 text-sm font-medium text-gray-500">
                   {t("or")}
                 </span>
                 <hr className="flex-grow border-gray-300" />
@@ -227,7 +221,7 @@ export default function SignIn() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className={`mt-1.5 ${
@@ -240,8 +234,8 @@ export default function SignIn() {
                     required
                   />
                   {email && !isEmailValid && (
-                    <p className="text-xs text-red-500 mt-1">
-                      Please enter a valid email address
+                    <p className="mt-1 text-xs text-red-500">
+                      {t("invalidEmail")}
                     </p>
                   )}
                 </div>
@@ -258,7 +252,7 @@ export default function SignIn() {
                     <Input
                       id="password"
                       type={showPass ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t("passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={`pr-10 ${
@@ -273,14 +267,14 @@ export default function SignIn() {
                     <button
                       type="button"
                       onClick={() => setShowPass(!showPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                     >
                       {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   {password && !isPasswordValid && (
-                    <p className="text-xs text-red-500 mt-1">
-                      Password must be 8-24 characters
+                    <p className="mt-1 text-xs text-red-500">
+                      {t("passwordRange")}
                     </p>
                   )}
                 </div>
@@ -304,7 +298,7 @@ export default function SignIn() {
                   </div>
                   <Link
                     href="/forgot-password"
-                    className="text-sm text-green-600 hover:text-green-700 font-medium"
+                    className="text-sm font-medium text-green-600 hover:text-green-700"
                   >
                     {t("forgotPassword")}
                   </Link>
@@ -314,12 +308,12 @@ export default function SignIn() {
                 <Button
                   type="submit"
                   disabled={!canSubmit}
-                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg hover:shadow-xl"
+                  className="w-full py-3 mt-6 font-semibold text-white transition-colors bg-green-600 rounded-lg shadow-lg hover:bg-green-700 hover:shadow-xl"
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Signing in...
+                      <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                      {t("signingIn")}
                     </span>
                   ) : (
                     t("signIn")
@@ -328,11 +322,11 @@ export default function SignIn() {
               </form>
 
               {/* Mobile: New to Bondy */}
-              <p className="text-center text-sm text-gray-600 mt-6 md:hidden">
+              <p className="mt-6 text-sm text-center text-gray-600 md:hidden">
                 {t("noAccount")}{" "}
                 <Link
                   href="/signup"
-                  className="text-green-600 hover:text-green-700 font-semibold"
+                  className="font-semibold text-green-600 hover:text-green-700"
                 >
                   {t("signUp")}
                 </Link>

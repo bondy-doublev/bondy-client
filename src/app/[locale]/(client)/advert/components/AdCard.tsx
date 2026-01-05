@@ -86,13 +86,13 @@ export default function AdCard({
   // Preview aspect - Full screen với blur background
   if (isAspect) {
     return (
-      <div className="w-[70vw] h-screen mx-auto relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="w-[70vw] h-screen mx-auto relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 scroll-custom">
         {/* Blurred Background */}
         {advert.media[currentMediaIndex] && (
           <div className="absolute inset-0">
             {advert.media[currentMediaIndex].type === "IMAGE" ? (
               <div
-                className="w-full h-full bg-cover bg-center filter blur-3xl scale-110 opacity-50"
+                className="w-full h-full scale-110 bg-center bg-cover opacity-50 filter blur-3xl"
                 style={{
                   backgroundImage: `url(${advert.media[currentMediaIndex].url})`,
                 }}
@@ -104,27 +104,27 @@ export default function AdCard({
         )}
 
         {/* Main Content */}
-        <div className="relative z-10 w-full h-full flex flex-col">
+        <div className="relative z-10 flex flex-col w-full h-full">
           {/* Top User Info */}
           <div className="p-6 bg-gradient-to-b from-black/60 to-transparent">
             <Link
               href={`/user/${advert.userId}`}
-              className="flex items-center gap-3 text-white w-fit hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 text-white transition-opacity w-fit hover:opacity-80"
               onClick={(e) => e.stopPropagation()}
             >
               {advert.userAvatar ? (
                 <img
                   src={resolveFileUrl(advert.userAvatar)}
                   alt={advert.accountName}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/50 shadow-lg"
+                  className="object-cover w-12 h-12 border-2 rounded-full shadow-lg border-white/50"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-lg border-2 border-white/50">
+                <div className="flex items-center justify-center w-12 h-12 text-lg font-bold text-white border-2 rounded-full bg-white/20 backdrop-blur-sm border-white/50">
                   {advert.accountName.charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <span className="font-semibold text-lg block">
+                <span className="block text-lg font-semibold">
                   {advert.accountName}
                 </span>
                 <span className="text-sm text-white/80">{t("sponsored")}</span>
@@ -133,7 +133,7 @@ export default function AdCard({
           </div>
 
           {/* Media Container */}
-          <div className="flex-1 flex items-center justify-center px-4 pb-4">
+          <div className="flex items-center justify-center flex-1 px-4 pb-4">
             <div className="relative max-w-full max-h-full">
               {advert.media[currentMediaIndex].type === "IMAGE" ? (
                 <img
@@ -154,14 +154,14 @@ export default function AdCard({
                 <>
                   <button
                     onClick={prevMedia}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white p-3 rounded-full transition-all shadow-lg"
+                    className="absolute p-3 text-white transition-all -translate-y-1/2 rounded-full shadow-lg left-4 top-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
 
                   <button
                     onClick={nextMedia}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white p-3 rounded-full transition-all shadow-lg"
+                    className="absolute p-3 text-white transition-all -translate-y-1/2 rounded-full shadow-lg right-4 top-1/2 bg-black/50 hover:bg-black/70 backdrop-blur-sm"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
@@ -172,7 +172,7 @@ export default function AdCard({
 
           {/* Bottom Info */}
           <div className="p-6 bg-gradient-to-t from-black/70 via-black/50 to-transparent">
-            <h3 className="text-white font-bold text-2xl mb-2 drop-shadow-lg">
+            <h3 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
               {advert.title}
             </h3>
 
@@ -206,7 +206,7 @@ export default function AdCard({
   return (
     <div
       className={`
-        bg-white shadow-lg overflow-hidden flex flex-col
+        bg-white shadow-lg overflow-hidden scroll-custom flex flex-col
         ${
           isPreview
             ? "rounded-xl max-w-4xl mx-auto"
@@ -229,10 +229,10 @@ export default function AdCard({
                   <img
                     src={resolveFileUrl(advert.userAvatar)}
                     alt={advert.accountName}
-                    className="w-10 h-10 rounded-full object-cover border border-white/50"
+                    className="object-cover w-10 h-10 border rounded-full border-white/50"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-bold">
+                  <div className="flex items-center justify-center w-10 h-10 font-bold text-gray-700 bg-gray-300 rounded-full">
                     {advert.accountName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -255,13 +255,13 @@ export default function AdCard({
               <img
                 src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                 alt={advert.title}
-                className="w-full h-full object-cover"
+                className="object-cover w-full h-full"
               />
             ) : (
               <video
                 src={resolveFileUrl(advert.media[currentMediaIndex].url)}
                 controls
-                className="w-full h-full object-cover"
+                className="object-cover w-full h-full"
               />
             )}
 
@@ -270,20 +270,20 @@ export default function AdCard({
               <>
                 <button
                   onClick={prevMedia}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                  className="absolute z-10 p-2 text-white transition-colors -translate-y-1/2 rounded-full left-2 top-1/2 bg-black/50 hover:bg-black/70"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
 
                 <button
                   onClick={nextMedia}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                  className="absolute z-10 p-2 text-white transition-colors -translate-y-1/2 rounded-full right-2 top-1/2 bg-black/50 hover:bg-black/70"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
 
                 {/* Media Indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute flex gap-2 -translate-x-1/2 bottom-4 left-1/2">
                   {advert.media.map((_, index) => (
                     <button
                       key={index}
@@ -308,14 +308,14 @@ export default function AdCard({
 
       {/* Content Section */}
       {!isPreview && (
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="flex-1 p-6 overflow-y-auto scroll-custom">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center min-w-0 gap-3">
               {advert.userAvatar && (
                 <img
                   src={resolveFileUrl(advert.userAvatar)}
                   alt={advert.accountName}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="object-cover w-10 h-10 rounded-full"
                 />
               )}
               <div className="min-w-0">
@@ -335,9 +335,9 @@ export default function AdCard({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div className="bg-gray-50 p-4 rounded-lg border">
-              <div className="flex items-center gap-2 text-gray-600 mb-2">
+          <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="p-4 border rounded-lg bg-gray-50">
+              <div className="flex items-center gap-2 mb-2 text-gray-600">
                 <Calendar className="w-4 h-4" />
                 {t("time")}
               </div>
@@ -349,8 +349,8 @@ export default function AdCard({
               </div>
             </div>
 
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="flex items-center gap-2 text-green-700 mb-2">
+            <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+              <div className="flex items-center gap-2 mb-2 text-green-700">
                 <DollarSign className="w-4 h-4" />
                 {t("cost")}
               </div>
@@ -362,19 +362,19 @@ export default function AdCard({
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-2 text-blue-700 mb-2">
+            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+              <div className="flex items-center gap-2 mb-2 text-blue-700">
                 {advert.media.some((m) => m.type === "VIDEO") ? (
                   <Video className="w-4 h-4" />
                 ) : (
                   <ImageIcon className="w-4 h-4" />
                 )}
-                <span className="font-medium text-sm">{t("media")}</span>
+                <span className="text-sm font-medium">{t("media")}</span>
               </div>
               <div className="font-semibold text-blue-700">
                 {advert.media.length} {t("file")}
               </div>
-              <div className="text-xs text-blue-600 mt-1">
+              <div className="mt-1 text-xs text-blue-600">
                 {advert.media.filter((m) => m.type === "IMAGE").length}{" "}
                 {t("image")},{" "}
                 {advert.media.filter((m) => m.type === "VIDEO").length}{" "}
@@ -383,13 +383,13 @@ export default function AdCard({
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 mb-4">
+          <div className="mb-4 text-xs text-gray-500">
             {t("createdAt")}:{" "}
             {new Date(advert.createdAt).toLocaleString("vi-VN")}
           </div>
 
           {showActions && (
-            <div className="absolute bottom-4 right-6 flex gap-2 z-20">
+            <div className="absolute z-20 flex gap-2 bottom-4 right-6">
               {/* Hủy */}
               {(advert.status === "pending" || advert.status === "running") && (
                 <ConfirmDialog
@@ -409,7 +409,7 @@ export default function AdCard({
                     }
                   }}
                   trigger={
-                    <button className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg">
+                    <button className="px-3 py-1 text-white bg-red-500 rounded-lg shadow-lg hover:bg-red-600">
                       {t("cancel")}
                     </button>
                   }
@@ -422,7 +422,7 @@ export default function AdCard({
                   onClick={() =>
                     (window.location.href = `/payment/${advert.id}`)
                   }
-                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg"
+                  className="px-3 py-1 text-white bg-blue-500 rounded-lg shadow-lg hover:bg-blue-600"
                 >
                   {t("pay")}
                 </button>

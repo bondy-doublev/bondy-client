@@ -1,22 +1,15 @@
 "use client";
 
 import { useAuthStore } from "@/store/authStore";
-import { useTranslations } from "use-intl";
 import Home from "./home/page";
+import Loader from "@/app/components/ui/loader/Loader";
 
 export default function HomePage() {
   const { user } = useAuthStore();
-  const t = useTranslations("home");
 
   return (
     <div className="min-h-[70vh] min-w-full">
-      {user ? (
-        <Home />
-      ) : (
-        <div className="space-y-4 text-center p-6">
-          <h1 className="text-2xl font-bold text-black">{t("welcome")}</h1>
-        </div>
-      )}
+      {user ? <Home /> : <Loader loading={user === null} type="success" />}
     </div>
   );
 }

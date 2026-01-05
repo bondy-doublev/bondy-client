@@ -247,7 +247,7 @@ export default function Navbar() {
             unoptimized
           />
           <h2
-            className="text-xl font-semibold cursor-pointer"
+            className="hidden font-semibold cursor-pointer sm:block hitext-xl"
             onClick={() => router.push("/")}
           >
             Bondy
@@ -318,7 +318,7 @@ export default function Navbar() {
                         setError(null);
                       }}
                     >
-                      Clear
+                      {t("clear")}
                     </Button>
                   </div>
                 </div>
@@ -358,10 +358,6 @@ export default function Navbar() {
           <div className="flex items-center space-x-4 xl:hidden">
             <LanguageSwitcher />
             <NotificationDropdown />
-            <MessageCircle
-              onClick={() => router.push("/chat")}
-              className="w-6 h-6 transition cursor-pointer hover:text-cyan"
-            />
             <UserDropdown />
             <MenuDrawer />
           </div>

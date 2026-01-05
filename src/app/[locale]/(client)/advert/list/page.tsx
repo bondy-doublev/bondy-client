@@ -40,22 +40,22 @@ function AdvertListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-4 bg-gray-50 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
         {/* ================= HEADER ================= */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1">
+            <h1 className="mb-1 text-3xl font-bold text-gray-900 sm:text-4xl">
               {t("myAdverts")}
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-sm text-gray-600">
               {t("manageAllYourAdRequests")}
             </p>
           </div>
 
           <button
             onClick={() => router.push("/advert")}
-            className="flex items-center gap-2 sm:px-2 sm:py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-sm transition-colors text-sm sm:text-base"
+            className="flex items-center gap-2 p-2 text-sm font-semibold text-white transition-colors bg-green-500 rounded-lg shadow-sm hover:bg-green-600 sm:text-base"
           >
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             {t("createNew")}
@@ -65,27 +65,25 @@ function AdvertListPage() {
         {/* ================= CONTENT ================= */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-12 h-12 border-4 border-green-500 rounded-full border-t-transparent animate-spin" />
           </div>
         ) : adverts.length === 0 ? (
-          <div className="border-2 border-gray-200 rounded-xl p-12 text-center bg-white shadow-sm">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="p-12 text-center bg-white border-2 border-gray-200 shadow-sm rounded-xl">
+            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full">
               <ImageIcon className="w-10 h-10 text-green-500" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">{t("noAdverts")}</h3>
-            <p className="text-gray-500 mb-6">
-              {t("createYourFirstAdvert")}
-            </p>
+            <h3 className="mb-2 text-2xl font-semibold">{t("noAdverts")}</h3>
+            <p className="mb-6 text-gray-500">{t("createYourFirstAdvert")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {adverts.map((advert) => (
               <div key={advert.id} className="relative">
                 <AdCard
                   advert={advert}
                   variant="full"
                   showActions
-                  onClose={handleGetAdverts} 
+                  onClose={handleGetAdverts}
                 />
 
                 {/* Preview Button */}
@@ -104,7 +102,7 @@ function AdvertListPage() {
         {/* ================= PREVIEW MODAL ================= */}
         {selectedAdvert && (
           <div
-            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
             onClick={() => setSelectedAdvert(null)}
           >
             <div
@@ -121,7 +119,7 @@ function AdvertListPage() {
                 <button onClick={() => setSelectedAdvert(null)}>✕</button>
               </div>
 
-              <div className="p-6 bg-gray-50 overflow-y-auto">
+              <div className="p-6 overflow-y-auto bg-gray-50">
                 <AdCard advert={selectedAdvert} variant="preview" />
               </div>
             </div>

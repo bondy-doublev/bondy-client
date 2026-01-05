@@ -89,7 +89,12 @@ api.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         removeAccessToken();
-        localStorage.removeItem("refresh_token"); // Xóa refresh token khỏi localStorage khi không hợp lệ
+        localStorage.removeItem("refresh_token");
+
+        const pathname = window.location.pathname;
+        const locale = pathname.split("/")[1] || "vi";
+        window.location.href = `/${locale}/signin`;
+
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

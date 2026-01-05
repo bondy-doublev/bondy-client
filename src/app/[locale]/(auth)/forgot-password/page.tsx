@@ -20,8 +20,11 @@ import {
   ArrowLeft,
   Lock,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPassword() {
+  const t = useTranslations("auth");
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -37,13 +40,13 @@ export default function ForgotPassword() {
 
   async function handleSendOtp() {
     if (!isEmailValid) {
-      toast.error("Email không hợp lệ");
+      toast.error(t("invalidEmail"));
       return;
     }
     setLoading(true);
     try {
       await authService.sendResetPasswordOtp(email);
-      toast.success("Đã gửi mã OTP, vui lòng kiểm tra email");
+      toast.success(t("otpSent"));
       setStep(2);
     } catch (err: any) {
       toast.error(extractErrorMessage(err));
@@ -54,7 +57,7 @@ export default function ForgotPassword() {
 
   async function handleVerifyOtp() {
     if (otp.length < 6) {
-      toast.error("Mã OTP phải có 6 ký tự");
+      toast.error(t("otpLength"));
       return;
     }
     setStep(3);
@@ -62,18 +65,18 @@ export default function ForgotPassword() {
 
   async function handleResetPassword() {
     if (newPass.length < 8) {
-      toast.error("Mật khẩu phải có ít nhất 8 ký tự");
+      toast.error(t("passwordMin"));
       return;
     }
     if (newPass !== confirmPass) {
-      toast.error("Mật khẩu xác nhận không khớp");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     setLoading(true);
     try {
       await authService.resetPassword(email, newPass, confirmPass, otp);
-      toast.success("Đổi mật khẩu thành công!");
+      toast.success(t("passwordResetSuccess"));
       window.location.href = "/signin";
     } catch (err: any) {
       toast.error(extractErrorMessage(err));
@@ -83,35 +86,34 @@ export default function ForgotPassword() {
   }
 
   const stepTitles = {
-    1: "Quên mật khẩu",
-    2: "Xác minh OTP",
-    3: "Đặt lại mật khẩu",
+    1: t("forgotPassword"),
+    2: t("verifyOtp"),
+    3: t("resetPassword"),
   };
 
   const stepDescriptions = {
-    1: "Nhập email để nhận mã xác minh",
-    2: "Nhập mã OTP đã được gửi đến email của bạn",
-    3: "Tạo mật khẩu mới cho tài khoản của bạn",
+    1: t("forgotPasswordDesc"),
+    2: t("otpDesc"),
+    3: t("resetPasswordDesc"),
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-4">
+    <main className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
       <div className="w-full max-w-5xl">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Left Side - Info Card */}
-          <div className="hidden md:flex flex-col justify-center space-y-6 p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+          <div className="flex-col justify-center hidden p-8 space-y-6 shadow-xl md:flex bg-white/80 backdrop-blur-sm rounded-2xl">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center justify-center bg-green-500 rounded-full w-14 h-14">
                   <KeyRound className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900">
-                  Reset Password
+                  {t("resetPasswordTitle")}
                 </h1>
               </div>
-              <p className="text-gray-600 text-lg">
-                Don't worry! It happens. Follow these steps to reset your
-                password.
+              <p className="text-lg text-gray-600">
+                {t("resetPasswordSubtitle")}
               </p>
             </div>
 
@@ -142,12 +144,10 @@ export default function ForgotPassword() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Step 1: Email Verification
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("step1Title")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Enter your email to receive a verification code
-                  </p>
+                  <p className="text-sm text-gray-600">{t("step1Desc")}</p>
                 </div>
               </div>
 
@@ -176,12 +176,10 @@ export default function ForgotPassword() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Step 2: Enter OTP Code
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("step2Title")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Verify the 6-digit code sent to your email
-                  </p>
+                  <p className="text-sm text-gray-600">{t("step2Desc")}</p>
                 </div>
               </div>
 
@@ -202,42 +200,37 @@ export default function ForgotPassword() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    Step 3: Create New Password
+                  <h3 className="mb-1 font-semibold text-gray-900">
+                    {t("step3Title")}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Set a strong password for your account
-                  </p>
+                  <p className="text-sm text-gray-600">{t("step3Desc")}</p>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                Remember your password?{" "}
-                <Link
-                  href="/signin"
-                  className="text-green-600 hover:text-green-700 font-semibold"
-                >
-                  Sign in
+                {t("rememberPassword")}{" "}
+                <Link href="/signin" className="font-semibold text-green-600">
+                  {t("signIn")}
                 </Link>
               </p>
             </div>
           </div>
 
           {/* Right Side - Form Card */}
-          <Card className="shadow-2xl border-2 border-gray-100">
-            <CardHeader className="space-y-1 pb-4">
+          <Card className="border-2 border-gray-100 shadow-2xl">
+            <CardHeader className="pb-4 space-y-1">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-2 w-fit"
+                className="inline-flex items-center gap-2 mb-2 text-sm text-gray-500 hover:text-gray-700 w-fit"
               >
-                <Home size={16} /> Back to Home
+                <Home size={16} /> {t("backHome")}
               </Link>
-              <CardTitle className="text-center text-2xl font-bold text-gray-900">
+              <CardTitle className="text-2xl font-bold text-center text-gray-900">
                 {stepTitles[step]}
               </CardTitle>
-              <p className="text-center text-sm text-gray-500">
+              <p className="text-sm text-center text-gray-500">
                 {stepDescriptions[step]}
               </p>
 
@@ -263,12 +256,12 @@ export default function ForgotPassword() {
                       htmlFor="email"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Email Address <span className="text-red-500">*</span>
+                      {t("email")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t("emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={`mt-1.5 ${
@@ -280,8 +273,8 @@ export default function ForgotPassword() {
                       }`}
                     />
                     {email && !isEmailValid && (
-                      <p className="text-xs text-red-500 mt-1">
-                        Please enter a valid email address
+                      <p className="mt-1 text-xs text-red-500">
+                        {t("invalidEmail")}
                       </p>
                     )}
                   </div>
@@ -289,15 +282,15 @@ export default function ForgotPassword() {
                   <Button
                     onClick={handleSendOtp}
                     disabled={!isEmailValid || loading}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl"
+                    className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg shadow-lg hover:bg-green-700 hover:shadow-xl"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Sending...
+                        <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                        {t("sending")}
                       </span>
                     ) : (
-                      "Send OTP Code"
+                      <div>{t("sendOtp")}</div>
                     )}
                   </Button>
                 </div>
@@ -306,14 +299,14 @@ export default function ForgotPassword() {
               {/* Step 2: OTP Input */}
               {step === 2 && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="p-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
                     <div className="flex items-start gap-3">
                       <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-medium text-blue-900">
                           Check your email
                         </p>
-                        <p className="text-sm text-blue-700 mt-1">
+                        <p className="mt-1 text-sm text-blue-700">
                           We sent a 6-digit code to{" "}
                           <span className="font-semibold">{email}</span>
                         </p>
@@ -326,7 +319,7 @@ export default function ForgotPassword() {
                       htmlFor="otp"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Enter 6-digit Code <span className="text-red-500">*</span>
+                      {t("otp")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="otp"
@@ -349,24 +342,26 @@ export default function ForgotPassword() {
                       className="flex-1"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
+                      {t("back")}
                     </Button>
                     <Button
                       onClick={handleVerifyOtp}
                       disabled={otp.length !== 6 || loading}
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
-                      Continue
+                      {t("continue")}
                     </Button>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleSendOtp}
-                    className="w-full text-sm text-gray-600 hover:text-gray-900 py-2"
+                    className="w-full py-2 text-sm text-gray-600 hover:text-gray-900"
                   >
-                    Didn't receive code?{" "}
-                    <span className="text-green-600 font-semibold">Resend</span>
+                    {t("resendQuestion")}{" "}
+                    <span className="font-semibold text-green-600">
+                      {t("resend")}
+                    </span>
                   </button>
                 </div>
               )}
@@ -379,13 +374,13 @@ export default function ForgotPassword() {
                       htmlFor="newPass"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      New Password <span className="text-red-500">*</span>
+                      {t("newPassword")} <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative mt-1.5">
                       <Input
                         id="newPass"
                         type={showPass ? "text" : "password"}
-                        placeholder="Enter new password"
+                        placeholder={t("newPasswordPlaceholder")}
                         value={newPass}
                         onChange={(e) => setNewPass(e.target.value)}
                         className={`pr-10 ${
@@ -399,14 +394,14 @@ export default function ForgotPassword() {
                       <button
                         type="button"
                         onClick={() => setShowPass(!showPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                       >
                         {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                     {newPass && !isPasswordValid && (
-                      <p className="text-xs text-red-500 mt-1">
-                        Password must be at least 8 characters
+                      <p className="mt-1 text-xs text-red-500">
+                        {t("passwordMin")}
                       </p>
                     )}
                   </div>
@@ -416,13 +411,14 @@ export default function ForgotPassword() {
                       htmlFor="confirmPass"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Confirm Password <span className="text-red-500">*</span>
+                      {t("confirmPassword")}{" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative mt-1.5">
                       <Input
                         id="confirmPass"
                         type={showConfirmPass ? "text" : "password"}
-                        placeholder="Confirm new password"
+                        placeholder={t("confirmPasswordPlaceholder")}
                         value={confirmPass}
                         onChange={(e) => setConfirmPass(e.target.value)}
                         className={`pr-10 ${
@@ -436,7 +432,7 @@ export default function ForgotPassword() {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPass(!showConfirmPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                       >
                         {showConfirmPass ? (
                           <EyeOff size={18} />
@@ -446,8 +442,8 @@ export default function ForgotPassword() {
                       </button>
                     </div>
                     {confirmPass && !isConfirmValid && (
-                      <p className="text-xs text-red-500 mt-1">
-                        Passwords do not match
+                      <p className="mt-1 text-xs text-red-500">
+                        {t("passwordMismatch")}
                       </p>
                     )}
                   </div>
@@ -460,7 +456,7 @@ export default function ForgotPassword() {
                       className="flex-1"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
+                      {t("back")}
                     </Button>
                     <Button
                       onClick={handleResetPassword}
@@ -469,11 +465,11 @@ export default function ForgotPassword() {
                     >
                       {loading ? (
                         <span className="flex items-center justify-center gap-2">
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Processing...
+                          <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                          {t("processing")}
                         </span>
                       ) : (
-                        "Reset Password"
+                        <div>{t("resetPassword")}</div>
                       )}
                     </Button>
                   </div>
