@@ -40,7 +40,7 @@ export default function SignIn() {
   const [remember, setRemember] = useState(true);
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { setUser } = useAuthStore();
+  const { setUser, setUserProfile } = useAuthStore();
 
   const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
   const isPasswordValid = password.length >= 8 && password.length <= 24;
@@ -59,6 +59,7 @@ export default function SignIn() {
         localStorage.removeItem("email_hash");
       }
       setUser(response.data.user);
+      setUserProfile(response.data.user);
       toast.success("Welcome back!");
       router.push("/");
     } catch (err: any) {
