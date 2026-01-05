@@ -35,6 +35,7 @@ export default function UserDropdown() {
   const handleLogout = async () => {
     try {
       await authService.logout();
+      setUserProfile(null);
       setUser(null);
       setTokens(null);
       router.push("/signin");

@@ -60,6 +60,7 @@ export const authService = {
   // Logout
   async logout() {
     try {
+      await api.post("/auth/logout");
       await axios.post("/api/logout");
 
       removeAccessToken();
