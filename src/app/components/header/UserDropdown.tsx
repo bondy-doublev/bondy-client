@@ -40,6 +40,7 @@ export default function UserDropdown() {
       setTokens(null);
       router.push("/signin");
     } catch (err) {
+      router.push("/signin");
       console.error("Logout failed:", err);
     }
   };

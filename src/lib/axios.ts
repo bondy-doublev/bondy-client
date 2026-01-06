@@ -52,6 +52,19 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
+    const isLogoutRequest = originalRequest?.url?.includes("/auth/logout");
+
+    if (error.response?.status === 401 && isLogoutRequest) {
+      removeAccessToken();
+      localStorage.removeItem("refresh_token");
+
+      const pathname = window.location.pathname;
+      const locale = pathname.split("/")[1] || "vi";
+      window.location.href = `/${locale}/signin`;
+
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
@@ -67,24 +80,23 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Gửi refresh_token qua body
         const res = await api.post(
           "/auth/refresh",
           {},
           {
             headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_API_KEY,
+              "x-api-key": apiKey,
             },
           }
         );
 
-        console.log("refresh res: ", res);
-
         const newAccessToken = res.data.data.accessToken;
         setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
+
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers["x-api-key"] = apiKey;
+
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
