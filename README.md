@@ -1,95 +1,161 @@
-# Bondy Social App
+# Bondy Social App — Frontend Client
 
-Bondy Social App is a social networking application built with **Next.js**, featuring authentication via GitHub, Google, and Discord.
+Bondy Social App là ứng dụng mạng xã hội hiện đại được xây dựng bằng **Next.js 14** (App Router), hỗ trợ đăng nhập OAuth2, chat thời gian thực, upload media, thông báo, và tích hợp đầy đủ với backend Bondy Server.
 
-## 🚀 Features
+## 🚀 Tính năng chính
 
-- OAuth2 login with GitHub, Google, and Discord
-- Modern frontend built with Next.js
-- Easy configuration via environment variables
+- Đăng nhập OAuth2 với **GitHub**, **Google**, **Discord**
+- Giao diện responsive, tối ưu mobile-first với Tailwind CSS
+- Chat thời gian thực (WebSocket)
+- Upload hình ảnh/video/reel
+- Thông báo push/real-time
+- Feed cá nhân hóa với gợi ý nội dung
+- Tương tác social: like, comment, share, follow...
 
-## 📦 Requirements
+## 📦 Yêu cầu hệ thống
 
-- Node.js >= 18
-- npm, yarn, or pnpm package manager
+- **Node.js >= 20** (khuyến nghị LTS)
+- npm / yarn / pnpm
 
-## ⚙️ Installation
-
-Clone the repository and install dependencies:
+## ⚙️ Cài đặt
 
 ```bash
-git clone https://github.com/your-username/bondy-social-app.git
-cd bondy-social-app
+git clone https://github.com/your-org/bondy-client.git
+cd bondy-client
 npm install
-# or
+# hoặc
 yarn install
-# or
+# hoặc
 pnpm install
 ```
 
-## 🔑 Environment Variables
+## 🔑 Biến môi trường (.env.local)
 
-Create a `.env.local` file in the project root and configure the following variables:
+Tạo file `.env.local` ở thư mục gốc dự án và điền các giá trị sau:
 
-```env
-NEXT_PUBLIC_API_URL=
-AUTH_SECRET=
-AUTH_GITHUB_ID=
-AUTH_GITHUB_SECRET=
-NEXT_PUBLIC_JWT_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-DISCORD_CLIENT_ID=
-DISCORD_CLIENT_SECRET=
+```dotenv
+# Môi trường
+NODE_ENV=development                    # development | production
+
+# Backend URLs
+NEXT_PUBLIC_API_URL=http://localhost:8080                # URL của API Gateway (Bondy Server)
+NEXT_PUBLIC_UPLOAD_BASE_URL=http://localhost:8080/upload # Endpoint upload (thường qua gateway)
+NEXT_PUBLIC_MEDIA_URL=http://localhost:8080/media        # URL phục vụ file media (hoặc CDN/S3 sau này)
+
+# Communication (NestJS service - chat/call)
+NEXT_PUBLIC_CHAT_URL=ws://localhost:3001                 # WebSocket URL cho chat real-time
+NEXT_PUBLIC_COMM_PATH=/socket.io                         # Path nếu dùng Socket.IO (tùy config)
+
+# Notification
+NEXT_PUBLIC_NOTIFICATION_WS_URL=ws://localhost:3002      # WebSocket cho thông báo (nếu tách riêng)
+
+# NextAuth.js
+AUTH_SECRET=your_very_strong_random_secret_32_chars_min  # openssl rand -base64 32
+AUTH_TRUST_HOST=true
+NEXTAUTH_URL=http://localhost:3000                       # URL của frontend
+
+# OAuth Providers
+AUTH_GITHUB_ID=your_github_client_id
+AUTH_GITHUB_SECRET=your_github_client_secret
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+DISCORD_CLIENT_ID=your_discord_client_id
+DISCORD_CLIENT_SECRET=your_discord_client_secret
+
+# JWT (phải khớp với backend)
+NEXT_PUBLIC_JWT_SECRET=your-very-strong-jwt-secret-key-min-256-bits
+
+# Firebase (cho push notification - tùy chọn)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+
+# Metered (nếu dùng cho video call - tùy chọn)
+NEXT_PUBLIC_METERED_API_KEY=
 ```
 
-### How to obtain these values:
+### Hướng dẫn lấy giá trị
 
-- **NEXT_PUBLIC_API_URL**: Base URL of your backend API (e.g., http://localhost:4000 or production API endpoint).
+- **NEXT_PUBLIC_API_URL**: Trỏ đến **gateway** của Bondy Server (ví dụ: `http://localhost:8080` hoặc domain production).
+- **AUTH_SECRET**: Tạo ngẫu nhiên bằng lệnh:
+  ```bash
+  openssl rand -base64 32
+  ```
+- **JWT_SECRET**: Phải **giống hệt** với `JWT_SECRET` trong backend (auth-service & gateway).
+- **OAuth credentials**: Tạo ứng dụng tại:
+  - GitHub: https://github.com/settings/developers
+  - Google: https://console.cloud.google.com/
+  - Discord: https://discord.com/developers/applications
 
-- **AUTH_SECRET**: A secret string used by NextAuth for session encryption. You can generate one with `openssl rand -base64 32`.
-
-- **AUTH_GITHUB_ID / AUTH_GITHUB_SECRET**: Create an OAuth App in [GitHub Developer Settings](https://github.com/settings/developers).
-
-- **GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET**: Create credentials in [Google Cloud Console](https://console.cloud.google.com/).
-
-- **DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET**: Register an application in [Discord Developer Portal](https://discord.com/developers/applications).
-
-- **NEXT_PUBLIC_JWT_SECRET**: Secret string used for signing JWT tokens. Recommended to generate randomly.
-
-⚠️ Make sure you set the **Authorized Redirect URI / Callback URL** for each provider to:
+**Callback URL** (Authorized redirect URI) cho từng provider:
 
 ```
-http://localhost:3000/api/auth/callback/<provider>
+http://localhost:3000/api/auth/callback/github
+http://localhost:3000/api/auth/callback/google
+http://localhost:3000/api/auth/callback/discord
 ```
 
-Example:
+(Thay `localhost:3000` bằng domain production khi deploy)
 
-- `http://localhost:3000/api/auth/callback/github`
-- `http://localhost:3000/api/auth/callback/google`
-- `http://localhost:3000/api/auth/callback/discord`
-
-## ▶️ Running the App
-
-Start the development server:
+## ▶️ Chạy ứng dụng
 
 ```bash
 npm run dev
+# hoặc
+yarn dev
+# hoặc
+pnpm dev
 ```
 
-By default, the app runs at: [http://localhost:3000](http://localhost:3000)
+Mở trình duyệt: [http://localhost:3000](http://localhost:3000)
 
-## 📦 Building for Production
+## 📦 Build cho Production
 
 ```bash
 npm run build
 npm start
 ```
 
-## 📖 Notes
+## 🐳 Docker (tùy chọn)
 
-- Ensure all OAuth providers (GitHub, Google, Discord) are properly configured with correct callback URLs.
+File `Dockerfile` và `docker-compose.yml` đã có sẵn để containerize:
 
-- Keep your secrets safe and never commit your `.env.local` file to version control.
+```bash
+docker compose up --build
+```
 
-- You can commit `.env.example` to share required environment variables with your team.
+## 📖 Lưu ý quan trọng
+
+- **Không bao giờ commit** file `.env.local` lên Git.
+- File `.env.example` đã được cung cấp để chia sẻ cấu trúc biến môi trường với team.
+- Đảm bảo backend (Bondy Server) đang chạy trước khi khởi động frontend.
+- Khi deploy production: thay tất cả `localhost` bằng domain thật và dùng HTTPS.
+
+## Cây thư mục chính
+
+```
+bondy-client/
+├─ .env.example
+├─ .env.production          # Mẫu cho production
+├─ public/
+├─ src/
+│  ├─ app/                  # App Router (pages)
+│  ├─ components/           # UI components
+│  ├─ lib/                  # Utils, API clients
+│  └─ styles/
+├─ Dockerfile
+├─ docker-compose.yml
+├─ next.config.ts
+├─ tailwind.config.ts
+└─ README.md
+```
+
+Chào mừng bạn đến với Bondy — mạng xã hội của tương lai! 🚀
+
+Có vấn đề gì cứ mở issue hoặc pull request nhé!
