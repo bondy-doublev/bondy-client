@@ -19,16 +19,13 @@ import {
 } from "react-icons/fa";
 import { Rnd } from "react-rnd";
 import { useTranslations } from "use-intl";
+import { createPeerConnection } from "@/utils/createPeer";
 
 interface Props {
   callId: string | null;
   onClose: () => void;
   receiverId: string | null;
 }
-
-const CORTURN_APP_DOMAIN = process.env.NEXT_PUBLIC_CORTURN_APP_DOMAIN;
-const CORTURN_USERNAME = process.env.NEXT_PUBLIC_CORTURN_USERNAME;
-const CORTURN_PASSWORD = process.env.NEXT_PUBLIC_CORTURN_PASSWORD;
 
 export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   const localRef = useRef<HTMLVideoElement>(null);
@@ -50,19 +47,7 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
   }, [callId]);
 
   const startCall = async () => {
-    pc.current = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        {
-          urls: [
-            `turn:${CORTURN_APP_DOMAIN}:3478?transport=udp`,
-            `turn:${CORTURN_APP_DOMAIN}:3478?transport=tcp`,
-          ],
-          username: `${CORTURN_USERNAME}`,
-          credential: `${CORTURN_PASSWORD}`,
-        },
-      ],
-    });
+    pc.current = await createPeerConnection();
 
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -83,7 +68,10 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
     };
 
     pc.current.ontrack = (event) => {
-      remoteRef.current!.srcObject = event.streams[0];
+      const [stream] = event.streams;
+      if (remoteRef.current && stream) {
+        remoteRef.current.srcObject = stream;
+      }
     };
 
     // Create offer
@@ -100,12 +88,17 @@ export default function VideoCallModal({ callId, onClose, receiverId }: Props) {
     onSnapshot(callDoc, async (snap) => {
       const data = snap.data();
       if (!data || !pc.current) return;
-      if (!pc.current.currentRemoteDescription && data.answer) {
+      if (
+        data.answer &&
+        data.status === "accepted" &&
+        !pc.current.currentRemoteDescription
+      ) {
         await pc.current.setRemoteDescription(
           new RTCSessionDescription(data.answer)
         );
         setLoading(false);
       }
+
       if (data.status === "ended" || data.status === "rejected") {
         onClose();
       }

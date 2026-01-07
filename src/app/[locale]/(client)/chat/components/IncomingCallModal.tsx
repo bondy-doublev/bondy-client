@@ -21,15 +21,12 @@ import {
 } from "react-icons/fa";
 import { Rnd } from "react-rnd";
 import { useTranslations } from "use-intl";
+import { createPeerConnection } from "@/utils/createPeer";
 
 interface Props {
   callId: string;
   onClose: () => void;
 }
-
-const CORTURN_APP_DOMAIN = process.env.NEXT_PUBLIC_CORTURN_APP_DOMAIN;
-const CORTURN_USERNAME = process.env.NEXT_PUBLIC_CORTURN_USERNAME;
-const CORTURN_PASSWORD = process.env.NEXT_PUBLIC_CORTURN_PASSWORD;
 
 export default function IncomingCallModal({ callId, onClose }: Props) {
   const localRef = useRef<HTMLVideoElement>(null);
@@ -63,19 +60,8 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
 
     setAccepted(true);
 
-    pc.current = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        {
-          urls: [
-            `turn:${CORTURN_APP_DOMAIN}:3478?transport=udp`,
-            `turn:${CORTURN_APP_DOMAIN}:3478?transport=tcp`,
-          ],
-          username: `${CORTURN_USERNAME}`,
-          credential: `${CORTURN_PASSWORD}`,
-        },
-      ],
-    });
+    pc.current = await createPeerConnection();
+
     const callDoc = doc(db, "calls", callId);
     const offerCandidates = collection(callDoc, "offerCandidates");
     const answerCandidates = collection(callDoc, "answerCandidates");
@@ -90,7 +76,10 @@ export default function IncomingCallModal({ callId, onClose }: Props) {
     if (localRef.current) localRef.current.srcObject = stream;
 
     pc.current.ontrack = (event) => {
-      remoteRef.current!.srcObject = event.streams[0];
+      const [stream] = event.streams;
+      if (remoteRef.current && stream) {
+        remoteRef.current.srcObject = stream;
+      }
     };
 
     pc.current.onicecandidate = async (event) => {
