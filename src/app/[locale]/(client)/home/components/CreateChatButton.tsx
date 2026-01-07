@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import DefaultAvatar from "./user/DefaultAvatar";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import { useTranslations } from "use-intl";
 
 export default function CreateChatButton() {
   const [friends, setFriends] = useState<any[]>([]);
@@ -29,6 +30,7 @@ export default function CreateChatButton() {
   const { user } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("home");
 
   // ✅ Filter friends based on search
   const filteredFriends = useMemo(() => {
@@ -55,7 +57,7 @@ export default function CreateChatButton() {
       const res = await friendService.getFriends(user.id);
       setFriends(res);
     } catch (err) {
-      console.error("Failed to load friends", err);
+      console.error(t("failedToLoadFriends"), err);
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ export default function CreateChatButton() {
       if (existingRoom) {
         // Use existing room
         roomId = existingRoom.id;
-        console.log("✅ Found existing room:", roomId);
+        console.log("✅ " + t("foundExistingRoom") + ":", roomId);
       } else {
         // Create new room
         const newRoom = await chatService.createRoom("Chat cá nhân", false, [
@@ -87,14 +89,14 @@ export default function CreateChatButton() {
           friend.id,
         ]);
         roomId = newRoom.id;
-        console.log("✅ Created new room:", roomId);
+        console.log("✅ " + t("createdNewRoom") + ":", roomId);
       }
 
       // 3. Navigate to chat page with roomId
       const locale = pathname.split("/")[1] || "en";
-      const chatUrl = `/${locale}/chat?  tab=personal&roomId=${roomId}`;
+      const chatUrl = `/${locale}/chat?tab=personal&roomId=${roomId}`;
 
-      console.log("🔗 Navigating to:", chatUrl);
+      console.log("🔗 " + t("navigatingTo") + ":", chatUrl);
 
       router.push(chatUrl);
 
@@ -102,7 +104,7 @@ export default function CreateChatButton() {
       setOpen(false);
       setSearchQuery("");
     } catch (err) {
-      console.error("Failed to open chat:", err);
+      console.error(t("failedToOpenChat"), err);
     }
   };
 
@@ -133,7 +135,7 @@ export default function CreateChatButton() {
       <DialogTrigger asChild>
         <div className="fixed bottom-6 right-6 flex items-center group z-20 cursor-pointer">
           <span className="opacity-0 group-hover:opacity-100 mr-2 bg-green-600 text-white px-3 py-1 rounded-lg transition-opacity duration-300 text-sm">
-            Bắt đầu trò chuyện
+            {t("startChatting")}
           </span>
           <button className="w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg hover:bg-green-700 transition-colors duration-300">
             <FiMessageSquare size={22} />
@@ -150,7 +152,7 @@ export default function CreateChatButton() {
           <DialogClose asChild>
             <button
               className="absolute right-4 p-1.5 rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-900"
-              aria-label="Close"
+              aria-label={t("close")}
             >
               <X size={18} />
             </button>
@@ -188,7 +190,7 @@ export default function CreateChatButton() {
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-block w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-              <p className="mt-2 text-sm text-gray-500">Đang tải...</p>
+              <p className="mt-2 text-sm text-gray-500">{t("loading")}</p>
             </div>
           ) : filteredFriends.length === 0 ? (
             <div className="p-8 text-center">
@@ -197,8 +199,8 @@ export default function CreateChatButton() {
               </div>
               <p className="text-sm text-gray-500">
                 {searchQuery
-                  ? "Không tìm thấy bạn nào"
-                  : "Bạn chưa có bạn bè nào"}
+                  ? t("noFriendsFound")
+                  : t("noFriendsYet")}
               </p>
             </div>
           ) : (
@@ -266,7 +268,7 @@ export default function CreateChatButton() {
                 <div className="p-3 text-center">
                   <div className="inline-flex items-center gap-2 text-xs text-gray-500">
                     <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-                    Đang tải thêm...
+                    {t("loadingMore")}
                   </div>
                 </div>
               )}
@@ -278,8 +280,8 @@ export default function CreateChatButton() {
         {!loading && filteredFriends.length > 0 && (
           <div className="px-4 py-2 border-t bg-gray-50 text-center text-xs text-gray-500 shrink-0">
             {searchQuery
-              ? `Tìm thấy ${filteredFriends.length} bạn`
-              : `Có ${filteredFriends.length} bạn bè`}
+              ? t("foundFriends", { count: filteredFriends.length })
+              : t("haveFriends", { count: filteredFriends.length })}
           </div>
         )}
       </DialogContent>

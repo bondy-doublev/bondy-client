@@ -2,9 +2,11 @@
 
 import { HelpCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 export default function HelpButton() {
   const router = useRouter();
+  const t = useTranslations("help")
 
   return (
     <button
@@ -21,7 +23,7 @@ export default function HelpButton() {
         hover:scale-105
         z-50
       "
-      title="Trợ lý ảo"
+      title={t("assistantTitle")}
     >
       <HelpCircle className="w-6 h-6" />
     </button>

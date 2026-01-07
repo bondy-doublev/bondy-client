@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Loader2, Sparkles, User } from "lucide-react";
 import { chatbotService } from "@/services/chatbotService";
 import { FaqResponse, faqService } from "@/services/faqService";
+import { useTranslations } from "use-intl";
 
 type Message = {
   id: string;
@@ -18,11 +19,12 @@ export default function HelpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [faqs, setFaqs] = useState<FaqResponse[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("help");
 
   useEffect(() => {
     loadFaqs();
     addBotMessage(
-      "Xin chào! Tôi là trợ lý ảo của Bondy. Tôi có thể giúp gì cho bạn?"
+      t("welcomeMessage")
     );
   }, []);
 
@@ -69,7 +71,7 @@ export default function HelpPage() {
 
     addBotMessage(
       response ||
-        "Xin lỗi, tôi không thể trả lời câu hỏi này. Vui lòng thử lại sau."
+        t("errorMessage")
     );
   };
 
@@ -91,7 +93,7 @@ export default function HelpPage() {
 
     addBotMessage(
       response ||
-        "Xin lỗi, tôi không thể trả lời câu hỏi này. Vui lòng thử lại sau."
+        t("errorMessage")
     );
   };
 
@@ -104,7 +106,7 @@ export default function HelpPage() {
             <div className="bg-white rounded-2xl shadow border p-6 h-full overflow-y-auto">
               <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="w-5 h-5 text-emerald-500" />
-                <h2 className="text-lg font-semibold">Câu hỏi thường gặp</h2>
+                <h2 className="text-lg font-semibold">{t("faqTitle")}</h2>
               </div>
 
               <div className="space-y-2">
@@ -133,10 +135,10 @@ export default function HelpPage() {
                   </div>
                   <div>
                     <h1 className="text-lg font-semibold text-white">
-                      Trợ lý ảo Bondy
+                      {t("assistantTitle")}
                     </h1>
                     <p className="text-xs text-white/80">
-                      Trực tuyến • Phản hồi nhanh
+                      {t("assistantSubtitle")}
                     </p>
                   </div>
                 </div>
@@ -178,7 +180,7 @@ export default function HelpPage() {
                 {isLoading && (
                   <div className="flex gap-2 items-center text-sm text-gray-500">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Đang trả lời...
+                    {t("loadingResponse")}
                   </div>
                 )}
 
@@ -192,7 +194,7 @@ export default function HelpPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Nhập câu hỏi của bạn..."
+                    placeholder={t("inputPlaceholder")}
                     className="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
                   />
                   <button

@@ -1,8 +1,21 @@
 {
   "home": {
-    "welcome": "Chào mừng đến Bookora, trang web bán sách của bạn",
+    "welcome": "Chào mừng đến Bondy, trang web mạng xã hội không lưu dữ liệu vào máy của bạn!",
     "welcomeBack": "Chào mừng trở lại",
-    "typeToSearch": "Nhập để tìm kiếm ..."
+    "typeToSearch": "Nhập để tìm kiếm ...",
+    "startChatting": "Bắt đầu trò chuyện",
+    "failedToLoadFriends": "Không thể tải danh sách bạn bè",
+    "foundExistingRoom": "Đã tìm thấy phòng chat hiện có",
+    "createdNewRoom": "Đã tạo phòng chat mới",
+    "navigatingTo": "Đang chuyển tới phòng chat",
+    "failedToOpenChat": "Không thể mở cuộc trò chuyện",
+    "close": "Đóng",
+    "loading": "Đang tải...",
+    "loadingMore": "Đang tải thêm...",
+    "noFriendsFound": "Không tìm thấy bạn bè phù hợp",
+    "noFriendsYet": "Bạn chưa có bạn bè nào",
+    "foundFriends": "Tìm thấy {count} bạn bè",
+    "haveFriends": "Bạn có {count} bạn bè"
   },
   "user": {
     "users": "Người dùng",
@@ -422,6 +435,15 @@
       "sent": "Chia sẻ bài viết thành công",
       "shared": "Chia sẻ bài viết thành công"
     }
+  },
+  "help": {
+    "welcomeMessage": "Xin chào! Tôi là trợ lý ảo của Bondy 👋 Tôi có thể giúp bạn giải đáp các câu hỏi về nền tảng.",
+    "errorMessage": "Xin lỗi, tôi chưa thể trả lời câu hỏi này. Vui lòng thử lại sau.",
+    "faqTitle": "Câu hỏi thường gặp",
+    "assistantTitle": "Trợ lý Bondy",
+    "assistantSubtitle": "Hỗ trợ nhanh • Chính xác • Dựa trên FAQ",
+    "loadingResponse": "Đang suy nghĩ câu trả lời...",
+    "inputPlaceholder": "Nhập câu hỏi của bạn về Bondy..."
   },
   "friend": {
     "friendsPageTitle": "Bạn bè",

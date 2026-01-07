@@ -24,7 +24,20 @@
   "home": {
     "welcome": "Welcome to Bondy, the new space to connect, share, and explore together",
     "welcomeBack": "Welcome back",
-    "typeToSearch": "Enter key to search..."
+    "typeToSearch": "Enter key to search...",
+    "startChatting": "Start chatting",
+    "failedToLoadFriends": "Failed to load friends list",
+    "foundExistingRoom": "Found existing chat room",
+    "createdNewRoom": "Created new chat room",
+    "navigatingTo": "Navigating to chat",
+    "failedToOpenChat": "Failed to open chat",
+    "close": "Close",
+    "loading": "Loading...",
+    "loadingMore": "Loading more...",
+    "noFriendsFound": "No matching friends found",
+    "noFriendsYet": "You don't have any friends yet",
+    "foundFriends": "Found {count} friends",
+    "haveFriends": "You have {count} friends"
   },
   "notFound": {
     "title": "Oops! Page not found",
@@ -322,6 +335,15 @@
     "create": "Create",
     "more": "More",
     "meta": "Meta's Corner"
+  },
+  "help": {
+    "welcomeMessage": "Hello! I'm Bondy's virtual assistant 👋 How can I help you today?",
+    "errorMessage": "Sorry, I couldn't answer this question. Please try again later.",
+    "faqTitle": "Frequently Asked Questions",
+    "assistantTitle": "Bondy Assistant",
+    "assistantSubtitle": "Fast support • Accurate • FAQ-based",
+    "loadingResponse": "Thinking about the answer...",
+    "inputPlaceholder": "Type your question about Bondy..."
   },
   "post": {
     "postBy": "Post by",
