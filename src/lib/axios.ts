@@ -3,6 +3,7 @@ import {
   getAccessToken,
   setAccessToken,
   removeAccessToken,
+  clearCookies,
 } from "@/utils/token";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -55,6 +56,7 @@ api.interceptors.response.use(
     const isLogoutRequest = originalRequest?.url?.includes("/auth/logout");
 
     if (error.response?.status === 401 && isLogoutRequest) {
+      clearCookies();
       removeAccessToken();
       localStorage.removeItem("refresh_token");
 
