@@ -1,5 +1,6 @@
 import CreateChatButton from "./components/CreateChatButton";
 import FriendSidebar from "./components/FriendSidebar";
+import HelpButton from "./components/HelpButton";
 import MainFeed from "./components/MainFeed";
 
 export default function Home() {
@@ -17,6 +18,8 @@ export default function Home() {
 
       {/* Nút tạo bài viết (floating) */}
       <CreateChatButton />
+
+      <HelpButton />
     </div>
   );
 }
