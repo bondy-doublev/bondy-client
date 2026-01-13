@@ -358,3 +358,4 @@ export const ChatBoxManager: React.FC = () => {
     </div>
   );
 };
+

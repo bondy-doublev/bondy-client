@@ -12,7 +12,7 @@ export default function Sidebar() {
   const t = useTranslations("sidebar");
 
   return (
-    <aside className="hidden md:block fixed top-0 left-0 h-screen w-[20%] bg-green-100 text-black overflow-y-auto shadow-md px-3">
+    <aside className="hidden md:block fixed top-0 left-0 h-screen w-[20%] bg-green-100 text-black overflow-y-auto scroll-custom shadow-md px-3">
       <div className="text-2xl font-bold mb-6 cursor-pointer">Bondy</div>
 
       <Profile />
