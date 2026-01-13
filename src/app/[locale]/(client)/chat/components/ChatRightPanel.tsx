@@ -14,6 +14,7 @@ import { uploadLocalSingle } from "@/services/uploadService";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "use-intl";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import MediaModal from "@/app/[locale]/(wall)/user/components/MediaModal";
 
 interface Member {
   id: number;
@@ -45,6 +46,8 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
   const [media, setMedia] = React.useState<any[]>([]);
   const router = useRouter();
   const t = useTranslations("chat");
+  const [mediaModalOpen, setMediaModalOpen] = React.useState(false);
+  const [mediaInitialIndex, setMediaInitialIndex] = React.useState(0);
 
   // Fetch room info
   React.useEffect(() => {
@@ -241,10 +244,10 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
           )}
 
           {/* Media Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-emerald-200">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-emerald-100">
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2">
               <div className="bg-emerald-100 p-2 rounded-lg">
-                <Image className="w-5 h-5 text-emerald-600" />
+                <Image className="w-5 h-5" />
               </div>
               <h4 className="font-bold text-lg text-gray-800">
                 {t("media")} ({media.length})
@@ -256,20 +259,22 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
                   const url =
                     f instanceof File ? URL.createObjectURL(f) : f.url;
                   return (
-                    <a
+                    <div
                       key={i}
-                      href={url}
-                      target="_blank"
+                      onClick={() => {
+                        setMediaInitialIndex(i);
+                        setMediaModalOpen(true);
+                      }}
                       rel="noopener noreferrer"
-                      className="relative group overflow-hidden rounded-lg border-2 border-emerald-300 hover:border-emerald-500 transition-all shadow-md hover:shadow-xl"
+                      className="relative group overflow-hidden rounded-lg border-2 transition-all shadow-sm hover:shadow-xl hover:cursor-pointer"
                     >
                       <img
                         src={resolveFileUrl(url)}
                         alt={`${t("media")} ${i + 1}`}
-                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300 "
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
+                    </div>
                   );
                 })}
               </div>
@@ -281,6 +286,13 @@ export const ChatRightPanel: React.FC<ChatRightPanelProps> = ({
             )}
           </div>
         </div>
+
+        <MediaModal
+          open={mediaModalOpen}
+          onClose={() => setMediaModalOpen(false)}
+          items={media}
+          initialIndex={mediaInitialIndex}
+        />
       </SheetContent>
     </Sheet>
   );

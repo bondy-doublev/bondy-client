@@ -169,7 +169,17 @@ export default function EditPostModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      // onOpenChange={(newOpen) => {
+      //   if (!newOpen && showTagModal) {
+      //     setShowTagModal(false);
+      //     return;
+      //   }
+
+      //   onClose();
+      // }}
+    >
       <DialogOverlay className="fixed inset-0 bg-black/30 z-[60]" />
       <DialogContent className="w-[95%] md:max-w-xl bg-white rounded-2xl shadow-xl p-0 overflow-hidden z-[70]">
         <DialogHeader className="flex items-center justify-center h-14 border-b top-0 bg-white z-10 relative">
@@ -178,6 +188,7 @@ export default function EditPostModal({
           </DialogTitle>
           <DialogClose asChild>
             <button
+              onClick={onClose}
               className="absolute right-4 p-1.5 rounded-full hover:bg-gray-100 transition text-gray-600 hover:text-gray-900"
               aria-label="Close"
             >

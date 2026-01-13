@@ -30,6 +30,7 @@ import { Toast } from "@/lib/toast";
 import { UserBasic } from "@/models/User";
 import { useMyFriends } from "@/app/hooks/useMyFriends";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import { Post } from "@/models/Post";
 
 type Mode = "feed" | "message";
 
@@ -49,7 +50,7 @@ export default function PostComposerModal({
   showModal: boolean;
   onClose: () => void;
   placeholder: string;
-  onPostCreated?: () => void;
+  onPostCreated?: (createdPost?: Post) => void;
 
   /** có => share mode */
   originalPostId?: number | null;
@@ -200,7 +201,7 @@ export default function PostComposerModal({
   };
 
   const handleClose = () => {
-    if (loading) return;
+    // if (loading) return;
     resetAll();
     onClose();
   };
@@ -292,7 +293,7 @@ export default function PostComposerModal({
 
       // feed
       if (isShare) {
-        await postService.createPost({
+        const createdPost = await postService.createPost({
           content: content.trim(),
           tagUserIds: tagUsers.map((u) => u.id), // ✅ share cũng tag như create
           mediaFiles: [], // ✅ share không có media
@@ -302,12 +303,12 @@ export default function PostComposerModal({
 
         Toast.success(t("share.shared") || "Đã chia sẻ");
         handleClose();
-        onPostCreated?.();
+        onPostCreated?.(createdPost);
         return;
       }
 
       const files = selectedFiles.map((f) => f.file);
-      await postService.createPost({
+      const createdPost = await postService.createPost({
         content,
         tagUserIds: tagUsers.map((u) => u.id),
         mediaFiles: files,
@@ -316,7 +317,7 @@ export default function PostComposerModal({
 
       Toast.success(t("postCreated"));
       handleClose();
-      onPostCreated?.();
+      onPostCreated?.(createdPost);
     } catch (err) {
       console.error(err);
       Toast.error(
@@ -333,7 +334,15 @@ export default function PostComposerModal({
 
   return (
     <div>
-      <Dialog open={showModal} onOpenChange={handleClose}>
+      <Dialog
+        open={showModal}
+        // onOpenChange={(open) => {
+        //   if (!open && showTagsModal) {
+        //     return;
+        //   }
+        //   handleClose();
+        // }}
+      >
         <DialogOverlay className="fixed inset-0 bg-black/30" />
         <DialogContent
           className="

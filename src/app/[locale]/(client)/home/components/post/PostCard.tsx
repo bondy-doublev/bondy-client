@@ -32,6 +32,7 @@ type Props = {
   isDetail?: boolean;
   isSharePost?: boolean;
   onDelete?: (postId: number, type: "POST" | "SHARE") => void;
+  onPostCreated?: (createdPost?: Post) => void;
 };
 
 export default function PostCard({
@@ -39,6 +40,7 @@ export default function PostCard({
   onComment,
   isDetail = false,
   onDelete,
+  onPostCreated,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("post");
@@ -216,7 +218,6 @@ export default function PostCard({
               authorAvatar: post?.owner?.avatarUrl,
             },
           });
-
         } catch (err) {
           console.error("Send share as message failed:", err);
         }
@@ -329,9 +330,7 @@ export default function PostCard({
           placeholder={
             t("share.saySomething") || "Nói gì đó về nội dung này..."
           }
-          onPostCreated={() => {
-            // bạn có thể refetch feed/wall ở đây nếu cần
-          }}
+          onPostCreated={onPostCreated}
           originalPostId={editablePost.id}
           originalPostPreview={
             <div className="overflow-hidden">

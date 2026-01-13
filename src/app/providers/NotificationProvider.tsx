@@ -3,6 +3,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import {
   connectNotificationService,
+  disconnectNotificationService,
   subscribeToNotifications,
 } from "@/lib/notificationSocket";
 import { useAuthStore } from "@/store/authStore";
@@ -32,23 +33,24 @@ export default function NotificationProvider({
 
   useEffect(() => {
     if (!user) {
+      disconnectNotificationService();
+      setNotifications([]);
       return;
     }
 
-    let sub: any;
+    const accessToken = localStorage.getItem("accessToken");
 
     (async () => {
       try {
-        await connectNotificationService();
-        console.log("📡 Connected to notification service");
+        await connectNotificationService(accessToken!);
 
-        sub = subscribeToNotifications((msg: Notification) => {
+        // Subscribe lại (quan trọng: vì reconnect có thể xảy ra bất kỳ lúc nào)
+        const sub = subscribeToNotifications((msg: Notification) => {
           setNotifications((prev) => [
             msg,
             ...prev.filter((n) => n.id !== msg.id),
           ]);
 
-          // ✅ Toast trong UI
           toast(
             <NotificationToast notification={msg} createdAt={msg.createdAt} />,
             {
@@ -66,19 +68,18 @@ export default function NotificationProvider({
             }
           );
 
-          // ✅ Native browser notification
           showBrowserNotification(msg, t);
         });
+
+        // Lưu sub để unsubscribe khi cleanup
+        return () => {
+          sub?.unsubscribe();
+        };
       } catch (err) {
         console.error("❌ WS connection failed:", err);
       }
     })();
-
-    return () => {
-      sub?.unsubscribe?.();
-      // không deactivate client để giữ kết nối toàn app – anh đã comment đúng
-    };
-  }, [user, t]);
+  }, [user, t]); // thêm dependency nếu token nằm riêng
 
   return (
     <NotificationContext.Provider value={{ notifications, setNotifications }}>

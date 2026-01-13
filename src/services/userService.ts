@@ -148,4 +148,18 @@ export const userService = {
       throw new Error("Failed to fetch basic profile");
     }
   },
+
+  async getBasicProfiles(userIds: number[]) {
+    try {
+      const response: AxiosResponse = await api.post(
+        `${API_URL}/basic-profiles`,
+        {
+          userIds,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to fetch basic profile");
+    }
+  },
 };

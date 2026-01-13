@@ -5,11 +5,12 @@ import DefaultAvatar from "@/app/[locale]/(client)/home/components/user/DefaultA
 import PostComposerModal from "@/app/[locale]/(client)/home/components/composer/PostComposerModal";
 import UserAvatar from "@/app/[locale]/(client)/home/components/user/UserAvatar";
 import { Plus } from "lucide-react";
+import { Post } from "@/models/Post";
 
 export default function PostComposer({
   onPostCreated,
 }: {
-  onPostCreated?: () => void;
+  onPostCreated?: (createdPost?: Post) => void;
 }) {
   const t = useTranslations("post");
   const { user } = useAuthStore();
