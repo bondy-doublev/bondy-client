@@ -66,7 +66,7 @@ export default function ProfilePageWithTabs() {
 
   return (
     <main className="md:px-4 w-full">
-      <Card className="w-full max-w-4xl p-6 shadow-md bg-white mx-auto">
+      <Card className="w-full p-6 shadow-md bg-white mx-auto">
         {isOwner ? (
           // ✅ Chính chủ: có Tabs + Change Password
           <Tabs defaultValue="profile" className="w-full">

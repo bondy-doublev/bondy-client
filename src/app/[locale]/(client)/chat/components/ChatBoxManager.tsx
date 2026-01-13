@@ -84,7 +84,7 @@ export const ChatBoxManager: React.FC = () => {
 
       const notification = new Notification(senderName, {
         body: message,
-        icon: "/logo.png",
+        icon: "/images/logo/favicon.png",
         tag: "chat-notification",
       });
 
@@ -358,3 +358,4 @@ export const ChatBoxManager: React.FC = () => {
     </div>
   );
 };
+

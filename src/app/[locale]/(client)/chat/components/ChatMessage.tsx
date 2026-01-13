@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   useEffect,
   useState,
@@ -8,13 +9,12 @@ import React, {
 } from "react";
 import { Message } from "@/services/chatService";
 import { useAuthStore } from "@/store/authStore";
-import { userService } from "@/services/userService";
 import { FaFileAlt } from "react-icons/fa";
-import Modal from "react-modal";
 import { useTranslations } from "use-intl";
 import { UniversalConfirmDialog } from "@/components/common/ConfirmModal";
 import { SharedPostCard } from "./SharedPostCard";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import MediaModal from "@/app/[locale]/(wall)/user/components/MediaModal";
 
 interface ChatMessageProps {
   msg: Message;
@@ -23,54 +23,61 @@ interface ChatMessageProps {
   onDelete: (msg: Message) => void;
   onReply: (msg: Message) => void;
   isInPopup?: boolean;
+  currentUserId: number;
+  userProfilesMap: Map<number, { name: string; avatarUrl?: string }>;
 }
 
+type ModalItem = {
+  url: string;
+  type: "image" | "video";
+};
+
 export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
-  ({ msg, replyMessage, onEdit, onDelete, onReply, isInPopup }, ref) => {
+  (
+    {
+      msg,
+      replyMessage,
+      onEdit,
+      onDelete,
+      onReply,
+      isInPopup = false,
+      currentUserId,
+      userProfilesMap,
+    },
+    ref
+  ) => {
     const { user } = useAuthStore();
-    const [sender, setSender] = useState<{
-      name: string;
-      avatarUrl?: string;
-    }>({ name: msg.senderId.toString() });
+    const t = useTranslations("chat");
+
+    const isMine = Number(msg.senderId) === currentUserId;
+
+    // Lấy thông tin người gửi
+    const senderProfile = isMine
+      ? {
+          name: user?.fullName || user?.firstName || t("you"),
+          avatarUrl: user?.avatarUrl,
+        }
+      : userProfilesMap.get(Number(msg.senderId)) || {
+          name: `User ${msg.senderId}`,
+        };
+
+    const senderName = senderProfile.name;
+    const senderAvatar = senderProfile.avatarUrl;
+
     const [menuVisible, setMenuVisible] = useState(false);
     const [menuPosition, setMenuPosition] = useState<{
       x: number;
       y: number;
     } | null>(null);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalImg, setModalImg] = useState("");
     const menuRef = useRef<HTMLDivElement>(null);
+
     const [isEditingInline, setIsEditingInline] = useState(false);
-    const [draftContent, setDraftContent] = useState(msg.content);
+    const [draftContent, setDraftContent] = useState(msg.content || "");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-    const t = useTranslations("chat");
-
-    const isMine = String(msg.senderId) === String(user?.id);
-
-    useEffect(() => {
-      if (!isMine) {
-        (async () => {
-          try {
-            const profile = await userService.getBasicProfile(
-              Number(msg.senderId)
-            );
-            const { fullName, username, avatarUrl } = profile.data;
-            setSender({
-              name: fullName || username || msg.senderId.toString(),
-              avatarUrl,
-            });
-          } catch {
-            setSender({ name: msg.senderId.toString() });
-          }
-        })();
-      } else {
-        setSender({
-          name: user?.fullName || user?.username || t("you"),
-          avatarUrl: user?.avatarUrl,
-        });
-      }
-    }, [msg.senderId, isMine, user]);
+    const [mediaModalOpen, setMediaModalOpen] = useState(false);
+    const [mediaItems, setMediaItems] = useState<ModalItem[]>([]);
+    const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
 
     const handleLeftClick = (e: MouseEvent<HTMLDivElement>) => {
       if (e.type === "click" && replyMessage) {
@@ -91,7 +98,7 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
     };
 
     const handleEdit = () => {
-      setDraftContent(msg.content);
+      setDraftContent(msg.content || "");
       setIsEditingInline(true);
       setMenuVisible(false);
     };
@@ -106,68 +113,92 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       setMenuVisible(false);
     };
 
-    const openModal = (img: string) => {
-      setModalImg(img);
-      setModalOpen(true);
+    const isImageFile = (url: string) =>
+      /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+    const isVideoFile = (url: string) =>
+      /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(url);
+
+    const openMediaModal = (clickedUrl: string) => {
+      const items: ModalItem[] = [];
+      const attachments = msg.attachments || [];
+
+      attachments.forEach((a) => {
+        if (a.type === "image" || (a.type === "file" && isImageFile(a.url))) {
+          items.push({ url: a.url, type: "image" });
+        } else if (a.type === "file" && isVideoFile(a.url)) {
+          items.push({ url: a.url, type: "video" });
+        }
+      });
+
+      if (
+        msg.imageUrl &&
+        isImageFile(msg.imageUrl) &&
+        !items.some((i) => i.url === msg.imageUrl)
+      ) {
+        items.push({ url: msg.imageUrl, type: "image" });
+      }
+      if (
+        msg.fileUrl &&
+        isVideoFile(msg.fileUrl) &&
+        !items.some((i) => i.url === msg.fileUrl)
+      ) {
+        items.push({ url: msg.fileUrl, type: "video" });
+      }
+
+      if (items.length === 0) return;
+
+      const clickedIndex = items.findIndex((item) => item.url === clickedUrl);
+      setMediaItems(items);
+      setMediaInitialIndex(clickedIndex >= 0 ? clickedIndex : 0);
+      setMediaModalOpen(true);
     };
 
     useEffect(() => {
-      const handleClickOutside = (e: MouseEvent) => {
-        if (
-          menuRef.current &&
-          !menuRef.current.contains(e.target as Node) &&
-          menuVisible
-        ) {
+      if (!menuVisible) return;
+      const handleClickOutside = (e: globalThis.MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
           setMenuVisible(false);
         }
       };
-
-      if (menuVisible)
-        document.addEventListener("mousedown", handleClickOutside);
-      else document.removeEventListener("mousedown", handleClickOutside);
-
+      document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }, [menuVisible]);
 
     const attachments = msg.attachments || [];
-    const hasAttachments = attachments.length > 0;
 
-    const containerClass =
-      "flex mb-2 w-full " + (isMine ? "justify-end" : "justify-start");
-
+    const containerClass = `flex mb-2 w-full ${
+      isMine ? "justify-end" : "justify-start"
+    }`;
     const maxBubbleWidth = isInPopup ? "max-w-[85%]" : "max-w-[70%]";
+    const bubbleClass = `p-3 rounded-lg ${maxBubbleWidth} break-words cursor-pointer shadow-sm ${
+      isMine ? "bg-green-500 text-white" : "bg-blue-100 text-black"
+    }`;
 
-    const bubbleClass =
-      `p-2 rounded ${maxBubbleWidth} break-words cursor-pointer ` +
-      (isMine ? "bg-green-500 text-white" : "bg-blue-200 text-black");
-
-    // Avatar fallback (chữ cái đầu)
     const renderAvatar = () => {
-      if (sender.avatarUrl) {
+      if (senderAvatar) {
         return (
           <img
-            src={resolveFileUrl(sender.avatarUrl)}
-            alt={sender.name}
-            className="w-8 h-8 rounded-full object-cover"
+            src={resolveFileUrl(senderAvatar)}
+            alt={senderName}
+            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
           />
         );
-      } else {
-        const initial = sender.name?.charAt(0)?.toUpperCase() || "?";
-        return (
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-400 text-white font-semibold"
-            title={sender.name}
-          >
-            {initial}
-          </div>
-        );
       }
+      const initial = senderName.charAt(0).toUpperCase() || "?";
+      return (
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-500 text-white font-bold flex-shrink-0"
+          title={senderName}
+        >
+          {initial}
+        </div>
+      );
     };
 
     return (
       <div ref={ref} className={containerClass} id={`msg-${msg.id}`}>
-        {!isMine && <div className="mr-2">{renderAvatar()}</div>}
+        {!isMine && <div className="mr-3 mt-2">{renderAvatar()}</div>}
 
         <div
           className={bubbleClass}
@@ -175,128 +206,147 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
           onContextMenu={handleRightClick}
         >
           {replyMessage && (
-            <div className="bg-gray-100 text-gray-500 p-1 rounded mb-1 text-xs italic max-w-full cursor-pointer hover:bg-gray-200">
+            <div className="bg-white/30 backdrop-blur-sm text-gray-700 p-2 rounded mb-2 text-sm italic max-w-full cursor-pointer hover:bg-white/50 transition">
               {replyMessage.isDeleted
                 ? t("deleted")
-                : replyMessage.content
-                ? replyMessage.content
-                : replyMessage.sharedPost
-                ? `📤 ${replyMessage.sharedPost.title}`
-                : replyMessage.attachments?.length
-                ? replyMessage.attachments
-                    .map((a) => (a.type === "image" ? t("image") : t("file")))
-                    .join(", ")
-                : replyMessage.imageUrl
-                ? t("image")
-                : replyMessage.fileUrl
-                ? t("file")
+                : replyMessage.content || replyMessage.sharedPost
+                ? `${replyMessage.sharedPost?.title ?? replyMessage.content}`
+                : replyMessage.attachments?.length || replyMessage.fileUrl
+                ? t("media")
                 : t("noContent")}
             </div>
           )}
 
-          {/* Nội dung text - hiển thị trước shared post */}
-          <div className="text-sm mt-1 w-full">
-            {msg.isDeleted ? (
-              <i>{t("deleted")}</i>
-            ) : isEditingInline ? (
-              <div className="flex flex-col gap-2">
-                <textarea
-                  value={draftContent}
-                  onChange={(e) => setDraftContent(e.target.value)}
-                  className="w-full border rounded p-2 h-20 focus:outline-none text-black"
-                />
-
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => {
-                      setIsEditingInline(false);
-                      setDraftContent(msg.content);
-                    }}
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-green-600"
-                  >
-                    {t("cancel")}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      onEdit(msg, draftContent || "");
-                      setIsEditingInline(false);
-                    }}
-                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    {t("save")}
-                  </button>
-                </div>
+          {msg.isDeleted ? (
+            <i className="opacity-70">{t("deleted")}</i>
+          ) : isEditingInline ? (
+            <div className="flex flex-col gap-3 mt-2">
+              <textarea
+                value={draftContent}
+                onChange={(e) => setDraftContent(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black resize-none"
+                rows={3}
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setIsEditingInline(false);
+                    setDraftContent(msg.content || "");
+                  }}
+                  className="px-4 py-1.5 bg-gray-300 text-black rounded hover:bg-gray-400 transition"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  onClick={() => {
+                    onEdit(msg, draftContent.trim());
+                    setIsEditingInline(false);
+                  }}
+                  className="px-4 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  {t("save")}
+                </button>
               </div>
-            ) : (
-              <>
-                {msg.content && (
-                  <div className="whitespace-pre-wrap mb-2">{msg.content}</div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Shared Post Card */}
-          {msg.sharedPost && !msg.isDeleted && (
-            <SharedPostCard sharedPost={msg?.sharedPost} isMine={isMine} />
+            </div>
+          ) : (
+            msg.content && (
+              <div className="whitespace-pre-wrap">{msg.content}</div>
+            )
           )}
 
-          {/* Attachments */}
-          {!msg.sharedPost && (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {hasAttachments &&
-                attachments.slice(0, 4).map((a, index) =>
-                  a.type === "image" ? (
-                    <img
-                      key={index}
-                      src={resolveFileUrl(a.url)}
-                      alt={a.fileName}
-                      className={`object-cover rounded cursor-pointer ${
-                        isInPopup ? "max-w-[200px] max-h-[200px]" : "w-20 h-20"
-                      }`}
-                      onClick={() => openModal(a.url)}
-                    />
-                  ) : (
-                    <a
-                      key={index}
-                      href={a.url}
-                      target="_blank"
-                      className="text-blue-500 text-xs max-w-[80px] truncate"
-                    >
-                      <FaFileAlt className="inline mr-1" />
-                      {a.fileName || a.url.split("/").pop()}
-                    </a>
-                  )
-                )}
-              {!hasAttachments && msg.imageUrl && (
-                <img
-                  src={resolveFileUrl(msg.imageUrl)}
-                  alt="img"
-                  className={`rounded mt-1 object-cover ${
-                    isInPopup
-                      ? "max-w-[200px] max-h-[200px]"
-                      : "max-w-full md:max-w-xs h-auto"
-                  }`}
-                />
-              )}
-              {!hasAttachments && msg.fileUrl && !msg.imageUrl && (
-                <a
-                  href={msg.fileUrl}
-                  target="_blank"
-                  className="text-blue-500 mt-1 block"
-                >
-                  {msg.fileUrl.split("/").pop()}
-                </a>
-              )}
+          {msg.sharedPost && !msg.isDeleted && (
+            <div className="mt-3">
+              <SharedPostCard sharedPost={msg.sharedPost} isMine={isMine} />
             </div>
           )}
 
-          {/* Timestamp */}
+          {!msg.isDeleted && (attachments.length > 0 || msg.fileUrl) && (
+            <div className="flex flex-wrap gap-3 mt-3">
+              {attachments.map((a, idx) => {
+                const isActualImage =
+                  a.type === "image" ||
+                  (a.type === "file" && isImageFile(a.url));
+                const isActualVideo = a.type === "file" && isVideoFile(a.url);
+
+                if (isActualImage || isActualVideo) {
+                  return (
+                    <div
+                      key={a.url + idx}
+                      className={`relative cursor-pointer rounded-lg overflow-hidden ${
+                        isInPopup ? "max-w-[200px]" : "w-40 h-40"
+                      } bg-black/20`}
+                      onClick={() => openMediaModal(a.url)}
+                    >
+                      {isActualImage ? (
+                        <img
+                          src={resolveFileUrl(a.url)}
+                          alt={a.fileName || "media"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={resolveFileUrl(a.url)}
+                          className="w-full h-full object-cover"
+                          muted
+                        />
+                      )}
+                      {isActualVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-black/60 rounded-full p-4">
+                            <svg
+                              className="w-10 h-10 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <a
+                    key={idx}
+                    href={resolveFileUrl(a.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm"
+                  >
+                    <FaFileAlt className="text-xl" />
+                    <span className="truncate max-w-[180px]">
+                      {a.fileName || a.url.split("/").pop()}
+                    </span>
+                  </a>
+                );
+              })}
+
+              {!attachments.length &&
+                msg.imageUrl &&
+                isImageFile(msg.imageUrl) && (
+                  <img
+                    src={resolveFileUrl(msg.imageUrl)}
+                    alt="img"
+                    className={`rounded-lg object-cover cursor-pointer ${
+                      isInPopup
+                        ? "max-w-[200px] max-h-[200px]"
+                        : "max-w-md w-full h-full"
+                    }`}
+                    onClick={() => openMediaModal(msg.imageUrl!)}
+                  />
+                )}
+            </div>
+          )}
+
           <div
-            className={`text-xs flex items-center gap-1 ${
-              isMine ? "text-white justify-end" : "text-gray-600 justify-start"
-            } mt-1`}
+            className={`text-xs flex items-center gap-1 mt-1 ${
+              isMine
+                ? "text-white/80 justify-end"
+                : "text-gray-600 justify-start"
+            }`}
           >
             <span>
               {new Date(msg.createdAt).toLocaleString([], {
@@ -307,74 +357,54 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
                 minute: "2-digit",
               })}
             </span>
-
             {msg.isEdited && (
               <span className="opacity-70">({t("edited")})</span>
             )}
           </div>
-
-          {menuVisible && menuPosition && (
-            <div
-              ref={menuRef}
-              style={{
-                position: "fixed",
-                top: menuPosition.y,
-                left: menuPosition.x,
-                background: "white",
-                border: "1px solid #ccc",
-                borderRadius: 4,
-                zIndex: 1000,
-              }}
-            >
-              <button
-                className={`px-2 py-1 w-full text-md text-left hover:bg-gray-200 ${
-                  isMine ? "text-black" : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={isMine ? handleEdit : undefined}
-              >
-                {t("edit")}
-              </button>
-              <button
-                className={`px-2 py-1 w-full text-md text-left hover:bg-gray-200 ${
-                  isMine ? "text-black" : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={isMine ? handleDelete : undefined}
-              >
-                {t("delete")}
-              </button>
-              <button
-                className="px-2 py-1 w-full text-left text-black text-md hover:bg-gray-200"
-                onClick={handleReply}
-              >
-                {t("reply")}
-              </button>
-            </div>
-          )}
         </div>
 
-        {isMine && <div className="ml-2">{renderAvatar()}</div>}
+        {isMine && <div className="ml-3 mt-2">{renderAvatar()}</div>}
 
-        <Modal
-          isOpen={modalOpen}
-          onRequestClose={() => setModalOpen(false)}
-          className="flex items-center justify-center"
-          overlayClassName="fixed inset-0 flex items-center justify-center"
-          style={{
-            overlay: { backgroundColor: "rgba(0,0,0,0.9)", zIndex: 1000 },
-            content: {
-              inset: "auto",
-              padding: 0,
-              border: "none",
-              background: "transparent",
-            },
-          }}
-        >
-          <img
-            src={resolveFileUrl(modalImg)}
-            alt="Zoom"
-            className="max-h-[80vh] max-w-[90vw] rounded"
-          />
-        </Modal>
+        {menuVisible && menuPosition && (
+          <div
+            ref={menuRef}
+            className="fixed bg-white border border-gray-300 rounded-lg shadow-xl py-2 z-[10000] min-w-[140px]"
+            style={{ top: menuPosition.y, left: menuPosition.x }}
+          >
+            <button
+              className={`px-4 py-2 w-full text-left hover:bg-gray-100 transition ${
+                isMine ? "text-black" : "text-gray-400 cursor-not-allowed"
+              }`}
+              onClick={isMine ? handleEdit : undefined}
+              disabled={!isMine}
+            >
+              {t("edit")}
+            </button>
+            <button
+              className={`px-4 py-2 w-full text-left hover:bg-gray-100 transition ${
+                isMine ? "text-red-600" : "text-gray-400 cursor-not-allowed"
+              }`}
+              onClick={isMine ? handleDelete : undefined}
+              disabled={!isMine}
+            >
+              {t("delete")}
+            </button>
+            <button
+              className="px-4 py-2 w-full text-left text-black hover:bg-gray-100 transition"
+              onClick={handleReply}
+            >
+              {t("reply")}
+            </button>
+          </div>
+        )}
+
+        <MediaModal
+          open={mediaModalOpen}
+          onClose={() => setMediaModalOpen(false)}
+          items={mediaItems}
+          initialIndex={mediaInitialIndex}
+        />
+
         <UniversalConfirmDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}

@@ -26,7 +26,7 @@ export default function Page() {
         <MediaSidebar userId={Number(userId)} />
         <FriendSidebar
           userId={Number(userId)}
-          className="sticky top-0 self-start"
+          className="sticky top-4 self-start"
         />
       </div>
       {userInfo && (

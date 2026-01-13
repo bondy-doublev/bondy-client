@@ -1,26 +1,19 @@
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "./ChatMessage";
 import { chatService, Message } from "@/services/chatService";
 import { FaEllipsisV, FaPaperclip, FaVideo, FaBars } from "react-icons/fa";
-import VideoCallModal from "./VideoCallModal";
-import { v4 as uuid } from "uuid";
-import {
-  onSnapshot,
-  collection,
-  query,
-  where,
-  addDoc,
-  doc,
-} from "firebase/firestore";
-import { db } from "@/configs/firebase";
 import { useRingtone } from "@/app/hooks/useRingTone";
 import { ChatRightPanel } from "./ChatRightPanel";
 import { useCall } from "@/context/CallContext";
 import { useTranslations } from "use-intl";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import { userService } from "@/services/userService";
+import { onSnapshot, collection, addDoc, doc } from "firebase/firestore";
+import { db } from "@/configs/firebase";
 
 interface ChatAreaProps {
   isGroup: boolean;
@@ -39,7 +32,6 @@ interface ChatAreaProps {
   onReplyMessage: (msg: Message) => void;
   replyingMessage: Message | null;
   onRoomUpdated: () => void;
-  // new: handler to toggle sidebar (mobile/tablet)
   onToggleSidebar?: () => void;
 }
 
@@ -70,6 +62,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const t = useTranslations("chat");
 
+  const [userProfilesMap, setUserProfilesMap] = useState<
+    Map<number, { name: string; avatarUrl?: string }>
+  >(new Map());
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     setAttachments(Array.from(e.target.files));
@@ -80,7 +76,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   };
 
   const isRinging = !!outgoingCallId && callStatus === "ringing";
-
   useRingtone(isRinging);
 
   const handleCallClick = async () => {
@@ -118,39 +113,103 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     }
   };
 
+  // Fetch room members + batch fetch ALL profiles (including current user)
   useEffect(() => {
-    if (!selectedRoom) return;
+    if (!selectedRoom) {
+      setRoomMembers([]);
+      setUserProfilesMap(new Map());
+      return;
+    }
 
-    const fetchMembers = async () => {
+    const fetchRoomAndProfiles = async () => {
       try {
         const room = await chatService.getRoomInformation(selectedRoom);
 
-        // Loại bỏ chính user
-        const otherMembers = room.members
-          .map((m: any) => m.userId) // dùng userId
-          .filter((id: number) => id !== currentUserId);
+        // Lấy TẤT CẢ userId trong room (bao gồm cả mình)
+        const allMemberIds = room.members
+          .map((m: any) => m.userId)
+          .filter((id: number) => id != null); // phòng trường hợp null/undefined
 
-        setRoomMembers(otherMembers);
+        setRoomMembers(allMemberIds);
+
+        console.log("All member IDs in room:", allMemberIds);
+
+        if (allMemberIds.length === 0) {
+          setUserProfilesMap(new Map());
+          return;
+        }
+
+        try {
+          const res = await userService.getBasicProfiles(allMemberIds);
+          const profiles = res.data || res; // tùy format API của bạn
+
+          const newMap = new Map<
+            number,
+            { name: string; avatarUrl?: string }
+          >();
+
+          profiles.forEach((p: any) => {
+            // Linh hoạt lấy userId từ nhiều field có thể
+            const rawId = p.userId ?? p.id ?? p.Id ?? p.UserId ?? p.userid;
+            const userId = rawId != null ? Number(rawId) : null;
+
+            if (userId != null && !isNaN(userId)) {
+              newMap.set(userId, {
+                name:
+                  p.fullName ||
+                  p.username ||
+                  p.displayName ||
+                  p.name ||
+                  `User ${userId}`,
+                avatarUrl:
+                  p.avatarUrl || p.avatar || p.profileImage || undefined,
+              });
+            }
+          });
+
+          // Fallback cho tất cả member IDs (đảm bảo không thiếu)
+          allMemberIds.forEach((id: number) => {
+            if (!newMap.has(id)) {
+              newMap.set(id, { name: `User ${id}` });
+            }
+          });
+
+          console.log("Final fixed profiles map:", Object.fromEntries(newMap));
+          setUserProfilesMap(newMap);
+        } catch (err) {
+          console.error("Failed to batch fetch profiles:", err);
+          // Fallback: tạo tên giả cho tất cả
+          const fallbackMap = new Map<
+            number,
+            { name: string; avatarUrl?: string }
+          >();
+          allMemberIds.forEach((id: number) => {
+            fallbackMap.set(id, { name: `User ${id}` });
+          });
+          setUserProfilesMap(fallbackMap);
+        }
       } catch (err) {
-        console.error(t("failedToFetchRoomMembers"), err);
+        console.error("Failed to fetch room info:", err);
+        setUserProfilesMap(new Map());
       }
     };
 
-    fetchMembers();
-  }, [selectedRoom, currentUserId, t]);
+    fetchRoomAndProfiles();
+  }, [selectedRoom]); // Không cần currentUserId ở dependency nữa vì lấy all members
 
   useEffect(() => {
     if (!outgoingCallId) return;
+
     const unsub = onSnapshot(doc(db, "calls", outgoingCallId), (snap) => {
       const data = snap.data();
       if (!data) return;
-
-      setCallStatus(data.status); // cập nhật status
-
+      setCallStatus(data.status);
       if (data.status === "rejected" || data.status === "ended") {
         setOutgoingCallId(null);
+        setCallStatus(null);
       }
     });
+
     return () => unsub();
   }, [outgoingCallId, setOutgoingCallId]);
 
@@ -168,9 +227,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         <div className="lg:hidden">
           <button
             className="md:p-2 mr-2 rounded hover:bg-gray-100"
-            onClick={() => {
-              if (onToggleSidebar) onToggleSidebar();
-            }}
+            onClick={() => onToggleSidebar?.()}
             aria-label="Toggle sidebar"
           >
             <FaBars size={18} />
@@ -180,18 +237,17 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         <div className="font-semibold text-gray-700">{t("chat")}</div>
 
         <div className="flex items-center gap-4">
-          {/* Video Call */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
             onClick={handleCallClick}
+            disabled={isRinging || roomMembers.length === 0}
           >
             <FaVideo size={20} />
           </button>
 
-          {/* Menu */}
           <FaEllipsisV
             size={20}
-            className="cursor-pointer"
+            className="cursor-pointer text-gray-600"
             onClick={() => setIsRightPanelOpen(true)}
           />
         </div>
@@ -200,9 +256,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       <div
         ref={messageContainerRef}
         className="flex-1 p-2 md:p-4 space-y-2 bg-gray-50 overflow-y-auto"
-        style={{
-          scrollBehavior: "auto",
-        }}
+        style={{ scrollBehavior: "auto" }}
       >
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-80">
@@ -211,12 +265,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         ) : (
           messages.map((msg, index) => (
             <ChatMessage
-              key={index}
+              key={msg.id || index}
               msg={msg}
               replyMessage={messages.find((x) => x.id === msg.replyToMessageId)}
               onEdit={onEditMessage}
               onDelete={onDeleteMessage}
               onReply={onReplyMessage}
+              currentUserId={currentUserId}
+              userProfilesMap={userProfilesMap}
             />
           ))
         )}
@@ -233,7 +289,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               >
                 {file.type.startsWith("image") ? (
                   <img
-                    src={resolveFileUrl(URL.createObjectURL(file))}
+                    src={URL.createObjectURL(file)}
                     alt={file.name}
                     className="w-16 h-16 object-cover rounded"
                   />
@@ -260,8 +316,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           </div>
         )}
 
-        {/* Input area */}
-        <div className="p-2 md:p-4 border-t border-gray-200 flex items-center space-x-2 bg-white sticky bottom-0 z-20">
+        <div className="p-2 md:p-4 border-t border-gray-200 flex items-center space-x-2 bg-white">
           <label className="cursor-pointer text-gray-600 hover:text-gray-800">
             <FaPaperclip size={20} />
             <input
