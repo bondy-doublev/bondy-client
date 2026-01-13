@@ -150,7 +150,7 @@ export default function WallFeed({ className, wallOwner }: Props) {
 
       {posts.map((post, index) => (
         <PostCard
-          key={index}
+          key={post.id}
           post={post}
           isSharePost={!!post.sharedFrom}
           onComment={() => setSelectedPost(post)}

@@ -93,7 +93,7 @@ export default function PostHeader({
         </span>
       </>
     );
-  };  
+  };
 
   return (
     <div className="flex items-center p-4 pb-0 gap-3 relative">

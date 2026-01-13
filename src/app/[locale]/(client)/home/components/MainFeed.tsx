@@ -49,7 +49,31 @@ export default function MainFeed({ className }: Props) {
     });
   };
 
-  const reloadFeeds = async () => {
+  // Helper: prepend a post (avoid duplicates)
+  const prependPost = (post: Post) => {
+    setPosts((prev) => {
+      // remove any existing with same id, then put new at head
+      const filtered = prev.filter((p) => p.id !== post.id);
+      return [post, ...filtered];
+    });
+    // if you want the modal selection to show the new post when opened, you can setSelectedPost(post)
+  };
+
+  /**
+   * reloadFeeds:
+   * - Nếu được gọi với một Post (newPost) -> chỉ prepend post vào list (không fetch lại toàn bộ)
+   * - Nếu không có param -> reload toàn bộ feed (reset page, fetch page 0)
+   *
+   * PostComposer cần gọi onPostCreated(newPost) sau khi tạo xong.
+   */
+  const reloadFeeds = async (newPost?: Post) => {
+    if (newPost) {
+      prependPost(newPost);
+      // Nếu muốn reset paging so that next infinite-load starts from page 1 again:
+      // setPage(0); setHasMore(true);
+      return;
+    }
+
     setIsReloading(true);
     setPage(0);
     setHasMore(true);
@@ -138,17 +162,17 @@ export default function MainFeed({ className }: Props) {
       {/* Reels của tôi + bạn bè */}
       <VisibleReels />
 
-      {/* Composer đăng bài (home feed không có owner) */}
       <PostComposer onPostCreated={reloadFeeds} />
 
       {/* Feed */}
       {posts.map((post, index) => (
         <PostCard
-          key={index}
+          key={post.id}
           post={post}
           isSharePost={!!post.sharedFrom}
           onComment={() => setSelectedPost(post)}
           onDelete={handleDelete}
+          onPostCreated={reloadFeeds}
         />
       ))}
 

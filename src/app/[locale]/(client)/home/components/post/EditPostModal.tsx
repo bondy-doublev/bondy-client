@@ -171,6 +171,14 @@ export default function EditPostModal({
   return (
     <Dialog
       open={open}
+      // onOpenChange={(newOpen) => {
+      //   if (!newOpen && showTagModal) {
+      //     setShowTagModal(false);
+      //     return;
+      //   }
+
+      //   onClose();
+      // }}
     >
       <DialogOverlay className="fixed inset-0 bg-black/30 z-[60]" />
       <DialogContent className="w-[95%] md:max-w-xl bg-white rounded-2xl shadow-xl p-0 overflow-hidden z-[70]">
