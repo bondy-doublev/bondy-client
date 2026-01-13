@@ -25,6 +25,8 @@ import { toast } from "react-toastify";
 import { addDoc, collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { resolveFileUrl } from "@/utils/fileUrl";
+import Spinner from "@/app/components/ui/spinner";
+import { userService } from "@/services/userService";
 
 interface ChatBoxPopupProps {
   roomId: string;
@@ -35,6 +37,8 @@ interface ChatBoxPopupProps {
   onMinimize: () => void;
   isMinimized: boolean;
 }
+
+const PAGE_SIZE = 20;
 
 export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
   roomId,
@@ -60,42 +64,110 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
   const [roomMembers, setRoomMembers] = useState<number[]>([]);
   const [callStatus, setCallStatus] = useState<string | null>(null);
 
+  const [userProfilesMap, setUserProfilesMap] = useState<
+    Map<number, { name: string; avatarUrl?: string }>
+  >(new Map());
+
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
-  const messageContainerRef = useRef<HTMLDivElement>(null);
   const roomIdRef = useRef(roomId);
+
+  const previousScrollHeight = useRef<number>(0);
+  const previousScrollTop = useRef<number>(0);
 
   const isRinging = !!outgoingCallId && callStatus === "ringing";
   useRingtone(isRinging);
 
-  // ✅ Update ref when roomId changes
   useEffect(() => {
     roomIdRef.current = roomId;
   }, [roomId]);
 
-  // ✅ Fetch room members for call
+  useEffect(() => {
+    setMessages([]);
+    setPage(1);
+    setHasMore(true);
+    setInitialLoaded(false);
+    setLoadingMore(false);
+    setUserProfilesMap(new Map());
+  }, [roomId]);
+
+  useEffect(() => {
+    if (isMinimized) {
+      setInitialLoaded(false);
+    }
+  }, [isMinimized]);
+
+  // Fetch room info + profiles
   useEffect(() => {
     if (!roomId) return;
 
-    const fetchMembers = async () => {
+    const fetchRoomAndProfiles = async () => {
       try {
         const room = await chatService.getRoomInformation(roomId);
 
-        // Get other members (exclude current user)
-        const otherMembers = room.members
-          .map((m: any) => m.userId)
-          .filter((id: number) => id !== currentUserId);
-
+        const otherMembers = room.members.map((m: any) => m.userId);
         setRoomMembers(otherMembers);
-        console.log("📞 Room members for call:", otherMembers);
+
+        console.log("userIDssssss: ", otherMembers);
+
+        if (otherMembers.length === 0) {
+          setUserProfilesMap(new Map());
+          return;
+        }
+
+        try {
+          const res = await userService.getBasicProfiles(otherMembers);
+          const profiles = res.data || res;
+
+          const newMap = new Map<
+            number,
+            { name: string; avatarUrl?: string }
+          >();
+
+          profiles.forEach((p: any) => {
+            // Linh hoạt lấy userId từ nhiều field có thể
+            const rawId = p.userId ?? p.id ?? p.Id ?? p.UserId ?? p.userid;
+            const userId = rawId != null ? Number(rawId) : null;
+
+            if (userId != null && !isNaN(userId)) {
+              newMap.set(userId, {
+                name:
+                  p.fullName ||
+                  p.username ||
+                  p.displayName ||
+                  p.name ||
+                  `User ${userId}`,
+                avatarUrl:
+                  p.avatarUrl || p.avatar || p.profileImage || undefined,
+              });
+            }
+          });
+
+          console.log("Final fixed profiles map:", Object.fromEntries(newMap));
+          setUserProfilesMap(newMap);
+        } catch (err) {
+          console.error("Failed to fetch profiles:", err);
+          const fallbackMap = new Map();
+          otherMembers.forEach((id: number) =>
+            fallbackMap.set(id, { name: `User ${id}` })
+          );
+          setUserProfilesMap(fallbackMap);
+        }
       } catch (err) {
-        console.error("Failed to fetch room members:", err);
+        console.error("Failed to fetch room info:", err);
       }
     };
 
-    fetchMembers();
+    fetchRoomAndProfiles();
   }, [roomId, currentUserId]);
 
-  // ✅ Monitor call status
+  // Monitor call status
   useEffect(() => {
     if (!outgoingCallId) return;
 
@@ -114,7 +186,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     return () => unsub();
   }, [outgoingCallId, setOutgoingCallId]);
 
-  // ✅ Handle video call click
   const handleCallClick = async () => {
     if (!roomId || roomMembers.length === 0) {
       toast.error(t("cannotStartCall") || "Không thể bắt đầu cuộc gọi");
@@ -122,8 +193,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     }
 
     try {
-      console.log("📞 Starting call with members:", roomMembers);
-
       const callDoc = await addDoc(collection(db, "calls"), {
         senderId: currentUserId,
         receiverIds: roomMembers,
@@ -135,19 +204,98 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
       setOutgoingCallReceiver(roomId);
       setOutgoingCallId(callDoc.id);
 
-      toast.info(t("callingUser") || "Đang gọi.. .");
+      toast.info(t("callingUser") || "Đang gọi...");
     } catch (err) {
       console.error("Failed to start call:", err);
       toast.error(t("callFailed") || "Không thể thực hiện cuộc gọi");
     }
   };
 
-  // ✅ Load initial messages
-  useEffect(() => {
-    if (!isMinimized && roomId) {
-      loadMessages();
+  const loadInitialMessages = async () => {
+    if (initialLoaded || loadingMore) return;
 
-      // Join room socket
+    try {
+      const data = await chatService.getRoomMessages(roomId, 1, PAGE_SIZE);
+      const reversed = data.reverse();
+      setMessages(reversed);
+      setPage(1);
+      setHasMore(data.length === PAGE_SIZE);
+      setInitialLoaded(true);
+      setTimeout(() => scrollToBottom(true), 100);
+    } catch (error) {
+      console.error("Failed to load initial messages:", error);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+
+    const container = containerRef.current;
+    if (container) {
+      previousScrollHeight.current = container.scrollHeight;
+      previousScrollTop.current = container.scrollTop;
+    }
+
+    try {
+      const nextPage = page + 1;
+      const data = await chatService.getRoomMessages(
+        roomId,
+        nextPage,
+        PAGE_SIZE
+      );
+
+      if (data.length < PAGE_SIZE) {
+        setHasMore(false);
+      }
+
+      if (data.length > 0) {
+        const olderMessages = data.reverse();
+        setMessages((prev) => [...olderMessages, ...prev]);
+        setPage(nextPage);
+
+        requestAnimationFrame(() => {
+          if (container) {
+            const newScrollHeight = container.scrollHeight;
+            const heightDiff = newScrollHeight - previousScrollHeight.current;
+            container.scrollTop = previousScrollTop.current + heightDiff;
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load more messages:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !topSentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreMessages();
+        }
+      },
+      {
+        root: container,
+        threshold: 0.1,
+        rootMargin: "100px",
+      }
+    );
+
+    observer.observe(topSentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [roomId, hasMore, loadingMore]);
+
+  useEffect(() => {
+    if (!isMinimized && roomId && !initialLoaded) {
+      loadInitialMessages();
+
       if (chatSocket) {
         chatSocket.socket.emit("joinRoom", {
           roomId,
@@ -155,17 +303,14 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
         });
       }
     }
-  }, [roomId, isMinimized, chatSocket]);
+  }, [roomId, isMinimized, initialLoaded, chatSocket]);
 
-  // ✅ Socket realtime listener
   useEffect(() => {
     if (!chatSocket) return;
 
     const s = chatSocket.socket;
 
     const handleNewMessage = (msg: Message) => {
-      console.log("📨 New message in popup:", msg);
-
       if (msg.roomId === roomIdRef.current) {
         setMessages((prev) => {
           const exists = prev.find((m) => m.id === msg.id);
@@ -200,21 +345,19 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     };
   }, [chatSocket]);
 
-  const loadMessages = async () => {
-    try {
-      const data = await chatService.getRoomMessages(roomId, 1, 50);
-      setMessages(data.reverse());
-      setTimeout(() => scrollToBottom(), 100);
-    } catch (error) {
-      console.error("Failed to load messages:", error);
+  const scrollToBottom = (force = false) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      150;
+
+    if (force || isNearBottom) {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const scrollToBottom = () => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // ✅ Send message with file upload
   const handleSend = async () => {
     if (uploading) return;
     if (!newMsg.trim() && attachments.length === 0) return;
@@ -260,7 +403,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
       setAttachments([]);
       setReplyingMessage(null);
 
-      setTimeout(() => scrollToBottom(), 100);
+      setTimeout(() => scrollToBottom(true), 100);
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error(t("uploadFileFailed"));
@@ -285,18 +428,13 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  // ✅ Expand with locale
   const handleExpand = () => {
     const locale = pathname.split("/")[1] || "en";
-    const targetUrl = `/${locale}/chat? tab=personal&roomId=${roomId}`;
-
-    console.log("🔗 Expanding to:", targetUrl);
-
+    const targetUrl = `/${locale}/chat?tab=personal&roomId=${roomId}`;
     router.push(targetUrl);
     onClose();
   };
 
-  // ✅ Edit message
   const handleEditMessage = async (msg: Message, newContent: string) => {
     if (!chatSocket) return;
 
@@ -315,7 +453,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     }
   };
 
-  // ✅ Delete message
   const handleDeleteMessage = async (msg: Message) => {
     if (!chatSocket) return;
 
@@ -332,7 +469,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
     }
   };
 
-  // Avatar fallback
   const renderAvatar = () => {
     if (roomAvatar) {
       return (
@@ -343,7 +479,7 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
         />
       );
     }
-    const initial = roomName?.charAt(0)?.toUpperCase() || "? ";
+    const initial = roomName?.charAt(0)?.toUpperCase() || "?";
     return (
       <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500 text-white font-semibold">
         {initial}
@@ -359,7 +495,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
         height: isMinimized ? "50px" : "500px",
       }}
     >
-      {/* Header */}
       <div className="flex items-center justify-between p-3 bg-green-600 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           {renderAvatar()}
@@ -368,20 +503,12 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          {/* ✅ Video Call Button */}
           <button
             onClick={handleCallClick}
             disabled={isRinging || roomMembers.length === 0}
             className={`p-1.5 rounded transition ${
               isRinging ? "bg-red-500 animate-pulse" : "hover:bg-green-700"
             }`}
-            title={
-              isRinging
-                ? t("calling")
-                : roomMembers.length === 0
-                ? t("noMembersToCall")
-                : t("videoCall")
-            }
           >
             <FaVideo size={14} />
           </button>
@@ -389,34 +516,30 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
           <button
             onClick={handleExpand}
             className="hover:bg-green-700 p-1.5 rounded"
-            title={t("expandToFullChat")}
           >
             <FaExpand size={14} />
           </button>
           <button
             onClick={onMinimize}
             className="hover:bg-green-700 p-1.5 rounded"
-            title={isMinimized ? t("maximize") : t("minimize")}
           >
             <FaMinus size={14} />
           </button>
           <button
             onClick={onClose}
             className="hover:bg-green-700 p-1.5 rounded"
-            title={t("close")}
           >
             <FaTimes size={14} />
           </button>
         </div>
       </div>
 
-      {/* ✅ Call Status Banner */}
       {isRinging && (
         <div className="bg-yellow-100 border-b border-yellow-300 px-3 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" />
             <span className="text-xs text-yellow-800 font-medium">
-              {t("ringing") || "Đang gọi..."}
+              {t("callingUser")}
             </span>
           </div>
           <button
@@ -426,20 +549,29 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
             }}
             className="text-xs text-red-600 hover:text-red-800 font-medium"
           >
-            {t("cancel") || "Hủy"}
+            {t("cancel")}
           </button>
         </div>
       )}
 
-      {/* Body - Messages */}
       {!isMinimized && (
         <>
           <div
-            ref={messageContainerRef}
-            className="flex-1 p-3 space-y-2 bg-gray-50 overflow-y-auto"
+            ref={containerRef}
+            className="flex-1 p-3 space-y-2 bg-gray-50 overflow-y-auto flex flex-col"
           >
+            <div className="flex justify-center py-6">
+              <div ref={topSentinelRef} className="w-full h-12">
+                {loadingMore && (
+                  <div className="flex justify-center items-center">
+                    <Spinner className="w-8 h-8 border-green-600" />
+                  </div>
+                )}
+              </div>
+            </div>
+
             {messages.length === 0 ? (
-              <div className="text-center text-gray-400 mt-10 text-sm">
+              <div className="text-center text-gray-400 mt-10 text-sm flex-1 flex items-center justify-center">
                 {t("noMessagesYet")}
               </div>
             ) : (
@@ -454,13 +586,14 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
                   onDelete={handleDeleteMessage}
                   onReply={setReplyingMessage}
                   isInPopup={true}
+                  currentUserId={currentUserId}
+                  userProfilesMap={userProfilesMap}
                 />
               ))
             )}
             <div ref={messageEndRef} />
           </div>
 
-          {/* Attachments Preview */}
           {attachments.length > 0 && (
             <div className="p-2 border-t border-gray-200 flex flex-wrap gap-2 bg-gray-100 max-h-24 overflow-y-auto">
               {attachments.map((file, i) => (
@@ -491,7 +624,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
             </div>
           )}
 
-          {/* Reply Preview */}
           {replyingMessage && (
             <div className="px-3 py-2 border-t border-gray-200 bg-gray-100 text-xs text-gray-600 italic flex justify-between items-center">
               <span className="truncate">
@@ -506,7 +638,6 @@ export const ChatBoxPopup: React.FC<ChatBoxPopupProps> = ({
             </div>
           )}
 
-          {/* Input Area */}
           <div className="p-2 border-t border-gray-200 flex items-center gap-2 bg-white">
             <label className="cursor-pointer text-gray-600 hover:text-gray-800">
               <FaPaperclip size={16} />

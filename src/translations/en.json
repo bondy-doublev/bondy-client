@@ -577,6 +577,7 @@
     "noMore": "No more videos"
   },
   "chat": {
+    "createNewGroup": "Create New Group",
     "callingUser": "Calling",
     "ringing": "Ringing",
     "videoCall": "Video Call",

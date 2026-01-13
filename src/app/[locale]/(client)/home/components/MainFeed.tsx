@@ -27,7 +27,7 @@ export default function MainFeed({ className }: Props) {
   const [isReloading, setIsReloading] = useState(false);
 
   const t = useTranslations("post");
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
 
   const fetchPosts = async (page: number, reset = false) => {
     setLoading(true);

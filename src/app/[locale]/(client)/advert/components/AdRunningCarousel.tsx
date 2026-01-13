@@ -77,7 +77,7 @@ export default function AdRunningCarousel() {
       <div className="relative h-[180px] bg-gray-100">
         {currentAd.media[0]?.type === "IMAGE" ? (
           <img
-            src={currentAd.media[0].url}
+            src={resolveFileUrl(currentAd.media[0].url)}
             className="w-full h-full object-cover"
             alt={currentAd.title}
           />
@@ -109,7 +109,7 @@ export default function AdRunningCarousel() {
         <div className="flex items-center gap-2 mb-1">
           {currentAd.userAvatar ? (
             <img
-              src={currentAd.userAvatar}
+              src={resolveFileUrl(currentAd.userAvatar)}
               className="w-6 h-6 rounded-full object-cover"
               alt={currentAd.accountName}
             />

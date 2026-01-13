@@ -333,7 +333,9 @@ export default function PostComposerModal({
 
   return (
     <div>
-      <Dialog open={showModal} onOpenChange={handleClose}>
+      <Dialog
+        open={showModal}
+      >
         <DialogOverlay className="fixed inset-0 bg-black/30" />
         <DialogContent
           className="
