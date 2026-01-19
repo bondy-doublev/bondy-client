@@ -1,20 +1,22 @@
 import { locales, defaultLocale } from "@/i18n/config";
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_ROUTES = ["/home", "/chat", "/profile", "/settings", "/friends"];
+// const PROTECTED_ROUTES = ["/home", "/chat", "/profile", "/settings", "/friends"];
+const PROTECTED_ROUTES: string[] = [];
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   /* ================= i18n ================= */
   const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+    (locale) =>
+      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
 
   if (pathnameIsMissingLocale) {
     const redirectUrl = new URL(
       `/${defaultLocale}${pathname}${search}`,
-      request.url
+      request.url,
     );
     return NextResponse.redirect(redirectUrl);
   }
@@ -24,7 +26,7 @@ export function middleware(request: NextRequest) {
   const pathnameWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
 
   const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
-    pathnameWithoutLocale.startsWith(route)
+    pathnameWithoutLocale.startsWith(route),
   );
 
   // 🔐 cookie-based auth

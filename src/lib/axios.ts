@@ -89,7 +89,7 @@ api.interceptors.response.use(
             headers: {
               "x-api-key": apiKey,
             },
-          }
+          },
         );
 
         const newAccessToken = res.data.data.accessToken;
@@ -116,5 +116,5 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
