@@ -30,7 +30,7 @@ export default function Page() {
         />
       </div>
       {userInfo && (
-        <WallFeed wallOwner={userInfo} className="w-full max-w-[550px]" />
+        <WallFeed wallOwner={userInfo} className="w-full max-w-full" />
       )}
     </div>
   );

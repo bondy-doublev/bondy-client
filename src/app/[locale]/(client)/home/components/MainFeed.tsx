@@ -96,7 +96,7 @@ export default function MainFeed({ className }: Props) {
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
 
     if (loaderRef.current) observer.observe(loaderRef.current);
@@ -124,13 +124,13 @@ export default function MainFeed({ className }: Props) {
         }
 
         return p;
-      })
+      }),
     );
 
     setSelectedPost((prev) =>
       prev && prev.id === postId
         ? { ...prev, commentCount: (prev.commentCount ?? 0) + delta }
-        : prev
+        : prev,
     );
   };
 
@@ -151,14 +151,14 @@ export default function MainFeed({ className }: Props) {
 
           return p;
         })
-        .filter((p): p is Post => p !== null)
+        .filter((p): p is Post => p !== null),
     );
 
     setSelectedPost((prev) => (prev?.id === postId ? null : prev));
   };
 
   return (
-    <div className={`max-w-[550px] space-y-6 mb-4 ${className ?? ""}`}>
+    <div className={`max-w-[600px] space-y-6 mb-4 ${className ?? ""}`}>
       {/* Reels của tôi + bạn bè */}
       <VisibleReels />
 

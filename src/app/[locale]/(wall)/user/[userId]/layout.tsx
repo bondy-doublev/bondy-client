@@ -51,7 +51,7 @@ export default function WallLayout({
   }
 
   return (
-    <div className="flex flex-col w-full justify-center gap-4 items-center lg:w-[65%]">
+    <div className="flex flex-col w-full justify-center gap-4 items-center lg:w-[55%] max-w-5xl">
       {/* Header user */}
       <WallHeader wallUser={userInfo} />
 
